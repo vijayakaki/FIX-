@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+test_auth.py
+minimal_test.py
+server_simple.py
+start_server.py
+run.py
+START_SERVER.bat
+test-login.html
+*.md
+SERVER_TROUBLESHOOTING.md
+LOGIN_IMPLEMENTATION.md

@@ -1,0 +1,14 @@
+.vercel
+.venv/
+__pycache__/
+*.pyc
+.env
+fixapp.db
+*.db
+test_auth.py
+minimal_test.py
+server_simple.py
+start_server.py
+run.py
+START_SERVER.bat
+test-login.html
