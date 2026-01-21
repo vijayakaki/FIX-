@@ -1290,12 +1290,6 @@
         // App is publicly accessible
         console.log('✓ FIX$ GeoEquity Impact Engine loaded');
         
-        // Set default user if no user exists
-        const currentUser = { username: 'Guest User', email: 'guest@fixapp.com' };
-        
-        // Update user display
-        document.getElementById('userDisplay').textContent = `👤 ${currentUser.username}`;
-        
         // Dummy logout function (just refreshes page)
         function logout() {
             window.location.reload();
