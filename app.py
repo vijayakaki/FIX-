@@ -1301,44 +1301,6 @@ def get_ejv_v2_help():
         "key_insight": "EJV v2 answers: 'For every $100 spent, how many dollars create justice-weighted local economic impact across 9 dimensions of equity?'"
     }
     return jsonify(help_content)
-            "local_capture": "0.3 + (0.60 × 0.7) = 0.72 (72%)",
-            "median_income": "$40,000",
-            "unemployment": "8%",
-            "justice_score": "100 - (40000/100000 × 50) + (8 × 5) = 80",
-            "ejv_v2": "($100 × 0.72) × (80/100) = $57.60",
-            "interpretation": "Each $100 spent creates $57.60 in justice-weighted local impact"
-        },
-        "data_sources": [
-            {
-                "source": "BLS OEWS (Bureau of Labor Statistics)",
-                "data": "Real wage data from May 2024 national estimates",
-                "url": "https://www.bls.gov/oes/current/oes_nat.htm"
-            },
-            {
-                "source": "US Census Bureau ACS 5-Year Data",
-                "data": "Median household income, unemployment rates by ZIP code",
-                "url": "https://api.census.gov/data/2022/acs/acs5/profile"
-            },
-            {
-                "source": "Industry Employment Research",
-                "data": "Average employees per establishment by NAICS code",
-                "url": "BLS Business Employment Dynamics & industry reports"
-            },
-            {
-                "source": "Economic Multiplier Theory",
-                "data": "Local economic circulation and wealth retention models",
-                "url": "Community economic development research"
-            }
-        ],
-        "advantages": [
-            "Dollar-denominated: Easy to understand real economic impact",
-            "Equity-adjusted: Rewards businesses serving disadvantaged areas",
-            "Scalable: Works for any purchase amount",
-            "Transparent: Clear calculation of where money goes"
-        ],
-        "key_insight": "EJV v2 answers: 'For every $100 spent, how many dollars create justice-weighted local economic impact?'"
-    }
-    return jsonify(help_content)
 
 @app.route('/', methods=['GET'])
 @app.route('/index.html', methods=['GET'])

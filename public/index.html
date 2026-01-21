@@ -2127,9 +2127,52 @@ out center;`;
             const totalWealth = wealthRetained + wealthLeakage;
             const retainedPercent = totalWealth > 0 ? (wealthRetained / totalWealth) * 100 : 0;
             const leakagePercent = totalWealth > 0 ? (wealthLeakage / totalWealth) * 100 : 0;
+            
+            // Determine EJV v1 impact category and styling
+            let impactCategory, impactColor, impactBg, impactBorder, impactLabel;
+            if (ejvV1 >= 75) {
+                impactCategory = 'Excellent';
+                impactLabel = '🌟 Outstanding';
+                impactColor = '#1b5e20';
+                impactBg = 'linear-gradient(135deg, #c8e6c9 0%, #a5d6a7 100%)';
+                impactBorder = '#4caf50';
+            } else if (ejvV1 >= 50) {
+                impactCategory = 'Good';
+                impactLabel = '👍 Good';
+                impactColor = '#01579b';
+                impactBg = 'linear-gradient(135deg, #b3e5fc 0%, #81d4fa 100%)';
+                impactBorder = '#03a9f4';
+            } else if (ejvV1 >= 25) {
+                impactCategory = 'Fair';
+                impactLabel = '⚠️ Moderate';
+                impactColor = '#e65100';
+                impactBg = 'linear-gradient(135deg, #ffe0b2 0%, #ffcc80 100%)';
+                impactBorder = '#ff9800';
+            } else {
+                impactCategory = 'Poor';
+                impactLabel = '⚡ Limited';
+                impactColor = '#b71c1c';
+                impactBg = 'linear-gradient(135deg, #ffcdd2 0%, #ef9a9a 100%)';
+                impactBorder = '#f44336';
+            }
 
-            // Main EJV scores
+            // Main EJV scores with impact indicator
             document.getElementById('ejvV1Display').textContent = ejvV1.toFixed(2);
+            document.getElementById('ejvV1Display').parentElement.style.background = impactBg;
+            document.getElementById('ejvV1Display').parentElement.style.borderColor = impactBorder;
+            document.getElementById('ejvV1Display').style.color = impactColor;
+            
+            // Add impact label
+            const ejvV1Container = document.getElementById('ejvV1Display').parentElement;
+            let impactBadge = ejvV1Container.querySelector('.impact-badge');
+            if (!impactBadge) {
+                impactBadge = document.createElement('div');
+                impactBadge.className = 'impact-badge';
+                ejvV1Container.appendChild(impactBadge);
+            }
+            impactBadge.textContent = impactLabel;
+            impactBadge.style.cssText = `font-size: 9px; font-weight: 700; color: ${impactColor}; margin-top: 4px; text-transform: uppercase;`;
+            
             document.getElementById('ejvV2Display').textContent = '$' + ejvV2.toFixed(2);
 
             // Wealth metrics as percentages
