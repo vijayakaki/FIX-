@@ -1286,66 +1286,30 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // ===== AUTHENTICATION CHECK =====
-        // Check if user is logged in
-        const sessionToken = localStorage.getItem('fixapp_session');
-        const userDataStr = localStorage.getItem('fixapp_user');
+        // ===== NO AUTHENTICATION REQUIRED =====
+        // App is publicly accessible
+        console.log('✓ FIX$ GeoEquity Impact Engine loaded');
         
-        if (!sessionToken || !userDataStr) {
-            // Not logged in - redirect to login page
-            console.log('No session found, redirecting to login...');
-            window.location.href = '/login-simple.html';
-        } else {
-            console.log('✓ Session found in localStorage');
-        }
+        // Set default user if no user exists
+        const currentUser = { username: 'Guest User', email: 'guest@fixapp.com' };
         
-        // Try to verify session with server (but don't fail if server session expired)
-        fetch('/api/user', {
-            headers: {
-                'Authorization': `Bearer ${sessionToken}`
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                console.log('✓ Server session verified:', data.user.username);
-            } else {
-                console.log('⚠ Server session expired, but localStorage session valid - continuing');
-                // Don't redirect - trust localStorage on serverless
-            }
-        })
-        .catch(error => {
-            console.log('⚠ Could not verify server session:', error.message);
-            console.log('✓ Using localStorage session - continuing anyway');
-            // Allow to continue - trust localStorage
-        });
+        // Update user display
+        document.getElementById('userDisplay').textContent = `👤 ${currentUser.username}`;
         
-        // Clear localStorage on first load if needed (for testing)
-        if (window.location.hash === '#clearauth') {
-            localStorage.removeItem('fixapp_user');
-            localStorage.removeItem('fixapp_session');
-            window.location.hash = '';
-            window.location.href = '/login-simple.html';
+        // Dummy logout function (just refreshes page)
+        function logout() {
+            window.location.reload();
         }
         
         let map;
         let markers = [];
-        let currentUser = { username: 'User' };
+        let currentUser = { username: 'Guest User', email: 'guest@fixapp.com' };
         let storeData = [];
         let ejvData = {};
         let decisionMode = 'locator';
         let allStoresEJV = [];
         let ejvCache = {}; // Cache EJV calculations by store ID
         let hoverDebounceTimer = null; // Debounce hover events
-        
-        // Load user data from localStorage
-        try {
-            const userData = JSON.parse(userDataStr);
-            currentUser = userData;
-            console.log('Logged in as:', userData.username);
-        } catch (e) {
-            console.error('Failed to parse user data:', e);
-        }
 
         // Custom marker icons
         const storeIcons = {
@@ -2351,10 +2315,9 @@ out center;`;
                         <div class="help-component">
                             <h4>Example: ${example.scenario}</h4>
                             <p><strong>Purchase:</strong> ${example.purchase}</p>
-                            <p><strong>Local Hire Rate:</strong> ${example.local_hire}</p>
                             <p><strong>Local Capture:</strong> ${example.local_capture}</p>
-                            <p><strong>Median Income:</strong> ${example.median_income}</p>
-                            <p><strong>Unemployment:</strong> ${example.unemployment}</p>
+                            <p><strong>Base Dimensions:</strong> ${example.base_dimensions}</p>
+                            <p><strong>Adjusted Dimensions:</strong> ${example.adjusted_dimensions}</p>
                             <p><strong>Justice Score:</strong> ${example.justice_score}</p>
                             <p><strong>EJV v2 Result:</strong> ${example.ejv_v2}</p>
                             <p style="background: #e3f2fd; padding: 10px; border-radius: 6px; margin-top: 10px;">
@@ -2365,6 +2328,56 @@ out center;`;
                     document.getElementById('helpExample').innerHTML = exampleHtml;
                 } else {
                     exampleSection.style.display = 'none';
+                }
+                
+                // Nine Dimensions (only for v2)
+                const dimensionsSection = document.getElementById('helpNineDimensionsSection');
+                if (helpData.nine_dimensions && version === 'v2') {
+                    dimensionsSection.style.display = 'block';
+                    
+                    const dims = helpData.nine_dimensions;
+                    const dimensionsHtml = `
+                        <p><strong>${dims.description}</strong></p>
+                        ${dims.dimensions.map((dim, idx) => `
+                            <div class="help-component" style="border-left: 4px solid ${idx < 3 ? '#ff9800' : '#667eea'};">
+                                <h4>${dim.code}: ${dim.name} ${idx < 3 ? '⚡' : ''}</h4>
+                                <p><strong>Calculation:</strong> ${dim.calculation}</p>
+                                <p><strong>Modifier:</strong> ${dim.modifier}</p>
+                                <p><strong>Represents:</strong> ${dim.represents}</p>
+                            </div>
+                        `).join('')}
+                        
+                        <div class="help-component" style="background: #fff8e1; border-left: 4px solid #ff9800;">
+                            <h4>⚡ ZIP Need Modifiers (NM)</h4>
+                            <p>${dims.zip_need_modifiers.description}</p>
+                            <p><strong>Range:</strong> ${dims.zip_need_modifiers.range}</p>
+                            <p><strong>Factors:</strong></p>
+                            <ul>
+                                ${dims.zip_need_modifiers.factors.map(f => `<li>${f}</li>`).join('')}
+                            </ul>
+                            <p><strong>Examples:</strong></p>
+                            <ul>
+                                ${dims.zip_need_modifiers.examples.map(e => `<li>${e}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
+                    document.getElementById('helpNineDimensions').innerHTML = dimensionsHtml;
+                } else {
+                    dimensionsSection.style.display = 'none';
+                }
+                
+                // Advantages (only for v2)
+                const advantagesSection = document.getElementById('helpAdvantagesSection');
+                if (helpData.advantages && version === 'v2') {
+                    advantagesSection.style.display = 'block';
+                    const advantagesHtml = `
+                        <ul>
+                            ${helpData.advantages.map(adv => `<li>${adv}</li>`).join('')}
+                        </ul>
+                    `;
+                    document.getElementById('helpAdvantages').innerHTML = advantagesHtml;
+                } else {
+                    advantagesSection.style.display = 'none';
                 }
                 
                 // Show modal
@@ -2420,6 +2433,16 @@ out center;`;
                 <div class="help-section" id="helpExampleSection" style="display: none;">
                     <h3>💡 Example Calculation</h3>
                     <div id="helpExample"></div>
+                </div>
+                
+                <div class="help-section" id="helpNineDimensionsSection" style="display: none;">
+                    <h3>🌟 9 Justice Dimensions</h3>
+                    <div id="helpNineDimensions"></div>
+                </div>
+                
+                <div class="help-section" id="helpAdvantagesSection" style="display: none;">
+                    <h3>✨ Key Advantages</h3>
+                    <div id="helpAdvantages"></div>
                 </div>
                 
                 <div class="help-section" id="helpInterpretationSection" style="display: none;">

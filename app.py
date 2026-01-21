@@ -1137,13 +1137,13 @@ def get_ejv_v1_help():
 
 @app.route('/api/ejv-v2/help', methods=['GET'])
 def get_ejv_v2_help():
-    """Get EJV v2 calculation guide, data sources, and explanation"""
+    """Get EJV v2 calculation guide with 9 dimensions, data sources, and explanation"""
     help_content = {
         "title": "EJV v2: Justice-Weighted Local Impact",
-        "subtitle": "Dollar-Based Impact Metric",
-        "description": "EJV v2 transforms traditional scoring into a dollar-based metric that quantifies the justice-weighted local economic impact of every purchase. This incorporates equity adjustments based on ZIP-code level economic conditions.",
+        "subtitle": "Dollar-Based Impact Metric with 9 Justice Dimensions",
+        "description": "EJV v2 transforms traditional scoring into a dollar-based metric that quantifies the justice-weighted local economic impact of every purchase. This incorporates a comprehensive 9-dimension equity assessment adjusted for ZIP-code level economic conditions.",
         "formula": "EJV v2 = (P × LC) × (JS_ZIP / 100)",
-        "formula_explanation": "For every $100 spent, EJV v2 calculates how many dollars create justice-weighted local economic impact.",
+        "formula_explanation": "For every $100 spent, EJV v2 calculates how many dollars create justice-weighted local economic impact across 9 dimensions of equity.",
         "components": [
             {
                 "name": "Purchase Amount (P)",
@@ -1154,30 +1154,153 @@ def get_ejv_v2_help():
             {
                 "name": "Local Capture (LC)",
                 "description": "The percentage of economic value that remains in the local community through local hiring practices.",
-                "calculation": "LC = 0.3 + (local_hire_pct × 0.7)",
-                "range": "30% to 100%",
+                "calculation": "LC = Local Hire Percentage (0.00 - 1.00)",
+                "range": "40% to 98%",
                 "factors": [
-                    "Assumes 30% minimum baseline circulation",
-                    "Increases proportionally with local hiring percentage",
-                    "100% local hiring = 100% local capture"
+                    "Store-specific hiring practices",
+                    "Unemployment adjustment: +0-20% bonus in high-unemployment areas",
+                    "Higher LC = More wages circulating locally"
                 ]
             },
             {
                 "name": "Justice Score (JS_ZIP)",
-                "description": "ZIP-code level equity adjustment based on economic conditions.",
-                "calculation": "100 - (median_income / 100000 × 50) + (unemployment × 5)",
+                "description": "A comprehensive 0-100 score measuring equity quality across 9 dimensions, adjusted for local economic need.",
+                "calculation": "JS_ZIP = Average(All 9 Adjusted Dimensions) × 100",
                 "range": "0-100 points",
-                "factors": [
-                    "Lower income areas receive higher justice scores",
-                    "Higher unemployment increases the score",
-                    "Recognizes businesses serving disadvantaged communities"
-                ]
+                "interpretation": {
+                    "90-100": "Exceptional equity quality",
+                    "70-89": "Strong equity performance",
+                    "50-69": "Moderate equity performance",
+                    "30-49": "Needs improvement",
+                    "0-29": "Significant equity concerns"
+                }
             }
         ],
+        "nine_dimensions": {
+            "title": "9 Justice Dimensions",
+            "description": "Each dimension is normalized to 0-1 scale, with ZIP Need Modifiers (NM) applied to 3 dimensions (AES, ART, HWI) based on local economic conditions.",
+            "dimensions": [
+                {
+                    "code": "AES",
+                    "name": "Access to Essential Services",
+                    "calculation": "Community Score (local reinvestment)",
+                    "modifier": "ZIP Need Modifier applied (0.80-1.10)",
+                    "represents": "Local reinvestment in essential services"
+                },
+                {
+                    "code": "ART",
+                    "name": "Access to Resources & Technology",
+                    "calculation": "Wage Score (wages enable resource access)",
+                    "modifier": "ZIP Need Modifier applied (0.80-1.10)",
+                    "represents": "Wages enable technology and resource access"
+                },
+                {
+                    "code": "HWI",
+                    "name": "Health, Wellness & Inclusion",
+                    "calculation": "Hiring Score (local hiring promotes inclusion)",
+                    "modifier": "ZIP Need Modifier applied (0.80-1.10)",
+                    "represents": "Local hiring promotes community health and inclusion"
+                },
+                {
+                    "code": "PSR",
+                    "name": "Public Service Representation",
+                    "calculation": "Community Score",
+                    "modifier": "No modifier",
+                    "represents": "Community participation in public services"
+                },
+                {
+                    "code": "CAI",
+                    "name": "Cultural Awareness & Inclusivity",
+                    "calculation": "Participation Score",
+                    "modifier": "No modifier",
+                    "represents": "Workforce diversity and cultural inclusion"
+                },
+                {
+                    "code": "JCE",
+                    "name": "Job Creation & Economic Empowerment",
+                    "calculation": "Hiring Score",
+                    "modifier": "No modifier",
+                    "represents": "Local employment opportunities created"
+                },
+                {
+                    "code": "FSI",
+                    "name": "Financial Support & Investment",
+                    "calculation": "Wage Score",
+                    "modifier": "No modifier",
+                    "represents": "Financial capacity of local workforce"
+                },
+                {
+                    "code": "CED",
+                    "name": "Community Engagement & Development",
+                    "calculation": "Average(Community Score, Participation Score)",
+                    "modifier": "No modifier",
+                    "represents": "Level of civic engagement and development"
+                },
+                {
+                    "code": "ESD",
+                    "name": "Education & Skill Development",
+                    "calculation": "Hiring Score",
+                    "modifier": "No modifier",
+                    "represents": "Training and skill development opportunities"
+                }
+            ],
+            "zip_need_modifiers": {
+                "description": "Adjusts 3 dimensions (AES, ART, HWI) based on local economic need to recognize equity work in disadvantaged areas",
+                "range": "0.80 (low need) to 1.10 (high need)",
+                "factors": [
+                    "Unemployment Rate: Higher unemployment = higher modifier",
+                    "Median Income: Lower income = higher modifier",
+                    "Applied to AES, ART, HWI to boost scores in high-need areas"
+                ],
+                "examples": [
+                    "Manhattan (10001): Low need, NM ≈ 0.90-0.93",
+                    "South LA (90011): Very high need, NM ≈ 1.05-1.10",
+                    "Chicago SW (60629): High need, NM ≈ 1.00-1.05"
+                ]
+            }
+        },
         "example_calculation": {
-            "scenario": "Store in economically disadvantaged area",
+            "scenario": "Supermarket in Manhattan (ZIP 10001)",
             "purchase": "$100",
-            "local_hire": "60%",
+            "local_capture": "82% (0.82)",
+            "base_dimensions": "9 dimensions calculated from wage, hiring, community, participation scores",
+            "adjusted_dimensions": "AES, ART, HWI adjusted by ZIP Need Modifier (~0.925 for Manhattan)",
+            "justice_score": "70.6 (average of all 9 adjusted dimensions × 100)",
+            "ejv_v2": "$57.89",
+            "interpretation": "Each $100 spent creates $57.89 in justice-weighted local economic impact"
+        },
+        "data_sources": [
+            {
+                "source": "BLS OEWS (Bureau of Labor Statistics)",
+                "data": "Real wage data from May 2024 national estimates",
+                "url": "https://www.bls.gov/oes/current/oes_nat.htm"
+            },
+            {
+                "source": "US Census Bureau ACS 5-Year Data",
+                "data": "Median household income, unemployment rates by ZIP code",
+                "url": "https://api.census.gov/data/2022/acs/acs5/profile"
+            },
+            {
+                "source": "Industry Employment Research",
+                "data": "Average employees per establishment by NAICS code",
+                "url": "BLS Business Employment Dynamics & industry reports"
+            },
+            {
+                "source": "Economic Multiplier Theory",
+                "data": "Local economic circulation and wealth retention models",
+                "url": "Community economic development research"
+            }
+        ],
+        "advantages": [
+            "Dollar-denominated: Easy to understand real economic impact",
+            "9 comprehensive equity dimensions covering all aspects of justice",
+            "Equity-adjusted: ZIP Need Modifiers reward businesses serving disadvantaged areas",
+            "Scalable: Works for any purchase amount",
+            "Transparent: Clear calculation of where money goes and how equity is measured"
+        ],
+        "key_insight": "EJV v2 answers: 'For every $100 spent, how many dollars create justice-weighted local economic impact across 9 dimensions of equity?'"
+    }
+    return jsonify(help_content)
             "local_capture": "0.3 + (0.60 × 0.7) = 0.72 (72%)",
             "median_income": "$40,000",
             "unemployment": "8%",
