@@ -1884,9 +1884,6 @@ out center;`;
                 map.fitBounds(group.getBounds(), { padding: [50, 50] });
                 console.log(`Map fitted to ${markers.length} markers`);
             }
-
-            // Update dashboard stats
-            updateDashboardStats();
         }
 
         async function calculateEJV(storeId, storeName, showDashboard = false) {
