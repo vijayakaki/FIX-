@@ -731,17 +731,20 @@ def overpass_proxy():
         
         print(f"Optimized query: {query[:150]}...")
         
-        # Multiple backup servers with different endpoints
+        # Multiple backup servers with different endpoints (8 servers for better reliability)
         servers = [
-            'https://overpass.kumi.systems/api/interpreter',  # Often faster
-            'https://overpass-api.de/api/interpreter',
+            'https://overpass.kumi.systems/api/interpreter',  # Often fastest
+            'https://overpass-api.de/api/interpreter',        # Main instance
             'https://overpass.openstreetmap.ru/api/interpreter',
             'https://overpass.openstreetmap.fr/api/interpreter',
-            'https://overpass.nchc.org.tw/api/interpreter'
+            'https://overpass.nchc.org.tw/api/interpreter',   # Taiwan mirror
+            'https://maps.mail.ru/osm/tools/overpass/api/interpreter',  # Russia
+            'https://overpass.openstreetmap.ie/api/interpreter',  # Ireland
+            'https://overpass-turbo.eu/api/interpreter'       # EU mirror
         ]
         
         last_error = None
-        retry_delays = [0, 2, 3]  # Progressive backoff
+        retry_delays = [0, 1, 2]  # Faster progressive backoff
         
         # Try each server with retries
         for i, server in enumerate(servers):
@@ -753,7 +756,7 @@ def overpass_proxy():
                     response = requests.post(
                         server,
                         data=query,
-                        timeout=25,
+                        timeout=30,  # Slightly longer timeout for 503 resilience
                         headers={
                             'User-Agent': 'FIX-GeoEquity/1.0',
                             'Accept': 'application/json'
@@ -770,6 +773,12 @@ def overpass_proxy():
                         print(f"✗ Server {i+1} rate limited")
                         last_error = error_msg
                         time.sleep(3)  # Wait longer for rate limit
+                    elif response.status_code == 503:
+                        error_msg = "Service unavailable (503)"
+                        print(f"✗ Server {i+1} temporarily unavailable (503)")
+                        last_error = error_msg
+                        # Continue to next server immediately for 503
+                        break
                     elif response.status_code == 504:
                         error_msg = "Gateway timeout - query too complex"
                         print(f"✗ Server {i+1} timeout: {error_msg}")
@@ -791,19 +800,20 @@ def overpass_proxy():
                     if retry == 0:
                         time.sleep(1)  # Brief wait before retry
                 
-                # Small delay between retries
-                if retry < 1:
+                # Small delay between retries (not for 503, move to next server fast)
+                if retry < 1 and last_error != "Service unavailable (503)":
                     time.sleep(0.5)
             
-            # Delay before trying next server
-            if i < len(servers) - 1 and i < len(retry_delays):
-                time.sleep(retry_delays[i])
+            # Shorter delay before trying next server (faster failover for 503)
+            if i < len(servers) - 1:
+                delay = 0.3 if last_error == "Service unavailable (503)" else (retry_delays[i] if i < len(retry_delays) else 1)
+                time.sleep(delay)
         
         # All servers failed - provide helpful message
-        print(f"❌ All Overpass servers failed. Last error: {last_error}")
+        print(f"❌ All {len(servers)} Overpass servers failed. Last error: {last_error}")
         return jsonify({
-            "error": "Overpass API temporarily unavailable. Please try: (1) Reduce search radius, (2) Wait 30 seconds and retry, (3) Try different location",
-            "details": last_error,
+            "error": "All Overpass servers temporarily unavailable. Try: (1) Reduce radius to 1-2 miles, (2) Wait 30-60 seconds, (3) Different location/category",
+            "details": f"Tried {len(servers)} servers. Last error: {last_error}",
             "elements": []
         }), 503
         

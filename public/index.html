@@ -1698,26 +1698,32 @@ out center;`;
                 console.error('Error:', error);
                 const errorMessage = error.message || 'Unknown error occurred';
                 
+                // Detect 503 errors specifically
+                const is503Error = errorMessage.includes('503') || errorMessage.includes('unavailable') || errorMessage.includes('Service unavailable');
+                
                 // Show user-friendly error with retry button
                 showResult(`❌ ${errorMessage}`);
                 
-                // Add retry button to store list
+                // Add retry button to store list with specific guidance for 503
                 const storeListDiv = document.getElementById('storeList');
+                const bgColor = is503Error ? '#ffe6e6' : '#fff3cd';
+                const borderColor = is503Error ? '#dc3545' : '#ffc107';
+                const textColor = is503Error ? '#721c24' : '#856404';
+                
                 storeListDiv.innerHTML = `
-                    <div style="padding: 15px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 6px; margin: 10px 0;">
-                        <div style="font-size: 13px; color: #856404; margin-bottom: 10px;">
-                            <strong>⚠️ Search Failed</strong><br>
+                    <div style="padding: 15px; background: ${bgColor}; border-left: 4px solid ${borderColor}; border-radius: 6px; margin: 10px 0;">
+                        <div style="font-size: 13px; color: ${textColor}; margin-bottom: 10px;">
+                            <strong>${is503Error ? '🔴 Server Overload (503)' : '⚠️ Search Failed'}</strong><br>
                             ${errorMessage.replace(/\n/g, '<br>')}
                         </div>
-                        <div style="font-size: 12px; color: #856404; margin-bottom: 10px;">
-                            <strong>Suggestions:</strong><br>
-                            • Reduce search radius (try 1-2 miles)<br>
-                            • Wait 30 seconds and try again<br>
-                            • Try a different location or category<br>
-                            • Search in major cities for better results
+                        <div style="font-size: 12px; color: ${textColor}; margin-bottom: 10px;">
+                            <strong>${is503Error ? 'Quick Fixes:' : 'Suggestions:'}</strong><br>
+                            ${is503Error ? 
+                                '• <strong>Reduce radius to 1 mile</strong> and retry immediately<br>• Try a major city like New York, Los Angeles, Chicago<br>• Wait 60 seconds if all servers are busy<br>• Use "Grocery" or "Restaurant" categories (better data)' :
+                                '• Reduce search radius (try 1-2 miles)<br>• Wait 30 seconds and try again<br>• Try a different location or category<br>• Search in major cities for better results'}
                         </div>
                         <button onclick="location.reload()" 
-                                style="background: #ffc107; color: #000; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer; font-weight: 600;">
+                                style="background: ${borderColor}; color: ${is503Error ? '#fff' : '#000'}; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer; font-weight: 600;">
                             🔄 Refresh & Retry
                         </button>
                     </div>
