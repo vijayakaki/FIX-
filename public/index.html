@@ -1410,32 +1410,10 @@
             `;
         }
 
-        // Logout function
+        // Logout function - just reload the page (no login required)
         function handleLogout() {
-            const sessionToken = localStorage.getItem('fixapp_session');
-            
-            // Call logout API
-            fetch('/api/logout', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ session_token: sessionToken })
-            })
-            .then(() => {
-                // Clear local storage
-                localStorage.removeItem('fixapp_session');
-                localStorage.removeItem('fixapp_user');
-                // Redirect to login
-                window.location.href = '/login-simple.html';
-            })
-            .catch(error => {
-                console.error('Logout error:', error);
-                // Still clear and redirect even if API fails
-                localStorage.removeItem('fixapp_session');
-                localStorage.removeItem('fixapp_user');
-                window.location.href = '/login-simple.html';
-            });
+            console.log('Refreshing application...');
+            window.location.reload();
         }
 
         // Initialize
