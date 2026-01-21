@@ -507,12 +507,18 @@
             background: transparent !important;
             border: none !important;
             cursor: pointer;
+            z-index: 1000 !important;
         }
 
         .leaflet-marker-icon.custom-marker {
             display: flex !important;
             align-items: center;
             justify-content: center;
+            pointer-events: auto !important;
+        }
+        
+        .leaflet-marker-icon {
+            z-index: 1000 !important;
         }
 
         /* Loading Overlay */
@@ -1665,13 +1671,15 @@ out center;`;
                 console.log('✓ Got response:', data.elements?.length || 0, 'elements');
                 const stores = data.elements;
 
-                if (stores.length === 0) {
+                if (!stores || stores.length === 0) {
                     showResult('No stores found in this area. Try: (1) Larger radius, (2) Different category, or (3) Different location.');
-                    document.getElementById('storeList').innerHTML = '<div style=\"padding: 10px; color: #666; font-size: 12px;\">💡 Tip: Some areas have limited data. Try searching in major cities or use \"All Stores\" category.</div>';
+                    document.getElementById('storeList').innerHTML = '<div style="padding: 10px; color: #666; font-size: 12px;">💡 Tip: Some areas have limited data. Try searching in major cities or use "All Stores" category.</div>';
+                    console.warn('No stores returned from Overpass API');
                     return;
                 }
 
                 console.log(`Found ${stores.length} stores, calling displayStores`);
+                console.log('Sample store data:', stores[0]);
                 showResult(`Found ${stores.length} store(s)`);
                 displayStores(stores);
                 console.log(`Markers on map: ${markers.length}`);
