@@ -935,21 +935,30 @@
         }
 
         .help-btn {
-            background: none;
-            border: none;
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid currentColor;
             color: #667eea;
             cursor: pointer;
-            font-size: 16px;
-            padding: 4px 8px;
-            border-radius: 4px;
-            transition: all 0.2s;
+            font-size: 18px;
+            padding: 6px 10px;
+            border-radius: 50%;
+            transition: all 0.3s;
             vertical-align: middle;
             margin-left: 8px;
+            display: inline-block;
+            line-height: 1;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         .help-btn:hover {
-            background: rgba(102, 126, 234, 0.1);
-            transform: scale(1.1);
+            background: #667eea;
+            color: white;
+            transform: scale(1.2) rotate(15deg);
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .help-btn:active {
+            transform: scale(1.1) rotate(15deg);
         }
 
         .help-insight {
@@ -1163,19 +1172,19 @@
                     </div>
                     
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
-                        <div style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); padding: 12px; border-radius: 6px; text-align: center; border: 2px solid #2196f3;">
+                        <div style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); padding: 12px; border-radius: 6px; text-align: center; border: 2px solid #2196f3; position: relative;">
                             <div id="ejvV1Display" style="font-size: 24px; font-weight: 700; color: #1976d2;">-</div>
                             <div style="font-size: 10px; color: #0d47a1; margin-top: 3px; text-transform: uppercase; font-weight: 600;">
                                 EJV v1 Score
-                                <button class="help-btn" onclick="showHelpModal('v1')" title="Learn about EJV v1">ℹ️</button>
                             </div>
+                            <button class="help-btn" onclick="showHelpModal('v1')" title="Learn about EJV v1 - Click for details" style="position: absolute; top: 8px; right: 8px;">❓</button>
                         </div>
-                        <div style="background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%); padding: 12px; border-radius: 6px; text-align: center; border: 2px solid #9c27b0;">
+                        <div style="background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%); padding: 12px; border-radius: 6px; text-align: center; border: 2px solid #9c27b0; position: relative;">
                             <div id="ejvV2Display" style="font-size: 24px; font-weight: 700; color: #7b1fa2;">-</div>
                             <div style="font-size: 10px; color: #4a148c; margin-top: 3px; text-transform: uppercase; font-weight: 600;">
                                 EJV v2 ($)
-                                <button class="help-btn" onclick="showHelpModal('v2')" title="Learn about EJV v2">ℹ️</button>
                             </div>
+                            <button class="help-btn" onclick="showHelpModal('v2')" title="Learn about EJV v2 - Click for details" style="position: absolute; top: 8px; right: 8px;">❓</button>
                         </div>
                     </div>
                     
