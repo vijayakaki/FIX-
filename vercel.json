@@ -16,16 +16,12 @@
       "dest": "api/index.py"
     },
     {
-      "src": "/login-simple.html",
-      "dest": "public/login-simple.html"
-    },
-    {
       "src": "/index.html",
       "dest": "public/index.html"
     },
     {
       "src": "/",
-      "dest": "public/login-simple.html"
+      "dest": "public/index.html"
     }
   ]
 }
