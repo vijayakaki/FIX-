@@ -53,7 +53,7 @@ def get_bls_wage_data(soc_code):
     """
     if soc_code in BLS_WAGE_DATA:
         wage_info = BLS_WAGE_DATA[soc_code]
-        print(f"✓ BLS OEWS: ${wage_info['wage']}/hr for {wage_info['title']} ({wage_info['updated']})")
+        print(f"[OK] BLS OEWS: ${wage_info['wage']}/hr for {wage_info['title']} ({wage_info['updated']})")
         return wage_info["wage"]
     
     print(f"BLS: No data for SOC {soc_code}, using industry standard")
@@ -98,7 +98,7 @@ def get_industry_employee_count(naics_code):
     """
     if naics_code in INDUSTRY_EMPLOYMENT:
         emp_data = INDUSTRY_EMPLOYMENT[naics_code]
-        print(f"✓ Industry Data: ~{emp_data['avg_employees']} employees for {emp_data['source']}")
+        print(f"[OK] Industry Data: ~{emp_data['avg_employees']} employees for {emp_data['source']}")
         return emp_data["avg_employees"]
     
     return None
@@ -128,7 +128,7 @@ def get_local_economic_indicators(zip_code):
                 # data[0] is headers, data[1] is values
                 unemployment_rate = float(data[1][1]) if data[1][1] and data[1][1] != 'null' else 5.0
                 median_income = int(float(data[1][2])) if data[1][2] and data[1][2] != 'null' else 50000
-                print(f"✓ Census API: ZIP {zip_code} - Unemployment: {unemployment_rate}%, Income: ${median_income}")
+                print(f"[OK] Census API: ZIP {zip_code} - Unemployment: {unemployment_rate}%, Income: ${median_income}")
                 return {
                     'unemployment_rate': unemployment_rate,
                     'median_income': median_income
@@ -250,7 +250,7 @@ def get_median_income(state_fips, county_fips, tract_fips):
             data = r.json()
             if len(data) > 1 and data[1][1] and data[1][1] != 'null':
                 income = int(data[1][1])
-                print(f"✓ Census API: Tract {state_fips}-{county_fips}-{tract_fips} - Income: ${income}")
+                print(f"[OK] Census API: Tract {state_fips}-{county_fips}-{tract_fips} - Income: ${income}")
                 return income
     except Exception as e:
         print(f"Census income API error: {e}")
@@ -766,36 +766,36 @@ def overpass_proxy():
                     if response.status_code == 200:
                         data = response.json()
                         result_count = len(data.get('elements', []))
-                        print(f"✓ Server {i+1} success: {result_count} results")
+                        print(f"[OK] Server {i+1} success: {result_count} results")
                         return jsonify(data), 200
                     elif response.status_code == 429:
                         error_msg = "Rate limited"
-                        print(f"✗ Server {i+1} rate limited")
+                        print(f"[FAIL] Server {i+1} rate limited")
                         last_error = error_msg
                         time.sleep(3)  # Wait longer for rate limit
                     elif response.status_code == 503:
                         error_msg = "Service unavailable (503)"
-                        print(f"✗ Server {i+1} temporarily unavailable (503)")
+                        print(f"[FAIL] Server {i+1} temporarily unavailable (503)")
                         last_error = error_msg
                         # Continue to next server immediately for 503
                         break
                     elif response.status_code == 504:
                         error_msg = "Gateway timeout - query too complex"
-                        print(f"✗ Server {i+1} timeout: {error_msg}")
+                        print(f"[FAIL] Server {i+1} timeout: {error_msg}")
                         last_error = error_msg
                         break  # Don't retry timeouts on same server
                     else:
                         error_msg = f"HTTP {response.status_code}"
-                        print(f"✗ Server {i+1} failed: {error_msg}")
+                        print(f"[FAIL] Server {i+1} failed: {error_msg}")
                         last_error = error_msg
                         
                 except requests.Timeout:
-                    print(f"✗ Server {i+1} connection timeout")
+                    print(f"[FAIL] Server {i+1} connection timeout")
                     last_error = "Connection timeout"
                     break  # Don't retry timeouts
                 except requests.RequestException as e:
                     error_str = str(e)[:100]
-                    print(f"✗ Server {i+1} error: {error_str}")
+                    print(f"[FAIL] Server {i+1} error: {error_str}")
                     last_error = error_str
                     if retry == 0:
                         time.sleep(1)  # Brief wait before retry
