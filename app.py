@@ -715,61 +715,104 @@ def logout():
 
 @app.route('/api/overpass', methods=['POST'])
 def overpass_proxy():
-    """Proxy for Overpass API requests with retry logic and caching"""
+    """Proxy for Overpass API requests with retry logic, optimization, and multiple fallbacks"""
     try:
         query = request.data.decode('utf-8')
         
-        # Multiple backup servers
+        # Optimize query - reduce timeout and add result limit if not present
+        if '[out:json]' in query and '[timeout:' not in query:
+            query = query.replace('[out:json]', '[out:json][timeout:25]')
+        elif '[timeout:30]' in query:
+            query = query.replace('[timeout:30]', '[timeout:25]')
+        
+        # Add result limit if not present (prevent huge responses)
+        if 'out center' in query and not 'out center' in query.split(');')[1]:
+            query = query.replace('out center;', 'out center 100;')
+        
+        print(f"Optimized query: {query[:150]}...")
+        
+        # Multiple backup servers with different endpoints
         servers = [
+            'https://overpass.kumi.systems/api/interpreter',  # Often faster
             'https://overpass-api.de/api/interpreter',
-            'https://overpass.kumi.systems/api/interpreter',
-            'https://overpass.openstreetmap.ru/api/interpreter'
+            'https://overpass.openstreetmap.ru/api/interpreter',
+            'https://overpass.openstreetmap.fr/api/interpreter',
+            'https://overpass.nchc.org.tw/api/interpreter'
         ]
         
         last_error = None
+        retry_delays = [0, 2, 3]  # Progressive backoff
         
-        # Try each server
+        # Try each server with retries
         for i, server in enumerate(servers):
-            try:
-                print(f"Trying Overpass server {i+1}/{len(servers)}: {server}")
-                
-                response = requests.post(
-                    server,
-                    data=query,
-                    timeout=30,
-                    headers={'User-Agent': 'FIX-GeoEquity/1.0'}
-                )
-                
-                if response.status_code == 200:
-                    data = response.json()
-                    print(f"✓ Server {i+1} success: {len(data.get('elements', []))} results")
-                    return jsonify(data), 200
-                else:
-                    error_msg = f"HTTP {response.status_code}"
-                    print(f"✗ Server {i+1} failed: {error_msg}")
-                    last_error = error_msg
+            for retry in range(2):  # 2 attempts per server
+                try:
+                    attempt = f"{i+1}/{len(servers)}" + (f" (retry {retry+1})" if retry > 0 else "")
+                    print(f"Trying Overpass server {attempt}: {server}")
                     
-            except requests.Timeout:
-                print(f"✗ Server {i+1} timeout")
-                last_error = "Request timeout"
-            except requests.RequestException as e:
-                print(f"✗ Server {i+1} error: {str(e)}")
-                last_error = str(e)
+                    response = requests.post(
+                        server,
+                        data=query,
+                        timeout=25,
+                        headers={
+                            'User-Agent': 'FIX-GeoEquity/1.0',
+                            'Accept': 'application/json'
+                        }
+                    )
+                    
+                    if response.status_code == 200:
+                        data = response.json()
+                        result_count = len(data.get('elements', []))
+                        print(f"✓ Server {i+1} success: {result_count} results")
+                        return jsonify(data), 200
+                    elif response.status_code == 429:
+                        error_msg = "Rate limited"
+                        print(f"✗ Server {i+1} rate limited")
+                        last_error = error_msg
+                        time.sleep(3)  # Wait longer for rate limit
+                    elif response.status_code == 504:
+                        error_msg = "Gateway timeout - query too complex"
+                        print(f"✗ Server {i+1} timeout: {error_msg}")
+                        last_error = error_msg
+                        break  # Don't retry timeouts on same server
+                    else:
+                        error_msg = f"HTTP {response.status_code}"
+                        print(f"✗ Server {i+1} failed: {error_msg}")
+                        last_error = error_msg
+                        
+                except requests.Timeout:
+                    print(f"✗ Server {i+1} connection timeout")
+                    last_error = "Connection timeout"
+                    break  # Don't retry timeouts
+                except requests.RequestException as e:
+                    error_str = str(e)[:100]
+                    print(f"✗ Server {i+1} error: {error_str}")
+                    last_error = error_str
+                    if retry == 0:
+                        time.sleep(1)  # Brief wait before retry
+                
+                # Small delay between retries
+                if retry < 1:
+                    time.sleep(0.5)
             
-            # Wait before trying next server
-            if i < len(servers) - 1:
-                time.sleep(1)
+            # Delay before trying next server
+            if i < len(servers) - 1 and i < len(retry_delays):
+                time.sleep(retry_delays[i])
         
-        # All servers failed
+        # All servers failed - provide helpful message
+        print(f"❌ All Overpass servers failed. Last error: {last_error}")
         return jsonify({
-            "error": f"All Overpass servers failed. Last error: {last_error}",
+            "error": "Overpass API temporarily unavailable. Please try: (1) Reduce search radius, (2) Wait 30 seconds and retry, (3) Try different location",
+            "details": last_error,
             "elements": []
         }), 503
         
     except Exception as e:
-        print(f"Overpass proxy error: {str(e)}")
+        error_msg = str(e)
+        print(f"Overpass proxy error: {error_msg}")
         return jsonify({
-            "error": str(e),
+            "error": "Internal error processing request",
+            "details": error_msg,
             "elements": []
         }), 500
 
@@ -1008,6 +1051,171 @@ def get_aggregate_ejv():
 def health():
     """Health check endpoint"""
     return jsonify({"status": "healthy", "message": "FIX$ EJV API is running"})
+
+@app.route('/api/ejv-v1/help', methods=['GET'])
+def get_ejv_v1_help():
+    """Get EJV v1 calculation guide, data sources, and explanation"""
+    help_content = {
+        "title": "EJV v1: Economic Justice Value",
+        "subtitle": "Traditional 0-100 Scoring System",
+        "description": "EJV v1 is a composite scoring system that measures the economic justice quality of a business on a 0-100 scale. It evaluates four key dimensions of economic equity.",
+        "formula": "EJV v1 = Wage Score + Hiring Score + Community Score + Participation Score",
+        "formula_explanation": "Each component contributes up to 25 points, creating a balanced composite score with a range of 0-100 points.",
+        "components": [
+            {
+                "name": "Wage Score (0-25 points)",
+                "description": "Measures how employee wages compare to the local living wage threshold.",
+                "calculation": "min(25, max(0, ((avg_wage - living_wage) / living_wage) × 50))",
+                "factors": [
+                    "Average Wage: Mean hourly wage paid by the store",
+                    "Living Wage: Calculated as 70% of median household income in the area",
+                    "Ratio: How much wages exceed (or fall short of) living wage"
+                ]
+            },
+            {
+                "name": "Hiring Score (0-25 points)",
+                "description": "Measures local hiring practices relative to geographic economic needs.",
+                "calculation": "min(25, max(0, (local_hire_pct - unemployment_rate) × 2))",
+                "factors": [
+                    "Local Hire %: Percentage of employees from same ZIP code",
+                    "Unemployment Rate: Local unemployment rate from Census data",
+                    "Comparison: Rewards hiring above unemployment rate"
+                ]
+            },
+            {
+                "name": "Community Score (0-25 points)",
+                "description": "Measures economic value retained in local community.",
+                "calculation": "min(25, (total_payroll / median_income) × 100)",
+                "factors": [
+                    "Total Payroll: Total annual wages paid to all employees",
+                    "Median Income: Local median household income",
+                    "Impact: How much economic activity the business creates locally"
+                ]
+            },
+            {
+                "name": "Participation Score (0-25 points)",
+                "description": "Measures job creation and employment opportunities.",
+                "calculation": "min(25, (active_employees / 10) × 5)",
+                "factors": [
+                    "Active Employees: Number of people employed",
+                    "Job Creation: Rewards businesses that create more jobs",
+                    "Scale: Considers business size and employment impact"
+                ]
+            }
+        ],
+        "data_sources": [
+            {
+                "source": "BLS OEWS (Bureau of Labor Statistics)",
+                "data": "Real wage data from May 2024 national estimates",
+                "url": "https://www.bls.gov/oes/current/oes_nat.htm"
+            },
+            {
+                "source": "US Census Bureau ACS 5-Year Data",
+                "data": "Median household income, unemployment rates by ZIP code",
+                "url": "https://api.census.gov/data/2022/acs/acs5/profile"
+            },
+            {
+                "source": "Industry Employment Research",
+                "data": "Average employees per establishment by NAICS code",
+                "url": "BLS Business Employment Dynamics & industry reports"
+            },
+            {
+                "source": "OpenStreetMap / Overpass API",
+                "data": "Business locations, types, and geographic data",
+                "url": "https://overpass-api.de/"
+            }
+        ],
+        "interpretation": {
+            "excellent": "75-100: Outstanding economic justice practices",
+            "good": "50-74: Good economic justice performance",
+            "fair": "25-49: Moderate economic justice impact",
+            "poor": "0-24: Limited economic justice contribution"
+        },
+        "key_insight": "EJV v1 answers: 'How well does this business perform on economic justice across multiple dimensions?'"
+    }
+    return jsonify(help_content)
+
+@app.route('/api/ejv-v2/help', methods=['GET'])
+def get_ejv_v2_help():
+    """Get EJV v2 calculation guide, data sources, and explanation"""
+    help_content = {
+        "title": "EJV v2: Justice-Weighted Local Impact",
+        "subtitle": "Dollar-Based Impact Metric",
+        "description": "EJV v2 transforms traditional scoring into a dollar-based metric that quantifies the justice-weighted local economic impact of every purchase. This incorporates equity adjustments based on ZIP-code level economic conditions.",
+        "formula": "EJV v2 = (P × LC) × (JS_ZIP / 100)",
+        "formula_explanation": "For every $100 spent, EJV v2 calculates how many dollars create justice-weighted local economic impact.",
+        "components": [
+            {
+                "name": "Purchase Amount (P)",
+                "description": "The dollar value of the transaction.",
+                "default": "$100 (standardized for comparison)",
+                "usage": "Scales linearly - $200 purchase = 2× the impact"
+            },
+            {
+                "name": "Local Capture (LC)",
+                "description": "The percentage of economic value that remains in the local community through local hiring practices.",
+                "calculation": "LC = 0.3 + (local_hire_pct × 0.7)",
+                "range": "30% to 100%",
+                "factors": [
+                    "Assumes 30% minimum baseline circulation",
+                    "Increases proportionally with local hiring percentage",
+                    "100% local hiring = 100% local capture"
+                ]
+            },
+            {
+                "name": "Justice Score (JS_ZIP)",
+                "description": "ZIP-code level equity adjustment based on economic conditions.",
+                "calculation": "100 - (median_income / 100000 × 50) + (unemployment × 5)",
+                "range": "0-100 points",
+                "factors": [
+                    "Lower income areas receive higher justice scores",
+                    "Higher unemployment increases the score",
+                    "Recognizes businesses serving disadvantaged communities"
+                ]
+            }
+        ],
+        "example_calculation": {
+            "scenario": "Store in economically disadvantaged area",
+            "purchase": "$100",
+            "local_hire": "60%",
+            "local_capture": "0.3 + (0.60 × 0.7) = 0.72 (72%)",
+            "median_income": "$40,000",
+            "unemployment": "8%",
+            "justice_score": "100 - (40000/100000 × 50) + (8 × 5) = 80",
+            "ejv_v2": "($100 × 0.72) × (80/100) = $57.60",
+            "interpretation": "Each $100 spent creates $57.60 in justice-weighted local impact"
+        },
+        "data_sources": [
+            {
+                "source": "BLS OEWS (Bureau of Labor Statistics)",
+                "data": "Real wage data from May 2024 national estimates",
+                "url": "https://www.bls.gov/oes/current/oes_nat.htm"
+            },
+            {
+                "source": "US Census Bureau ACS 5-Year Data",
+                "data": "Median household income, unemployment rates by ZIP code",
+                "url": "https://api.census.gov/data/2022/acs/acs5/profile"
+            },
+            {
+                "source": "Industry Employment Research",
+                "data": "Average employees per establishment by NAICS code",
+                "url": "BLS Business Employment Dynamics & industry reports"
+            },
+            {
+                "source": "Economic Multiplier Theory",
+                "data": "Local economic circulation and wealth retention models",
+                "url": "Community economic development research"
+            }
+        ],
+        "advantages": [
+            "Dollar-denominated: Easy to understand real economic impact",
+            "Equity-adjusted: Rewards businesses serving disadvantaged areas",
+            "Scalable: Works for any purchase amount",
+            "Transparent: Clear calculation of where money goes"
+        ],
+        "key_insight": "EJV v2 answers: 'For every $100 spent, how many dollars create justice-weighted local economic impact?'"
+    }
+    return jsonify(help_content)
 
 @app.route('/', methods=['GET'])
 @app.route('/index.html', methods=['GET'])
