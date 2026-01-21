@@ -14,4 +14,3 @@ ENV/
 node_modules/
 .vscode/
 *.log
-.vercel

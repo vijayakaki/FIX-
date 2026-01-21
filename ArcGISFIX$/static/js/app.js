@@ -13,7 +13,7 @@ require([
 ], function(Map, MapView, GraphicsLayer, Graphic, Point, SimpleMarkerSymbol, Legend, BasemapToggle, Search, Locate, PopupTemplate) {
 
     // API Base URL
-    const API_BASE = 'http://localhost:5000/api';
+    const API_BASE = window.location.origin + '/api';
 
     // Create map
     const map = new Map({
@@ -449,3 +449,4 @@ require([
         loadStores();
     });
 });
+
