@@ -2161,6 +2161,7 @@ out center;`;
             // EJV v4.2 with simulated participation based on store's economic impact
             // Stores with higher dollar impact have more resources for community programs
             // In production, this would come from actual business participation data
+            // Updated: 2026-01-22 - PAF varies by EJV v2 dollar impact
             const participationLevel = ejvV2 >= 50 ? 'high' : ejvV2 >= 20 ? 'medium' : 'low';
             let demoParticipation = {};
             
@@ -2185,6 +2186,7 @@ out center;`;
             }
             
             const paf = calculatePAF(demoParticipation);
+            console.log(`Store: ${storeName}, EJV v2: $${ejvV2.toFixed(2)}, Level: ${participationLevel}, PAF: ${paf}`);
             const ejvV42 = ejvV2 * paf;
             const ampValue = ejvV42 - ejvV2;
             
