@@ -1167,21 +1167,41 @@
                         <small id="storeLocationDisplay" style="color: #666;">Search for stores using ZIP code or address</small>
                     </div>
                     
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
-                        <div style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); padding: 12px; border-radius: 6px; text-align: center; border: 2px solid #2196f3; position: relative;">
-                            <div id="ejvV1Display" style="font-size: 24px; font-weight: 700; color: #1976d2;">-</div>
-                            <div style="font-size: 10px; color: #0d47a1; margin-top: 3px; text-transform: uppercase; font-weight: 600;">
-                                EJV v1 Score
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px;">
+                        <div style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); padding: 10px; border-radius: 6px; text-align: center; border: 2px solid #2196f3; position: relative;">
+                            <div id="ejvV1Display" style="font-size: 20px; font-weight: 700; color: #1976d2;">-</div>
+                            <div style="font-size: 9px; color: #0d47a1; margin-top: 2px; text-transform: uppercase; font-weight: 600;">
+                                EJV v1
                             </div>
-                            <button class="help-btn" onclick="showHelpModal('v1')" title="Learn about EJV v1 - Click for details" style="position: absolute; top: 8px; right: 8px;">❓</button>
+                            <button class="help-btn" onclick="showHelpModal('v1')" title="Learn about EJV v1 - Click for details" style="position: absolute; top: 6px; right: 6px;">❓</button>
                         </div>
-                        <div style="background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%); padding: 12px; border-radius: 6px; text-align: center; border: 2px solid #9c27b0; position: relative;">
-                            <div id="ejvV2Display" style="font-size: 24px; font-weight: 700; color: #7b1fa2;">-</div>
-                            <div style="font-size: 10px; color: #4a148c; margin-top: 3px; text-transform: uppercase; font-weight: 600;">
+                        <div style="background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%); padding: 10px; border-radius: 6px; text-align: center; border: 2px solid #9c27b0; position: relative;">
+                            <div id="ejvV2Display" style="font-size: 20px; font-weight: 700; color: #7b1fa2;">-</div>
+                            <div style="font-size: 9px; color: #4a148c; margin-top: 2px; text-transform: uppercase; font-weight: 600;">
                                 EJV v2 ($)
                             </div>
-                            <button class="help-btn" onclick="showHelpModal('v2')" title="Learn about EJV v2 - Click for details" style="position: absolute; top: 8px; right: 8px;">❓</button>
+                            <button class="help-btn" onclick="showHelpModal('v2')" title="Learn about EJV v2 - Click for details" style="position: absolute; top: 6px; right: 6px;">❓</button>
                         </div>
+                        <div style="background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); padding: 10px; border-radius: 6px; text-align: center; border: 2px solid #4caf50; position: relative;">
+                            <div id="ejvV42Display" style="font-size: 20px; font-weight: 700; color: #2e7d32;">-</div>
+                            <div style="font-size: 9px; color: #1b5e20; margin-top: 2px; text-transform: uppercase; font-weight: 600;">
+                                EJV v4.2 ($)
+                            </div>
+                            <button class="help-btn" onclick="showHelpModal('v4.2')" title="Learn about EJV v4.2 - Click for details" style="position: absolute; top: 6px; right: 6px;">❓</button>
+                        </div>
+                    </div>
+                    
+                    <div id="participationPanel" style="background: #fff3e0; padding: 12px; border-radius: 6px; margin-bottom: 12px; border-left: 4px solid #ff9800; display: none;">
+                        <div style="font-size: 11px; font-weight: 600; color: #e65100; margin-bottom: 8px;">🤝 Participation Amplification</div>
+                        <div style="display: flex; justify-content: space-between; padding: 5px 0; font-size: 10px;">
+                            <span style="color: #666;">PAF (Amplification Factor)</span>
+                            <span id="pafDisplay" style="font-weight: 700; color: #ff6f00;">1.00×</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 5px 0; font-size: 10px; border-top: 1px solid #ffe0b2; padding-top: 5px; margin-top: 5px;">
+                            <span style="color: #666;">Amplification Value</span>
+                            <span id="ampValueDisplay" style="font-weight: 700; color: #4caf50;">$0.00</span>
+                        </div>
+                        <div id="participationActivities" style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #ffe0b2; font-size: 9px; color: #666;"></div>
                     </div>
                     
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
@@ -1305,6 +1325,40 @@
         let allStoresEJV = [];
         let ejvCache = {}; // Cache EJV calculations by store ID
         let hoverDebounceTimer = null; // Debounce hover events
+
+        // ==========================================
+        // EJV v4.2: PAF Calculation
+        // ==========================================
+        const PARTICIPATION_TYPES = {
+            mentoring: { weight: 0.08 },
+            volunteering: { weight: 0.06 },
+            sponsorship: { weight: 0.05 },
+            apprenticeship: { weight: 0.04 },
+            facilities: { weight: 0.02 }
+        };
+
+        function calculatePAF(participationData) {
+            if (!participationData || Object.keys(participationData).length === 0) {
+                return 1.0;
+            }
+            
+            let totalContribution = 0.0;
+            
+            for (const [activityType, activityData] of Object.entries(participationData)) {
+                if (!PARTICIPATION_TYPES[activityType]) continue;
+                
+                const baseWeight = PARTICIPATION_TYPES[activityType].weight;
+                const intensity = Math.min((activityData.hours || 1) / 10.0, 1.0);
+                const verificationMultiplier = activityData.verified ? 1.2 : 1.0;
+                const durationFactor = Math.min((activityData.duration_months || 1) / 12.0, 1.0);
+                
+                const contribution = baseWeight * intensity * verificationMultiplier * durationFactor;
+                totalContribution += contribution;
+            }
+            
+            const paf = 1.0 + Math.min(totalContribution, 0.25);
+            return Number(paf.toFixed(3));
+        }
 
         // Custom marker icons
         const storeIcons = {
@@ -2104,6 +2158,16 @@ out center;`;
             const wealthRetained = data.wealth_flows?.retained || data.wealth_retained || 0;
             const wealthLeakage = data.wealth_flows?.leakage || data.wealth_leakage || 0;
             
+            // EJV v4.2 with demo participation (for display purposes)
+            // In production, this would come from user input
+            const demoParticipation = {
+                mentoring: { hours: 2, verified: true, duration_months: 12 },
+                volunteering: { hours: 1, verified: false, duration_months: 6 }
+            };
+            const paf = calculatePAF(demoParticipation);
+            const ejvV42 = ejvV2 * paf;
+            const ampValue = ejvV42 - ejvV2;
+            
             // Calculate percentages for wealth flows
             const totalWealth = wealthRetained + wealthLeakage;
             const retainedPercent = totalWealth > 0 ? (wealthRetained / totalWealth) * 100 : 0;
@@ -2155,6 +2219,22 @@ out center;`;
             impactBadge.style.cssText = `font-size: 9px; font-weight: 700; color: ${impactColor}; margin-top: 4px; text-transform: uppercase;`;
             
             document.getElementById('ejvV2Display').textContent = '$' + ejvV2.toFixed(2);
+            document.getElementById('ejvV42Display').textContent = '$' + ejvV42.toFixed(2);
+            
+            // Show participation panel
+            const participationPanel = document.getElementById('participationPanel');
+            participationPanel.style.display = 'block';
+            document.getElementById('pafDisplay').textContent = paf.toFixed(3) + '×';
+            document.getElementById('ampValueDisplay').textContent = '$' + ampValue.toFixed(2);
+            
+            // Show participation activities
+            const activitiesHTML = `
+                <div style="margin-bottom: 4px;"><strong>Active Participation:</strong></div>
+                <div style="margin-left: 10px;">• 2 hrs/week mentoring (verified)</div>
+                <div style="margin-left: 10px;">• 1 hr/week volunteering</div>
+                <div style="margin-top: 4px; font-style: italic; color: #e65100;">Demo: ${((paf - 1) * 100).toFixed(1)}% amplification through civic engagement</div>
+            `;
+            document.getElementById('participationActivities').innerHTML = activitiesHTML;
 
             // Wealth metrics as percentages
             document.getElementById('wealthRetained').textContent = retainedPercent.toFixed(1) + '%';
