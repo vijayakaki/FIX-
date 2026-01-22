@@ -2340,7 +2340,14 @@ out center;`;
         // Help Modal Functions
         async function showHelpModal(version) {
             const modal = document.getElementById('helpModal');
-            const endpoint = version === 'v1' ? '/api/ejv-v1/help' : '/api/ejv-v2/help';
+            let endpoint;
+            if (version === 'v1') {
+                endpoint = '/api/ejv-v1/help';
+            } else if (version === 'v4.2') {
+                endpoint = '/api/ejv-v4.2/help';
+            } else {
+                endpoint = '/api/ejv-v2/help';
+            }
             
             try {
                 const response = await fetch(endpoint);
@@ -2356,22 +2363,57 @@ out center;`;
                 document.getElementById('helpFormulaExplanation').textContent = helpData.formula_explanation;
                 
                 // Components section
-                const componentsHtml = helpData.components.map(comp => `
-                    <div class="help-component">
-                        <h4>${comp.name}</h4>
-                        <p><strong>Description:</strong> ${comp.description}</p>
-                        ${comp.calculation ? `<p><strong>Calculation:</strong> <code>${comp.calculation}</code></p>` : ''}
-                        ${comp.factors ? `
-                            <p><strong>Factors:</strong></p>
+                let componentsHtml = '';
+                if (version === 'v4.2') {
+                    // For v4.2, show participation pathways and PAF
+                    componentsHtml = `
+                        <div class="help-component">
+                            <h4>${helpData.core_innovation.name}</h4>
+                            <p><strong>Description:</strong> ${helpData.core_innovation.description}</p>
+                            <h5 style="margin-top: 15px; color: #ff9800;">Participation Pathways:</h5>
+                            ${helpData.core_innovation.pathways.map(pathway => `
+                                <div style="margin: 10px 0; padding: 10px; background: #f5f5f5; border-radius: 4px;">
+                                    <strong>${pathway.type}</strong> (${pathway.weight})
+                                    <p>${pathway.description}</p>
+                                    <p><em>Unit: ${pathway.unit}</em></p>
+                                    <p><strong>Examples:</strong> ${pathway.examples.join(', ')}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="help-component">
+                            <h4>${helpData.paf.name}</h4>
+                            <p><strong>Description:</strong> ${helpData.paf.description}</p>
+                            <p><strong>Range:</strong> ${helpData.paf.range}</p>
+                            <p><strong>Calculation Factors:</strong></p>
                             <ul>
-                                ${comp.factors.map(f => `<li>${f}</li>`).join('')}
+                                ${helpData.paf.calculation_factors.map(f => `<li>${f}</li>`).join('')}
                             </ul>
-                        ` : ''}
-                        ${comp.range ? `<p><strong>Range:</strong> ${comp.range}</p>` : ''}
-                        ${comp.default ? `<p><strong>Default:</strong> ${comp.default}</p>` : ''}
-                        ${comp.usage ? `<p><strong>Usage:</strong> ${comp.usage}</p>` : ''}
-                    </div>
-                `).join('');
+                            <h5 style="margin-top: 15px;">PAF Interpretation:</h5>
+                            ${Object.entries(helpData.paf.interpretation).map(([value, meaning]) => `
+                                <div style="padding: 5px 0;">
+                                    <strong>${value}:</strong> ${meaning}
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                } else if (helpData.components) {
+                    componentsHtml = helpData.components.map(comp => `
+                        <div class="help-component">
+                            <h4>${comp.name}</h4>
+                            <p><strong>Description:</strong> ${comp.description}</p>
+                            ${comp.calculation ? `<p><strong>Calculation:</strong> <code>${comp.calculation}</code></p>` : ''}
+                            ${comp.factors ? `
+                                <p><strong>Factors:</strong></p>
+                                <ul>
+                                    ${comp.factors.map(f => `<li>${f}</li>`).join('')}
+                                </ul>
+                            ` : ''}
+                            ${comp.range ? `<p><strong>Range:</strong> ${comp.range}</p>` : ''}
+                            ${comp.default ? `<p><strong>Default:</strong> ${comp.default}</p>` : ''}
+                            ${comp.usage ? `<p><strong>Usage:</strong> ${comp.usage}</p>` : ''}
+                        </div>
+                    `).join('');
+                }
                 document.getElementById('helpComponents').innerHTML = componentsHtml;
                 
                 // Data sources section
@@ -2410,9 +2452,28 @@ out center;`;
                     interpretationSection.style.display = 'none';
                 }
                 
-                // Example calculation (only for v2)
+                // Example calculation (for v2 and v4.2)
                 const exampleSection = document.getElementById('helpExampleSection');
-                if (helpData.example_calculation && version === 'v2') {
+                if (version === 'v4.2' && helpData.example) {
+                    exampleSection.style.display = 'block';
+                    const example = helpData.example;
+                    const exampleHtml = `
+                        <div class="help-component">
+                            <h4>Example: ${example.scenario}</h4>
+                            <p><strong>Base EJV v4.1:</strong> ${example.base_ejv_v41}</p>
+                            <p><strong>Participation Activities:</strong></p>
+                            <ul>
+                                ${example.participation.map(p => `<li>${p}</li>`).join('')}
+                            </ul>
+                            <p><strong>PAF Calculated:</strong> ${example.paf_calculated}</p>
+                            <p><strong>EJV v4.2 Result:</strong> ${example.ejv_v42}</p>
+                            <p style="background: #e8f5e9; padding: 10px; border-radius: 6px; margin-top: 10px;">
+                                <strong>💡 ${example.interpretation}</strong>
+                            </p>
+                        </div>
+                    `;
+                    document.getElementById('helpExample').innerHTML = exampleHtml;
+                } else if (helpData.example_calculation && version === 'v2') {
                     exampleSection.style.display = 'block';
                     const example = helpData.example_calculation;
                     const exampleHtml = `
