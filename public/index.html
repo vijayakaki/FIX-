@@ -2158,19 +2158,22 @@ out center;`;
             const wealthRetained = data.wealth_flows?.retained || data.wealth_retained || 0;
             const wealthLeakage = data.wealth_flows?.leakage || data.wealth_leakage || 0;
             
-            // EJV v4.2 with constant PAF to demonstrate participation pathways
+            // EJV v4.2 with constant PAF demonstrating all 5 participation pathways
             // PAF is the same for all stores because participation is a choice any business can make,
             // regardless of size or revenue. In production, each business reports actual participation.
-            // Updated: 2026-01-22 v3 - Constant PAF emphasizes agency and fairness
+            // Updated: 2026-01-22 v4 - All 5 pathways for maximum demonstration
             
-            // Demo participation: moderate engagement (same for all stores)
+            // Demo participation: comprehensive engagement across all 5 pathways
             const demoParticipation = {
-                mentoring: { hours: 2, verified: true, duration_months: 8 },
-                volunteering: { hours: 1, verified: false, duration_months: 6 }
+                mentoring: { hours: 3, verified: true, duration_months: 12 },
+                volunteering: { hours: 2, verified: true, duration_months: 12 },
+                sponsorship: { hours: 1, verified: true, duration_months: 12 },
+                apprenticeship: { hours: 2, verified: true, duration_months: 10 },
+                facilities: { hours: 1, verified: false, duration_months: 12 }
             };
             
-            const paf = calculatePAF(demoParticipation); // Returns ~1.143
-            console.log(`Store: ${storeName}, EJV v2: $${ejvV2.toFixed(2)}, PAF: ${paf} (constant)`);
+            const paf = calculatePAF(demoParticipation); // Returns ~1.232 (close to max 1.25)
+            console.log(`Store: ${storeName}, EJV v2: $${ejvV2.toFixed(2)}, PAF: ${paf} (all 5 pathways)`);
             const ejvV42 = ejvV2 * paf;
             const ampValue = ejvV42 - ejvV2;
             
