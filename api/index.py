@@ -1555,6 +1555,28 @@ def get_ejv_v42_help():
             "ejv_v42": "$11,500",
             "interpretation": "The extra $1,500 value comes from capacity-building through participation, not money. The business strengthens how its economic activity translates into community benefit."
         },
+        "demo_implementation": {
+            "title": "Current Demo Implementation",
+            "description": "In the live demo, participation data is simulated based on store economic impact (EJV v2)",
+            "simulation_logic": {
+                "high_impact": {
+                    "threshold": "EJV v2 ≥ $50",
+                    "programs": ["3hrs mentoring (verified, 12mo)", "2hrs volunteering (verified, 12mo)", "1hr sponsorship (verified, 12mo)"],
+                    "paf_range": "1.22-1.25"
+                },
+                "medium_impact": {
+                    "threshold": "EJV v2 $20-50",
+                    "programs": ["2hrs mentoring (verified, 8mo)", "1hr volunteering (unverified, 6mo)"],
+                    "paf_range": "1.13-1.16"
+                },
+                "lower_impact": {
+                    "threshold": "EJV v2 < $20",
+                    "programs": ["1hr volunteering (unverified, 3mo)"],
+                    "paf_range": "1.02-1.05"
+                }
+            },
+            "rationale": "Stores with higher dollar impact have more resources for community programs. In production, each business would report actual participation data."
+        },
         "what_v42_adds": {
             "title": "What v4.2 Adds vs v4.1",
             "additions": [
