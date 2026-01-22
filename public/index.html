@@ -1061,17 +1061,12 @@
                         <label>Store Category</label>
                         <select id="zipCategory" onchange="toggleCustomSearch('zip')">
                             <option value="all">🏪 All Stores & Businesses</option>
-                            <option value="supermarket">🛒 Supermarkets</option>
-                            <option value="warehouse">🏢 Warehouse Clubs (Costco, Sam's)</option>
-                            <option value="pharmacy">💊 Pharmacies</option>
-                            <option value="restaurant">🍽️ Restaurants</option>
+                            <option value="supermarket">🛒 Supermarkets & Grocery Stores</option>
+                            <option value="pharmacy">💊 Pharmacies & Drugstores</option>
+                            <option value="restaurant">🍽️ Restaurants & Fast Food</option>
                             <option value="convenience">🏪 Convenience Stores</option>
-                            <option value="bakery">🥖 Bakeries</option>
-                            <option value="butcher">🥩 Butcher Shops</option>
-                            <option value="coffee">☕ Coffee Shops</option>
-                            <option value="clothes">👕 Clothing Stores</option>
-                            <option value="electronics">📱 Electronics</option>
-                            <option value="hardware">🔨 Hardware Stores</option>
+                            <option value="coffee">☕ Coffee Shops & Cafes</option>
+                            <option value="electronics">📱 Electronics Stores</option>
                             <option value="custom">✏️ Custom Search...</option>
                         </select>
                     </div>
@@ -1104,17 +1099,12 @@
                         <label>Store Category</label>
                         <select id="addressCategory" onchange="toggleCustomSearch('address')">
                             <option value="all">🏪 All Stores & Businesses</option>
-                            <option value="supermarket">🛒 Supermarkets</option>
-                            <option value="warehouse">🏢 Warehouse Clubs (Costco, Sam's)</option>
-                            <option value="pharmacy">💊 Pharmacies</option>
-                            <option value="restaurant">🍽️ Restaurants</option>
+                            <option value="supermarket">🛒 Supermarkets & Grocery Stores</option>
+                            <option value="pharmacy">💊 Pharmacies & Drugstores</option>
+                            <option value="restaurant">🍽️ Restaurants & Fast Food</option>
                             <option value="convenience">🏪 Convenience Stores</option>
-                            <option value="bakery">🥖 Bakeries</option>
-                            <option value="butcher">🥩 Butcher Shops</option>
-                            <option value="coffee">☕ Coffee Shops</option>
-                            <option value="clothes">👕 Clothing Stores</option>
-                            <option value="electronics">📱 Electronics</option>
-                            <option value="hardware">🔨 Hardware Stores</option>
+                            <option value="coffee">☕ Coffee Shops & Cafes</option>
+                            <option value="electronics">📱 Electronics Stores</option>
                             <option value="custom">✏️ Custom Search...</option>
                         </select>
                     </div>
@@ -1596,16 +1586,7 @@
   way["amenity"="restaurant"](around:${radiusMeters},${lat},${lon});
 );
 out center;`;
-                } else if (category === 'warehouse') {
-                    // Search for warehouse clubs like Costco and Sam's Club
-                    query = `[out:json][timeout:30];
-(
-  node["shop"="wholesale"](around:${radiusMeters},${lat},${lon});
-  way["shop"="wholesale"](around:${radiusMeters},${lat},${lon});
-  node["name"~"Costco|Sam's Club|BJ's Wholesale",i](around:${radiusMeters},${lat},${lon});
-  way["name"~"Costco|Sam's Club|BJ's Wholesale",i](around:${radiusMeters},${lat},${lon});
-);
-out center;`;
+
                 } else if (category === 'restaurant') {
                     // Restaurants use amenity tag, not shop tag
                     query = `[out:json][timeout:30];
@@ -1616,17 +1597,29 @@ out center;`;
   way["amenity"="fast_food"](around:${radiusMeters},${lat},${lon});
 );
 out center;`;
+                } else if (category === 'pharmacy') {
+                    // Pharmacies use amenity tag in OSM
+                    query = `[out:json][timeout:30];
+(
+  node["amenity"="pharmacy"](around:${radiusMeters},${lat},${lon});
+  way["amenity"="pharmacy"](around:${radiusMeters},${lat},${lon});
+);
+out center;`;
+                } else if (category === 'coffee') {
+                    // Coffee shops use amenity=cafe in OSM
+                    query = `[out:json][timeout:30];
+(
+  node["amenity"="cafe"](around:${radiusMeters},${lat},${lon});
+  way["amenity"="cafe"](around:${radiusMeters},${lat},${lon});
+  node["shop"="coffee"](around:${radiusMeters},${lat},${lon});
+  way["shop"="coffee"](around:${radiusMeters},${lat},${lon});
+);
+out center;`;
                 } else {
                     const categoryMap = {
                         'supermarket': 'supermarket',
-                        'pharmacy': 'pharmacy',
                         'convenience': 'convenience',
-                        'bakery': 'bakery',
-                        'butcher': 'butcher',
-                        'coffee': 'cafe',
-                        'clothes': 'clothes',
-                        'electronics': 'electronics',
-                        'hardware': 'hardware'
+                        'electronics': 'electronics'
                     };
                     const shopValue = categoryMap[category] || category; // Use direct value if not in map
                     // Only search shop tag for these categories (not amenity) to prevent wrong results

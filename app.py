@@ -1324,10 +1324,7 @@ def serve_login():
     """Serve the login page"""
     return send_file('public/login-simple.html')
 
-@app.route('/test-overpass.html', methods=['GET'])
-def serve_test_overpass():
-    """Serve the Overpass test page"""
-    return send_file('public/test-overpass.html')
+
 
 @app.route('/api/stores/demo', methods=['GET'])
 def get_demo_stores():

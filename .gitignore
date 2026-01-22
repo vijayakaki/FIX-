@@ -12,3 +12,4 @@ start_server.py
 run.py
 START_SERVER.bat
 test-login.html
+.env*.local
