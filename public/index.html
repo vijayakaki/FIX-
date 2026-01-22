@@ -2238,10 +2238,13 @@ out center;`;
             
             // Show participation activities
             const activitiesHTML = `
-                <div style="margin-bottom: 4px;"><strong>Active Participation:</strong></div>
-                <div style="margin-left: 10px;">• 2 hrs/week mentoring (verified)</div>
-                <div style="margin-left: 10px;">• 1 hr/week volunteering</div>
-                <div style="margin-top: 4px; font-style: italic; color: #e65100;">Demo: ${((paf - 1) * 100).toFixed(1)}% amplification through civic engagement</div>
+                <div style="margin-bottom: 4px;"><strong>Active Participation (5 Pathways):</strong></div>
+                <div style="margin-left: 10px;">• 3 hrs/week <strong>mentoring</strong> (verified, 12mo)</div>
+                <div style="margin-left: 10px;">• 2 hrs/week <strong>volunteering</strong> (verified, 12mo)</div>
+                <div style="margin-left: 10px;">• 1 hr/week <strong>sponsorship</strong> (verified, 12mo)</div>
+                <div style="margin-left: 10px;">• 2 hrs/week <strong>apprenticeship</strong> (verified, 10mo)</div>
+                <div style="margin-left: 10px;">• 1 hr/week <strong>facilities</strong> support (12mo)</div>
+                <div style="margin-top: 6px; font-style: italic; color: #e65100;">Demo: ${((paf - 1) * 100).toFixed(1)}% amplification through comprehensive civic engagement</div>
             `;
             document.getElementById('participationActivities').innerHTML = activitiesHTML;
 
