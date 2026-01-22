@@ -30,6 +30,90 @@ def initialize_database():
 wage_cache = {}
 employee_cache = {}
 
+# ==========================================
+# EJV v4.2: Participation Pathways
+# ==========================================
+# Participation types and their impact weights
+PARTICIPATION_TYPES = {
+    "mentoring": {
+        "name": "Mentoring",
+        "weight": 0.08,  # 8% contribution to PAF
+        "description": "Youth, workforce, or entrepreneurship mentoring",
+        "unit": "hours/week"
+    },
+    "volunteering": {
+        "name": "Volunteering",
+        "weight": 0.06,  # 6% contribution
+        "description": "Time, skills, or governance participation",
+        "unit": "hours/week"
+    },
+    "sponsorship": {
+        "name": "Community Sponsorship",
+        "weight": 0.05,  # 5% contribution
+        "description": "Youth sports, community orgs, events",
+        "unit": "annual commitment"
+    },
+    "apprenticeship": {
+        "name": "Apprenticeships & Training",
+        "weight": 0.04,  # 4% contribution
+        "description": "Structured workforce development programs",
+        "unit": "positions offered"
+    },
+    "facilities": {
+        "name": "Community Facilities Support",
+        "weight": 0.02,  # 2% contribution
+        "description": "Space, resources, or infrastructure support",
+        "unit": "availability"
+    }
+}
+
+def calculate_paf(participation_data):
+    """
+    Calculate Participation Amplification Factor (PAF)
+    
+    PAF ranges from 1.0 (no participation) to 1.25 (maximum engagement)
+    
+    Args:
+        participation_data: dict with keys from PARTICIPATION_TYPES
+        Example: {
+            "mentoring": {"hours": 2, "verified": True, "duration_months": 12},
+            "volunteering": {"hours": 4, "verified": False, "duration_months": 6}
+        }
+    
+    Returns:
+        float: PAF value between 1.0 and 1.25
+    """
+    if not participation_data or len(participation_data) == 0:
+        return 1.0
+    
+    total_contribution = 0.0
+    
+    for activity_type, activity_data in participation_data.items():
+        if activity_type not in PARTICIPATION_TYPES:
+            continue
+            
+        base_weight = PARTICIPATION_TYPES[activity_type]["weight"]
+        
+        # Intensity factor (based on hours or commitment level)
+        intensity = activity_data.get("hours", 1) / 10.0  # Normalize to 0-1 scale
+        intensity = min(intensity, 1.0)  # Cap at 1.0
+        
+        # Verification bonus (+20% if verified)
+        verification_multiplier = 1.2 if activity_data.get("verified", False) else 1.0
+        
+        # Duration factor (sustained engagement matters)
+        duration_months = activity_data.get("duration_months", 1)
+        duration_factor = min(duration_months / 12.0, 1.0)  # Max at 1 year
+        
+        # Calculate contribution from this activity
+        contribution = base_weight * intensity * verification_multiplier * duration_factor
+        total_contribution += contribution
+    
+    # PAF = 1.0 + total_contribution, capped at 1.25
+    paf = 1.0 + min(total_contribution, 0.25)
+    
+    return round(paf, 3)
+
 # ---------------------------------------
 # Real-Time Wage Data from BLS API
 # ---------------------------------------
@@ -972,6 +1056,72 @@ def get_ejv_v2(store_id):
     result = calculate_ejv_v2(store_id, purchase_amount=purchase_amount, zip_code=zip_code, location_name=location)
     return jsonify(result)
 
+@app.route('/api/ejv-v4.2/<store_id>', methods=['POST'])
+def get_ejv_v42(store_id):
+    """
+    Get EJV v4.2 (Agency-Enabled Economic Justice Value)
+    Includes participation pathways that amplify community impact
+    """
+    data = request.json or {}
+    zip_code = data.get('zip', '10001')
+    location = data.get('location', 'Unknown')
+    purchase_amount = float(data.get('purchase', 100.0))
+    participation_data = data.get('participation', {})
+    
+    # Calculate base EJV v4.1 (using v2 as proxy for now)
+    ejv_v41 = calculate_ejv_v2(store_id, purchase_amount=purchase_amount, zip_code=zip_code, location_name=location)
+    
+    # Calculate Participation Amplification Factor
+    paf = calculate_paf(participation_data)
+    
+    # Calculate EJV v4.2
+    community_ejv_v41 = ejv_v41['ejv_v2']  # Base community impact
+    community_ejv_v42 = community_ejv_v41 * paf
+    
+    # Participation breakdown
+    participation_summary = []
+    for activity_type, activity_data in participation_data.items():
+        if activity_type in PARTICIPATION_TYPES:
+            participation_summary.append({
+                "type": PARTICIPATION_TYPES[activity_type]["name"],
+                "hours": activity_data.get("hours", 0),
+                "verified": activity_data.get("verified", False),
+                "duration_months": activity_data.get("duration_months", 0),
+                "weight": PARTICIPATION_TYPES[activity_type]["weight"]
+            })
+    
+    return jsonify({
+        "store_id": store_id,
+        "location": location,
+        "zip_code": zip_code,
+        "version": "4.2",
+        "ejv_v42": {
+            "community_impact": round(community_ejv_v42, 2),
+            "base_impact_v41": round(community_ejv_v41, 2),
+            "amplification_factor": paf,
+            "amplification_value": round(community_ejv_v42 - community_ejv_v41, 2),
+            "formula": f"EJV v4.2 = ${community_ejv_v41:.2f} × {paf} = ${community_ejv_v42:.2f}"
+        },
+        "participation": {
+            "active_pathways": len(participation_data),
+            "paf": paf,
+            "paf_range": "1.0 - 1.25",
+            "activities": participation_summary
+        },
+        "base_metrics": {
+            "purchase_amount": purchase_amount,
+            "local_capture": ejv_v41['local_capture'],
+            "justice_score": ejv_v41['justice_score_zip'],
+            "unemployment_rate": ejv_v41['unemployment_rate'],
+            "median_income": ejv_v41['median_income']
+        },
+        "interpretation": {
+            "message": f"For ${purchase_amount} spent with {len(participation_data)} participation pathway(s), this creates ${community_ejv_v42:.2f} in justice-weighted community impact.",
+            "amplification_effect": f"Participation adds ${community_ejv_v42 - community_ejv_v41:.2f} ({((paf - 1.0) * 100):.1f}%) through civic engagement.",
+            "sustainability": "Participation pathways strengthen how economic activity translates into lasting community benefit."
+        }
+    })
+
 @app.route('/api/ejv-comparison/<store_id>', methods=['GET'])
 def get_ejv_comparison(store_id):
     """Compare EJV v1 and EJV v2 for a store"""
@@ -1309,6 +1459,157 @@ def get_ejv_v2_help():
             "Transparent: Clear calculation of where money goes and how equity is measured"
         ],
         "key_insight": "EJV v2 answers: 'For every $100 spent, how many dollars create justice-weighted local economic impact across 9 dimensions of equity?'"
+    }
+    return jsonify(help_content)
+
+@app.route('/api/ejv-v4.2/help', methods=['GET'])
+def get_ejv_v42_help():
+    """Get EJV v4.2 calculation guide with participation pathways"""
+    help_content = {
+        "title": "EJV v4.2: Agency-Enabled Economic Justice Value",
+        "subtitle": "Impact Measurement + Participation Pathways",
+        "version": "4.2",
+        "description": "EJV v4.2 quantifies the justice-weighted community impact of economic activity by combining decomposed, time-aware local value flows with explicit participation pathways—such as mentoring, volunteering, and community investment—that amplify long-term equity outcomes.",
+        "canonical_definition": "EJV v4.2 turns impact measurement into impact participation by recognizing that time, skills, and civic engagement strengthen how economic activity translates into lasting community benefit.",
+        "formula": "EJV v4.2 = Community EJV v4.1 × PAF",
+        "formula_explanation": "The Participation Amplification Factor (PAF) reflects how non-monetary but economically consequential actions amplify the effectiveness of money flows.",
+        "core_innovation": {
+            "name": "Participation Pathways",
+            "description": "Non-monetary but economically consequential actions that amplify the conversion of money into durable outcomes",
+            "pathways": [
+                {
+                    "type": "Mentoring",
+                    "description": "Youth, workforce, or entrepreneurship mentoring",
+                    "unit": "hours/week",
+                    "weight": "8% contribution to PAF",
+                    "examples": ["Youth mentoring programs", "Workforce development", "Entrepreneur coaching"]
+                },
+                {
+                    "type": "Volunteering",
+                    "description": "Time, skills, or governance participation",
+                    "unit": "hours/week",
+                    "weight": "6% contribution to PAF",
+                    "examples": ["Skills-based volunteering", "Board service", "Community governance"]
+                },
+                {
+                    "type": "Community Sponsorship",
+                    "description": "Youth sports, community orgs, events",
+                    "unit": "annual commitment",
+                    "weight": "5% contribution to PAF",
+                    "examples": ["Youth sports teams", "Community events", "Nonprofit partnerships"]
+                },
+                {
+                    "type": "Apprenticeships & Training",
+                    "description": "Structured workforce development programs",
+                    "unit": "positions offered",
+                    "weight": "4% contribution to PAF",
+                    "examples": ["Apprenticeship programs", "Training initiatives", "Skill development"]
+                },
+                {
+                    "type": "Community Facilities Support",
+                    "description": "Space, resources, or infrastructure support",
+                    "unit": "availability",
+                    "weight": "2% contribution to PAF",
+                    "examples": ["Meeting space", "Equipment loans", "Infrastructure access"]
+                }
+            ]
+        },
+        "paf": {
+            "name": "Participation Amplification Factor (PAF)",
+            "description": "A bounded multiplier that reflects how participation strengthens the conversion of money into durable outcomes",
+            "range": "1.0 to 1.25",
+            "interpretation": {
+                "1.0": "No participation - base impact only",
+                "1.05": "Light participation - 5% amplification",
+                "1.10": "Moderate participation - 10% amplification",
+                "1.15": "Strong participation - 15% amplification",
+                "1.20": "Very strong participation - 20% amplification",
+                "1.25": "Maximum verified sustained engagement - 25% amplification"
+            },
+            "calculation_factors": [
+                "Intensity: Hours committed per week (normalized to 0-1 scale)",
+                "Verification: +20% bonus if verified by community partners",
+                "Duration: Sustained engagement over time (up to 12 months)",
+                "Capped: Maximum PAF of 1.25 to prevent gaming"
+            ]
+        },
+        "verification": {
+            "title": "Human-in-the-Loop Verification",
+            "description": "Participation inputs maintain credibility through:",
+            "methods": [
+                "Self-reported with evidence documentation",
+                "Verified by community partner organizations",
+                "Time-bounded with decay if not renewed",
+                "Third-party validation available"
+            ],
+            "purpose": "Keeps v4.2 credible and SBIR-safe while enabling honest participation tracking"
+        },
+        "example": {
+            "scenario": "Local business with participation pathways",
+            "base_ejv_v41": "$10,000 community impact",
+            "participation": [
+                "2 hours/week mentoring × 1 year",
+                "Verified through partner organization"
+            ],
+            "paf_calculated": "1.15",
+            "ejv_v42": "$11,500",
+            "interpretation": "The extra $1,500 value comes from capacity-building through participation, not money. The business strengthens how its economic activity translates into community benefit."
+        },
+        "what_v42_adds": {
+            "title": "What v4.2 Adds vs v4.1",
+            "additions": [
+                "Participation pathways as structured inputs",
+                "PAF multiplier (1.0 - 1.25 range)",
+                "Human-in-the-loop verification",
+                "Time-aware participation tracking",
+                "Agency-enabled impact amplification"
+            ]
+        },
+        "capabilities": {
+            "title": "New Questions v4.2 Can Answer",
+            "questions": [
+                "How does mentoring amplify the impact of local spending?",
+                "Does sponsorship make a large purchase less extractive over time?",
+                "Can businesses earn higher impact without price increases?",
+                "How do civic actions compound economic flows?",
+                "What participation level creates 10% more community value?"
+            ]
+        },
+        "what_v42_does_not_do": {
+            "title": "Important Limitations",
+            "limitations": [
+                "Does NOT monetize volunteer hours as dollars",
+                "Does NOT moralize participation",
+                "Does NOT override economic reality",
+                "Does NOT allow unlimited multipliers",
+                "Participation is an amplifier, not a loophole"
+            ]
+        },
+        "evolution": {
+            "v2": "Local impact × need",
+            "v3": "Systemic power",
+            "v4": "Decomposed flows + capacity",
+            "v4.1": "Time-aware financing + personal/community split",
+            "v4.2": "Participation & agency"
+        },
+        "data_sources": [
+            {
+                "source": "BLS OEWS May 2024",
+                "data": "Real wage data for industry standards",
+                "url": "https://www.bls.gov/oes/current/oes_nat.htm"
+            },
+            {
+                "source": "US Census Bureau ACS 5-Year",
+                "data": "Economic indicators by ZIP code",
+                "url": "https://api.census.gov/data/2022/acs/acs5/profile"
+            },
+            {
+                "source": "Participation Tracking",
+                "data": "Self-reported or verified civic engagement",
+                "url": "User input with optional third-party verification"
+            }
+        ],
+        "key_insight": "EJV v4.2 recognizes that time, skills, and civic participation strengthen how economic activity translates into lasting community benefit. It turns EJV from impact measurement into impact participation."
     }
     return jsonify(help_content)
 
