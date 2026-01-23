@@ -2440,25 +2440,31 @@ out center;`;
             console.log('Display values set - check screen');
             
             // v4.2 only shown in ENGAGE mode
-            document.getElementById('ejvV42Display').textContent = '$' + ejvV42.toFixed(2);
-            
-            // Show participation panel
-            const participationPanel = document.getElementById('participationPanel');
-            participationPanel.style.display = 'block';
-            document.getElementById('pafDisplay').textContent = paf.toFixed(3) + '×';
-            document.getElementById('ampValueDisplay').textContent = '$' + ampValue.toFixed(2);
-            
-            // Show participation activities
-            const activitiesHTML = `
-                <div style="margin-bottom: 4px;"><strong>Active Participation (5 Pathways):</strong></div>
-                <div style="margin-left: 10px;">• 3 hrs/week <strong>mentoring</strong> (verified, 12mo)</div>
-                <div style="margin-left: 10px;">• 2 hrs/week <strong>volunteering</strong> (verified, 12mo)</div>
-                <div style="margin-left: 10px;">• 1 hr/week <strong>sponsorship</strong> (verified, 12mo)</div>
-                <div style="margin-left: 10px;">• 2 hrs/week <strong>apprenticeship</strong> (verified, 10mo)</div>
-                <div style="margin-left: 10px;">• 1 hr/week <strong>facilities</strong> support (12mo)</div>
-                <div style="margin-top: 6px; font-style: italic; color: #e65100;">Demo: ${((paf - 1) * 100).toFixed(1)}% amplification through comprehensive civic engagement</div>
-            `;
-            document.getElementById('participationActivities').innerHTML = activitiesHTML;
+            if (decisionMode === 'engage') {
+                document.getElementById('ejvV42Display').textContent = '$' + ejvV42.toFixed(2);
+                
+                // Show participation panel
+                const participationPanel = document.getElementById('participationPanel');
+                participationPanel.style.display = 'block';
+                document.getElementById('pafDisplay').textContent = paf.toFixed(3) + '×';
+                document.getElementById('ampValueDisplay').textContent = '$' + ampValue.toFixed(2);
+                
+                // Show participation activities
+                const activitiesHTML = `
+                    <div style="margin-bottom: 4px;"><strong>Active Participation (5 Pathways):</strong></div>
+                    <div style="margin-left: 10px;">• 3 hrs/week <strong>mentoring</strong> (verified, 12mo)</div>
+                    <div style="margin-left: 10px;">• 2 hrs/week <strong>volunteering</strong> (verified, 12mo)</div>
+                    <div style="margin-left: 10px;">• 1 hr/week <strong>sponsorship</strong> (verified, 12mo)</div>
+                    <div style="margin-left: 10px;">• 2 hrs/week <strong>apprenticeship</strong> (verified, 10mo)</div>
+                    <div style="margin-left: 10px;">• 1 hr/week <strong>facilities</strong> support (12mo)</div>
+                    <div style="margin-top: 6px; font-style: italic; color: #e65100;">Demo: ${((paf - 1) * 100).toFixed(1)}% amplification through comprehensive civic engagement</div>
+                `;
+                document.getElementById('participationActivities').innerHTML = activitiesHTML;
+            } else {
+                // Hide participation panel in other modes
+                const participationPanel = document.getElementById('participationPanel');
+                participationPanel.style.display = 'none';
+            }
 
             // Wealth metrics as percentages
             document.getElementById('wealthRetained').textContent = retainedPercent.toFixed(1) + '%';
