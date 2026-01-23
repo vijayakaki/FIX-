@@ -735,7 +735,7 @@ def calculate_ejv_v41(store_id, purchase_amount=100.0, state_fips="01", county_f
         # v2 baseline for comparison (9 dimensions, gov data only)
         "ejv_v2_baseline": {
             "EJV": ejv_v2_result["EJV"],
-            "justice_score": ejv_v2_result["justice_score"],
+            "justice_score_zip": ejv_v2_result["justice_score_zip"],
             "dimensions": ejv_v2_result["dimensions"]
         },
         
