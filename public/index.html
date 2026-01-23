@@ -2069,17 +2069,32 @@ out center;`;
                     console.error('Error creating marker:', markerError);
                 }
 
-                // Create store list item with enhanced hover display
+                // Create store list item with LOCATOR UI pattern
                 const storeItem = document.createElement('div');
                 storeItem.className = `store-item ${shopType}`;
                 storeItem.style.transition = 'all 0.2s ease';
+                storeItem.style.position = 'relative';
                 storeItem.innerHTML = `
-                    <div class="store-name" style="font-weight: 600; margin-bottom: 4px;">
+                    <div class="store-name" style="font-weight: 600; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
                         <span class="store-icon">${storeIcon.icon}</span>
-                        ${storeName}
+                        <span>${storeName}</span>
+                        <span style="color: #ffa500; font-size: 10px;">★</span>
                     </div>
-                    ${address ? `<div class="store-address" style="font-size: 11px; color: #666;">📍 ${address}</div>` : ''}
-                    <div class="hover-hint" style="font-size: 10px; color: #667eea; margin-top: 4px; opacity: 0.7; font-style: italic;">Hover to see EJV details →</div>
+                    <div class="ejv-scores" style="margin: 8px 0; padding: 8px; background: #f8f9fa; border-radius: 4px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 11px;">
+                            <span style="color: #666;">EJV v2 (Gov):</span>
+                            <span id="ejv-v2-${store.id}" style="font-weight: 700; color: #7b1fa2;">...</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 11px;">
+                            <span style="color: #666;">EJV v4.1 (Adv):</span>
+                            <span id="ejv-v41-${store.id}" style="font-weight: 700; color: #1976d2;">...</span>
+                        </div>
+                    </div>
+                    <div class="ejv-actions" style="display: flex; gap: 6px; margin-top: 8px;">
+                        <button onclick="showWhyModal('${store.id}', '${storeName.replace(/'/g, "\\'")}')" style="flex: 1; padding: 4px 8px; background: #667eea; color: white; border: none; border-radius: 4px; font-size: 10px; cursor: pointer; font-weight: 600;">Why?</button>
+                        <button onclick="compareStore('${store.id}')" style="flex: 1; padding: 4px 8px; background: #26a69a; color: white; border: none; border-radius: 4px; font-size: 10px; cursor: pointer; font-weight: 600;">Compare</button>
+                        <button onclick="engageStore('${store.id}')" style="flex: 1; padding: 4px 8px; background: #ff9800; color: white; border: none; border-radius: 4px; font-size: 10px; cursor: pointer; font-weight: 600;">Enable</button>
+                    </div>
                 `;
                 
                 storeItem.onmouseenter = async () => {
@@ -2090,10 +2105,20 @@ out center;`;
                     
                     clearTimeout(hoverDebounceTimer);
                     hoverDebounceTimer = setTimeout(async () => {
-                        console.log(`Hovering on ${storeName}, showing EJV data on dashboard`);
+                        console.log(`Hovering on ${storeName}, loading EJV data`);
                         const ejvData = await calculateEJV(store.id, storeName, true);
-                        if (ejvData) {
-                            // Find the marker and trigger its impact circle
+                        if (ejvData && ejvData.data) {
+                            // Update scores in the list item
+                            const v2Element = document.getElementById(`ejv-v2-${store.id}`);
+                            const v41Element = document.getElementById(`ejv-v41-${store.id}`);
+                            if (v2Element && ejvData.data.ejv_v2_baseline?.EJV) {
+                                v2Element.textContent = ejvData.data.ejv_v2_baseline.EJV.toFixed(1);
+                            }
+                            if (v41Element && ejvData.data.elvr) {
+                                v41Element.textContent = '$' + ejvData.data.elvr.toFixed(2);
+                            }
+                            
+                            // Show impact circle on map
                             const marker = markers.find(m => m.storeId === store.id);
                             if (marker) {
                                 showImpactCircle(marker.getLatLng(), ejvData.elvr || 0);
@@ -2124,6 +2149,88 @@ out center;`;
                 map.fitBounds(group.getBounds(), { padding: [50, 50] });
                 console.log(`Map fitted to ${markers.length} markers`);
             }
+        }
+
+        // LOCATOR UI Pattern action buttons
+        async function showWhyModal(storeId, storeName) {
+            const ejvData = await calculateEJV(storeId, storeName, false);
+            if (!ejvData || !ejvData.data) return;
+            
+            const data = ejvData.data;
+            const lc = data.local_capture_components || {};
+            
+            const modalContent = `
+                <div style="padding: 20px;">
+                    <h3 style="color: #667eea; margin-bottom: 15px;">📊 ${storeName} - Local Capture Breakdown</h3>
+                    
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                        <div style="font-size: 18px; font-weight: 700; color: #1976d2; margin-bottom: 5px;">
+                            ELVR: $${(data.elvr || 0).toFixed(2)}
+                        </div>
+                        <div style="font-size: 12px; color: #666;">Estimated Local Value Retained (per $100 spent)</div>
+                    </div>
+                    
+                    <h4 style="margin: 15px 0 10px; color: #333;">5-Flow Decomposition:</h4>
+                    <div style="font-size: 12px; line-height: 2;">
+                        <div style="display: flex; justify-content: space-between; padding: 8px; background: #f0f4ff; border-radius: 4px; margin-bottom: 5px;">
+                            <span>💼 Wages (35%):</span>
+                            <strong style="color: #1976d2;">$${((lc.wages || 0) * 100).toFixed(2)}</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 8px; background: #fff; border-radius: 4px; margin-bottom: 5px;">
+                            <span>🏪 Suppliers (25%):</span>
+                            <strong style="color: #1976d2;">$${((lc.suppliers || 0) * 100).toFixed(2)}</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 8px; background: #f0f4ff; border-radius: 4px; margin-bottom: 5px;">
+                            <span>🏛️ Taxes (15%):</span>
+                            <strong style="color: #1976d2;">$${((lc.taxes || 0) * 100).toFixed(2)}</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 8px; background: #fff; border-radius: 4px; margin-bottom: 5px;">
+                            <span>💰 Financing (15%):</span>
+                            <strong style="color: #1976d2;">$${((lc.financing || 0) * 100).toFixed(2)}</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 8px; background: #f0f4ff; border-radius: 4px;">
+                            <span>👥 Ownership (10%):</span>
+                            <strong style="color: #1976d2;">$${((lc.ownership || 0) * 100).toFixed(2)}</strong>
+                        </div>
+                    </div>
+                    
+                    <h4 style="margin: 15px 0 10px; color: #333;">Data Provenance:</h4>
+                    <div style="font-size: 11px; color: #666; line-height: 1.6; background: #fffef0; padding: 10px; border-radius: 4px;">
+                        <strong>EJV v2 Baseline:</strong> Census/ACS, BLS, TIGER (government open data)<br>
+                        <strong>EJV v4.1 Flows:</strong> Business profiles, local supplier networks, ownership structure<br>
+                        <strong>Verification:</strong> OpenStreetMap + local data sources
+                    </div>
+                    
+                    <button onclick="closeModal()" style="width: 100%; margin-top: 15px; padding: 10px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Close</button>
+                </div>
+            `;
+            
+            showModal(modalContent);
+        }
+        
+        function compareStore(storeId) {
+            alert('Compare feature coming soon - will show side-by-side comparison with other businesses');
+        }
+        
+        function engageStore(storeId) {
+            // Switch to ENGAGE mode
+            decisionMode = 'engage';
+            showEngageMode();
+            alert('Switched to ENGAGE mode - EJV v4.2 with Participation Amplification is now active');
+        }
+        
+        function showModal(content) {
+            const modal = document.createElement('div');
+            modal.id = 'customModal';
+            modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 10000;';
+            modal.innerHTML = `<div style="background: white; border-radius: 10px; max-width: 600px; max-height: 80vh; overflow-y: auto;">${content}</div>`;
+            document.body.appendChild(modal);
+            modal.onclick = (e) => { if (e.target === modal) closeModal(); };
+        }
+        
+        function closeModal() {
+            const modal = document.getElementById('customModal');
+            if (modal) modal.remove();
         }
 
         async function calculateEJV(storeId, storeName, showDashboard = false) {
