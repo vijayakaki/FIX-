@@ -2575,6 +2575,8 @@ out center;`;
             let endpoint;
             if (version === 'v1') {
                 endpoint = '/api/ejv-v1/help';
+            } else if (version === 'v4.1') {
+                endpoint = '/api/ejv-v4.1/help';
             } else if (version === 'v4.2') {
                 endpoint = '/api/ejv-v4.2/help';
             } else {
@@ -2646,6 +2648,55 @@ out center;`;
                         </div>
                     `).join('');
                 }
+                document.getElementById('helpComponents').innerHTML = componentsHtml;
+                
+                // Outputs section (for v4.1)
+                let outputsHtml = '';
+                if (version === 'v4.1' && helpData.outputs) {
+                    outputsHtml = `
+                        <div style="margin-top: 20px; padding: 15px; background: #e3f2fd; border-radius: 6px; border-left: 4px solid #2196f3;">
+                            <h4 style="color: #1976d2; margin-bottom: 10px;">📊 v4.1 Outputs</h4>
+                            ${helpData.outputs.map(output => `
+                                <div style="margin: 10px 0; padding: 10px; background: white; border-radius: 4px;">
+                                    <strong>${output.name}</strong>
+                                    <p>${output.description}</p>
+                                    <p><em>Calculation:</em> <code>${output.calculation}</code></p>
+                                    <p><em>Display:</em> ${output.display}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                }
+                componentsHtml += outputsHtml;
+                
+                // UI Pattern section (for v4.1)
+                if (version === 'v4.1' && helpData.ui_pattern) {
+                    const uiPatternHtml = `
+                        <div style="margin-top: 20px; padding: 15px; background: #f3e5f5; border-radius: 6px; border-left: 4px solid #9c27b0;">
+                            <h4 style="color: #7b1fa2; margin-bottom: 10px;">🎨 ${helpData.ui_pattern.recommended}</h4>
+                            <p><strong>${helpData.ui_pattern.description}</strong></p>
+                            
+                            <div style="margin: 15px 0; padding: 12px; background: white; border-radius: 6px; font-family: monospace; font-size: 13px;">
+                                <div style="font-weight: bold; margin-bottom: 8px;">${helpData.ui_pattern.example.store}</div>
+                                <div style="margin-left: 15px; line-height: 1.8;">
+                                    <div>• EJV v2 (Gov): <strong>${helpData.ui_pattern.example.ejv_v2_value}</strong></div>
+                                    <div>• EJV v4.1 (Adv): <strong>${helpData.ui_pattern.example.ejv_v4_1_value}</strong></div>
+                                    <div style="margin-top: 5px;">[Why?] [Compare] [Enable]</div>
+                                </div>
+                            </div>
+                            
+                            <div style="margin-top: 10px; padding: 10px; background: #fff3e0; border-radius: 4px;">
+                                <p style="margin: 5px 0;"><strong>Why?</strong> ${helpData.ui_pattern.example.why_button}</p>
+                                <p style="margin: 5px 0;"><strong>Compare:</strong> ${helpData.ui_pattern.example.compare_button}</p>
+                                <p style="margin: 5px 0;"><strong>Enable:</strong> ${helpData.ui_pattern.example.enable_button}</p>
+                            </div>
+                            
+                            <p style="margin-top: 10px; font-style: italic; color: #666;"><em>Toggle Behavior:</em> ${helpData.ui_pattern.toggle_behavior}</p>
+                        </div>
+                    `;
+                    componentsHtml += uiPatternHtml;
+                }
+                
                 document.getElementById('helpComponents').innerHTML = componentsHtml;
                 
                 // Data sources section

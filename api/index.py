@@ -1740,6 +1740,141 @@ def get_ejv_v2_help():
     }
     return jsonify(help_content)
 
+@app.route('/api/ejv-v4.1/help', methods=['GET'])
+def get_ejv_v41_help():
+    """Get EJV v4.1 calculation guide with decomposed local capture flows"""
+    help_content = {
+        "title": "EJV v4.1: Decomposed Local Value Flows",
+        "subtitle": "Advanced Economic Justice Metric with Flow Analysis",
+        "description": "EJV v4.1 decomposes economic value into 5 distinct flows (Wages 35%, Suppliers 25%, Taxes 15%, Financing 15%, Ownership 10%), providing precise measurement of Estimated Local Value Retained (ELVR) and Estimated Value Leakage (EVL). This version builds on EJV v2's government baseline with enhanced decomposition of where money flows in the local economy.",
+        "formula": "ELVR = Purchase Amount × LC_aggregate + Financing Impact",
+        "formula_explanation": "For every $100 spent, EJV v4.1 calculates exactly how much value is retained locally through 5 decomposed flows, and how much leaks to external entities.",
+        "components": [
+            {
+                "name": "Wages Flow (35%)",
+                "description": "Portion of purchase directed to employee compensation",
+                "calculation": "wages_component = purchase × 0.35 × (1 - employee_external_spend)",
+                "factors": [
+                    "Employee local spending patterns",
+                    "Local hire percentage from business profile",
+                    "External spending reduces local retention"
+                ],
+                "range": "0-35% of purchase amount"
+            },
+            {
+                "name": "Suppliers Flow (25%)",
+                "description": "Value paid to suppliers for goods and services",
+                "calculation": "suppliers_component = purchase × 0.25 × local_supplier_percentage",
+                "factors": [
+                    "Business-specific local supplier usage",
+                    "Supply chain transparency",
+                    "Regional sourcing policies"
+                ],
+                "range": "0-25% of purchase amount"
+            },
+            {
+                "name": "Taxes Flow (15%)",
+                "description": "Tax payments to local and state governments",
+                "calculation": "taxes_component = purchase × 0.15 × local_tax_capture",
+                "factors": [
+                    "Local vs state tax allocation",
+                    "Tax incentives and abatements",
+                    "Municipal revenue structure"
+                ],
+                "range": "0-15% of purchase amount"
+            },
+            {
+                "name": "Financing Flow (15%)",
+                "description": "Interest and debt payments impact on local retention",
+                "calculation": "financing_impact = purchase × 0.15 × (local_financing_factor - external_debt_factor)",
+                "factors": [
+                    "Local vs external lenders",
+                    "Debt service obligations",
+                    "Capital structure of business"
+                ],
+                "range": "-15% to +15% of purchase amount"
+            },
+            {
+                "name": "Ownership Flow (10%)",
+                "description": "Profits retained by local vs external owners",
+                "calculation": "ownership_component = purchase × 0.10 × local_ownership_percentage",
+                "factors": [
+                    "Local vs chain/franchise ownership",
+                    "Profit distribution policies",
+                    "Reinvestment in local operations"
+                ],
+                "range": "0-10% of purchase amount"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "ELVR (Estimated Local Value Retained)",
+                "description": "Dollar amount that stays in local economy",
+                "calculation": "Sum of all positive local capture components",
+                "display": "Dollar amount (e.g., $72.50 per $100 spent)"
+            },
+            {
+                "name": "EVL (Estimated Value Leakage)",
+                "description": "Dollar amount that leaves local economy",
+                "calculation": "Purchase Amount - ELVR",
+                "display": "Dollar amount (e.g., $27.50 per $100 spent)"
+            },
+            {
+                "name": "Retention Percentage",
+                "description": "Percentage of purchase staying local",
+                "calculation": "(ELVR / Purchase Amount) × 100",
+                "display": "Percentage (e.g., 72.5%)"
+            }
+        ],
+        "ui_pattern": {
+            "recommended": "LOCATOR Pattern",
+            "description": "For each business in results list",
+            "card_layout": {
+                "store_name": "Business name with indicator (★ for verified)",
+                "ejv_v2": "EJV v2 (Gov Baseline): always shown",
+                "ejv_v41": "EJV v4.1 (Advanced): shown when toggle is on",
+                "actions": "[Why?] [Compare] [Enable]"
+            },
+            "example": {
+                "store": "Honest John Coffee ★",
+                "ejv_v2_value": "18 (Government open data baseline)",
+                "ejv_v4_1_value": "24 (Decomposed flows - Wages + Suppliers + Taxes + Financing + Ownership)",
+                "why_button": "Shows LC breakdown and data provenance",
+                "compare_button": "Side-by-side comparison with other businesses",
+                "enable_button": "Switch to ENGAGE mode for participation amplification"
+            },
+            "toggle_behavior": "User can toggle between showing only v2 or both v2+v4.1"
+        },
+        "data_sources": [
+            {
+                "source": "Government Open Data (Baseline)",
+                "data": "Census/ACS, BLS, TIGER - Used in EJV v2 calculation for baseline comparison",
+                "url": "https://data.census.gov"
+            },
+            {
+                "source": "Business Profiles (Decomposition)",
+                "data": "Local capture percentages by flow type, supplier networks, ownership structure",
+                "url": None
+            },
+            {
+                "source": "Local Economic Data",
+                "data": "Regional spending patterns, tax structures, financing availability",
+                "url": None
+            }
+        ],
+        "advantages": [
+            "Precise flow decomposition shows exactly where money goes",
+            "Builds on government baseline (v2) with enhanced granularity",
+            "ELVR and EVL provide clear dollar amounts retained vs leaked",
+            "5-flow structure aligns with standard economic modeling",
+            "Compatible with v4.2 participation amplification"
+        ],
+        "key_insight": "EJV v4.1 answers: 'Of every $100 spent, exactly how much stays local through wages ($35), suppliers ($25), taxes ($15), financing ($15), and ownership ($10)?'",
+        "relationship_to_v2": "EJV v4.1 uses v2 as the government baseline for comparison. v2 shows the justice-weighted score (0-100), while v4.1 decomposes the actual dollar flows to show ELVR.",
+        "relationship_to_v42": "EJV v4.2 applies Participation Amplification Factor (PAF) to v4.1's ELVR. PAF is only shown in ENGAGE mode and rewards verified civic participation."
+    }
+    return jsonify(help_content)
+
 @app.route('/api/ejv-v4.2/help', methods=['GET'])
 def get_ejv_v42_help():
     """Get EJV v4.2 calculation guide with participation pathways"""
