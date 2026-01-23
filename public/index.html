@@ -2412,12 +2412,25 @@ out center;`;
 
             // Main EJV scores
             console.log('About to set displays - ejvV2Baseline:', ejvV2Baseline, 'elvr:', elvr);
-            document.getElementById('ejvV2Display').textContent = ejvV2Baseline.toFixed(2);
-            document.getElementById('ejvV2Display').parentElement.style.background = impactBg;
-            document.getElementById('ejvV2Display').parentElement.style.borderColor = impactBorder;
-            document.getElementById('ejvV2Display').style.color = impactColor;
             
-            document.getElementById('ejvV41Display').textContent = '$' + elvr.toFixed(2);
+            const v2Display = document.getElementById('ejvV2Display');
+            const v41Display = document.getElementById('ejvV41Display');
+            
+            if (v2Display) {
+                const v2Value = ejvV2Baseline > 0 ? ejvV2Baseline.toFixed(2) : '0.00';
+                v2Display.textContent = v2Value;
+                v2Display.parentElement.style.background = impactBg;
+                v2Display.parentElement.style.borderColor = impactBorder;
+                v2Display.style.color = impactColor;
+                console.log('Set ejvV2Display to:', v2Value);
+            }
+            
+            if (v41Display) {
+                const v41Value = elvr > 0 ? '$' + elvr.toFixed(2) : '$0.00';
+                v41Display.textContent = v41Value;
+                console.log('Set ejvV41Display to:', v41Value);
+            }
+            
             console.log('Display values set - check screen');
             
             // v4.2 only shown in ENGAGE mode
