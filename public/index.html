@@ -1332,6 +1332,7 @@
         let allStoresEJV = [];
         let ejvCache = {}; // Cache EJV calculations by store ID
         let hoverDebounceTimer = null; // Debounce hover events
+        let currentZip = '10001'; // Default ZIP code, updated on search
 
         // ==========================================
         // EJV v4.2: PAF Calculation
@@ -1715,6 +1716,11 @@
             const zip = document.getElementById('zipInput').value.trim();
             const radius = document.getElementById('zipRadius').value;
             let category = document.getElementById('zipCategory').value;
+            
+            // Save current ZIP for EJV calculations
+            if (zip) {
+                currentZip = zip;
+            }
             
             // Check if custom search
             if (category === 'custom') {
