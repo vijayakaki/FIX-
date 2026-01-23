@@ -1171,27 +1171,30 @@
                         <small id="storeLocationDisplay" style="color: #666;">Search for stores using ZIP code or address</small>
                     </div>
                     
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px;">
+                    <div id="mainMetricsGrid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
+                        <div style="background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%); padding: 10px; border-radius: 6px; text-align: center; border: 2px solid #9c27b0; position: relative;">
+                            <div id="ejvV2Display" style="font-size: 20px; font-weight: 700; color: #7b1fa2;">-</div>
+                            <div style="font-size: 9px; color: #4a148c; margin-top: 2px; text-transform: uppercase; font-weight: 600;">
+                                EJV v2 (Baseline)
+                            </div>
+                            <button class="help-btn" onclick="showHelpModal('v2')" title="Learn about EJV v2 - 9 Dimensions Baseline - Click for details" style="position: absolute; top: 6px; right: 6px;">❓</button>
+                        </div>
                         <div style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); padding: 10px; border-radius: 6px; text-align: center; border: 2px solid #2196f3; position: relative;">
-                            <div id="ejvV1Display" style="font-size: 20px; font-weight: 700; color: #1976d2;">-</div>
+                            <div id="ejvV41Display" style="font-size: 20px; font-weight: 700; color: #1976d2;">-</div>
                             <div style="font-size: 9px; color: #0d47a1; margin-top: 2px; text-transform: uppercase; font-weight: 600;">
                                 ELVR v4.1 ($)
                             </div>
                             <button class="help-btn" onclick="showHelpModal('v4.1')" title="Learn about EJV v4.1 - Decomposed Flows - Click for details" style="position: absolute; top: 6px; right: 6px;">❓</button>
                         </div>
-                        <div style="background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%); padding: 10px; border-radius: 6px; text-align: center; border: 2px solid #9c27b0; position: relative;">
-                            <div id="ejvV2Display" style="font-size: 20px; font-weight: 700; color: #7b1fa2;">-</div>
-                            <div style="font-size: 9px; color: #4a148c; margin-top: 2px; text-transform: uppercase; font-weight: 600;">
-                                Retention (%)
-                            </div>
-                            <button class="help-btn" onclick="showHelpModal('v2')" title="Learn about EJV v2 - Baseline Score - Click for details" style="position: absolute; top: 6px; right: 6px;">❓</button>
-                        </div>
+                    </div>
+                    
+                    <div id="engageMetricsGrid" style="display: none; grid-template-columns: 1fr; gap: 8px; margin-bottom: 12px;">
                         <div style="background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); padding: 10px; border-radius: 6px; text-align: center; border: 2px solid #4caf50; position: relative;">
                             <div id="ejvV42Display" style="font-size: 20px; font-weight: 700; color: #2e7d32;">-</div>
                             <div style="font-size: 9px; color: #1b5e20; margin-top: 2px; text-transform: uppercase; font-weight: 600;">
-                                EJV v4.2 ($)
+                                EJV v4.2 (Participation)
                             </div>
-                            <button class="help-btn" onclick="showHelpModal('v4.2')" title="Learn about EJV v4.2 - Click for details" style="position: absolute; top: 6px; right: 6px;">❓</button>
+                            <button class="help-btn" onclick="showHelpModal('v4.2')" title="Learn about EJV v4.2 - Participation Amplification - Click for details" style="position: absolute; top: 6px; right: 6px;">❓</button>
                         </div>
                     </div>
                     
@@ -1387,20 +1390,27 @@
             const currentModeText = document.getElementById('currentMode');
             modeDisplay.style.display = 'block';
             
+            // Show/hide v4.2 metrics based on mode
+            const engageMetrics = document.getElementById('engageMetricsGrid');
+            
             if (mode === 'locator') {
                 currentModeText.innerHTML = '📍 Locator Mode: Hover on stores to see details';
                 currentModeText.style.color = '#667eea';
+                engageMetrics.style.display = 'none';
             } else if (mode === 'compare') {
                 currentModeText.innerHTML = '⚖️ Compare Mode: Viewing all calculated EJV scores';
                 currentModeText.style.color = '#28a745';
+                engageMetrics.style.display = 'none';
                 showCompareMode();
             } else if (mode === 'optimize') {
                 currentModeText.innerHTML = '✨ Optimize Mode: Showing best and least impact';
                 currentModeText.style.color = '#ffc107';
+                engageMetrics.style.display = 'none';
                 showOptimizeMode();
             } else if (mode === 'engage') {
                 currentModeText.innerHTML = '🤝 Engage Mode: Amplify impact through participation (EJV v4.2)';
                 currentModeText.style.color = '#ff5722';
+                engageMetrics.style.display = 'grid';
                 showEngageMode();
             }
         }
@@ -2396,24 +2406,15 @@ out center;`;
                 impactBorder = '#f44336';
             }
 
-            // Main EJV scores with impact indicator
-            document.getElementById('ejvV1Display').textContent = '$' + elvr.toFixed(2);
-            document.getElementById('ejvV1Display').parentElement.style.background = impactBg;
-            document.getElementById('ejvV1Display').parentElement.style.borderColor = impactBorder;
-            document.getElementById('ejvV1Display').style.color = impactColor;
+            // Main EJV scores
+            document.getElementById('ejvV2Display').textContent = ejvV2Baseline.toFixed(2);
+            document.getElementById('ejvV2Display').parentElement.style.background = impactBg;
+            document.getElementById('ejvV2Display').parentElement.style.borderColor = impactBorder;
+            document.getElementById('ejvV2Display').style.color = impactColor;
             
-            // Add impact label showing it's ELVR v4.1
-            const ejvV1Container = document.getElementById('ejvV1Display').parentElement;
-            let impactBadge = ejvV1Container.querySelector('.impact-badge');
-            if (!impactBadge) {
-                impactBadge = document.createElement('div');
-                impactBadge.className = 'impact-badge';
-                ejvV1Container.appendChild(impactBadge);
-            }
-            impactBadge.textContent = 'ELVR v4.1';
-            impactBadge.style.cssText = `font-size: 9px; font-weight: 700; color: ${impactColor}; margin-top: 4px; text-transform: uppercase;`;
+            document.getElementById('ejvV41Display').textContent = '$' + elvr.toFixed(2);
             
-            document.getElementById('ejvV2Display').textContent = retentionPct.toFixed(1) + '%';
+            // v4.2 only shown in ENGAGE mode
             document.getElementById('ejvV42Display').textContent = '$' + ejvV42.toFixed(2);
             
             // Show participation panel
