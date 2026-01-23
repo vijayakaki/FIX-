@@ -1327,6 +1327,7 @@
         let markers = [];
         let currentUser = { username: 'Guest User', email: 'guest@fixapp.com' };
         let storeData = [];
+        let rawStores = []; // Raw store data from search for re-rendering
         let ejvData = {};
         let decisionMode = 'locator';
         let allStoresEJV = [];
@@ -1398,6 +1399,15 @@
                 currentModeText.innerHTML = '📍 Locator Mode: Hover on stores to see details';
                 currentModeText.style.color = '#667eea';
                 engageMetrics.style.display = 'none';
+                // Re-display stores if they exist
+                if (rawStores.length > 0) {
+                    const storeListDiv = document.getElementById('storeList');
+                    storeListDiv.innerHTML = ''; // Clear ENGAGE/COMPARE content
+                    displayStores(rawStores); // Re-render store list
+                    showResult(`Found ${rawStores.length} stores`);
+                } else {
+                    showResult('Enter a ZIP code or address to search for stores');
+                }
             } else if (mode === 'compare') {
                 currentModeText.innerHTML = '⚖️ Compare Mode: Viewing all calculated EJV scores';
                 currentModeText.style.color = '#28a745';
@@ -1965,6 +1975,7 @@ out center;`;
             const storeListDiv = document.getElementById('storeList');
             storeListDiv.innerHTML = '';
             storeData = [];
+            rawStores = stores; // Save for re-rendering
 
             console.log(`Displaying ${stores.length} stores on map`);
             console.log('Map object:', map);
@@ -2208,7 +2219,8 @@ out center;`;
         }
         
         function compareStore(storeId) {
-            alert('Compare feature coming soon - will show side-by-side comparison with other businesses');
+            // Switch to compare mode to see all stores
+            setDecisionMode('compare');
         }
         
         function engageStore(storeId) {
