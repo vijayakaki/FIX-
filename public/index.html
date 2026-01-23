@@ -1130,9 +1130,13 @@
                             <strong style="color: #28a745;">⚖️ COMPARE</strong><br>
                             Compare EJV scores across different stores
                         </div>
-                        <div class="decision-step" data-mode="optimize" onclick="setDecisionMode('optimize')" style="background: white; padding: 10px; border-radius: 6px; border-left: 3px solid #ffc107; cursor: pointer;">
+                        <div class="decision-step" data-mode="optimize" onclick="setDecisionMode('optimize')" style="background: white; padding: 10px; border-radius: 6px; margin-bottom: 8px; border-left: 3px solid #ffc107; cursor: pointer;">
                             <strong style="color: #ffc107;">✨ OPTIMIZE</strong><br>
                             Get recommendations for best and least impact stores
+                        </div>
+                        <div class="decision-step" data-mode="engage" onclick="setDecisionMode('engage')" style="background: white; padding: 10px; border-radius: 6px; border-left: 3px solid #ff5722; cursor: pointer;">
+                            <strong style="color: #ff5722;">🤝 ENGAGE</strong><br>
+                            Amplify impact through participation (EJV v4.2)
                         </div>
                     </div>
                     <div id="modeDisplay" style="margin-top: 10px; padding: 10px; background: #e3f2fd; border-radius: 6px; font-size: 11px; display: none;">
@@ -1394,6 +1398,10 @@
                 currentModeText.innerHTML = '✨ Optimize Mode: Showing best and least impact';
                 currentModeText.style.color = '#ffc107';
                 showOptimizeMode();
+            } else if (mode === 'engage') {
+                currentModeText.innerHTML = '🤝 Engage Mode: Amplify impact through participation (EJV v4.2)';
+                currentModeText.style.color = '#ff5722';
+                showEngageMode();
             }
         }
 
@@ -1458,6 +1466,174 @@
                     <div style="font-size: 11px; color: #666;">EJV v1: ${worst.ejv_v1.toFixed(2)} | EJV v2: $${worst.ejv_v2.toFixed(2)}</div>
                     <div style="font-size: 10px; color: #dc3545; margin-top: 5px;">⚠ Lower economic justice impact</div>
                 </div>
+            `;
+        }
+
+        function showEngageMode() {
+            if (allStoresEJV.length === 0) {
+                showResult('Calculate EJV for stores first to enable Engage mode');
+                return;
+            }
+            
+            const storeListDiv = document.getElementById('storeList');
+            storeListDiv.innerHTML = `
+                <div style="font-size: 12px; font-weight: 600; margin-bottom: 10px; color: #ff5722;">🤝 Engage: Participation Amplification (EJV v4.2)</div>
+                
+                <div style="background: #fff3e0; padding: 12px; border-radius: 6px; margin-bottom: 12px; border-left: 4px solid #ff9800;">
+                    <div style="font-size: 11px; line-height: 1.6; color: #333;">
+                        <strong>How it works:</strong><br>
+                        • Add verified participation actions<br>
+                        • PAF multiplier: 1.0 to 1.25 (up to 25% boost)<br>
+                        • Activities: Mentoring, Volunteering, Sponsorship, Apprenticeships<br>
+                        • Amplifies EJV v4.1 decomposed flows
+                    </div>
+                </div>
+                
+                <div style="font-size: 11px; margin-bottom: 10px; color: #666;">
+                    Select a store to add participation activities:
+                </div>
+            `;
+            
+            allStoresEJV.forEach(store => {
+                const storeItem = document.createElement('div');
+                storeItem.className = 'store-item';
+                storeItem.style.cursor = 'pointer';
+                storeItem.style.padding = '10px';
+                storeItem.style.marginBottom = '8px';
+                storeItem.style.background = 'white';
+                storeItem.style.borderRadius = '6px';
+                storeItem.style.borderLeft = '3px solid #ff5722';
+                storeItem.innerHTML = `
+                    <div style="font-weight: 600; color: #333; margin-bottom: 3px;">${getStoreIcon(store.type).icon} ${store.name}</div>
+                    <div style="font-size: 10px; color: #666; margin-bottom: 5px;">
+                        Base EJV v2: $${store.ejv_v2.toFixed(2)}
+                    </div>
+                    <div style="font-size: 10px; color: #ff5722;">
+                        Click to apply participation (v4.2)
+                    </div>
+                `;
+                storeItem.onclick = () => showParticipationForm(store);
+                storeListDiv.appendChild(storeItem);
+            });
+        }
+
+        function showParticipationForm(store) {
+            const storeListDiv = document.getElementById('storeList');
+            storeListDiv.innerHTML = `
+                <div style="font-size: 12px; font-weight: 600; margin-bottom: 10px; color: #ff5722;">
+                    🤝 ${store.name} - Add Participation
+                </div>
+                
+                <div style="background: white; padding: 12px; border-radius: 6px; margin-bottom: 10px;">
+                    <div style="font-size: 11px; margin-bottom: 8px;">
+                        <label style="display: block; margin-bottom: 4px; font-weight: 600;">Mentoring (hrs/week):</label>
+                        <input type="number" id="mentoring_hours" min="0" max="10" value="2" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+                    
+                    <div style="font-size: 11px; margin-bottom: 8px;">
+                        <label style="display: block; margin-bottom: 4px; font-weight: 600;">Volunteering (hrs/week):</label>
+                        <input type="number" id="volunteering_hours" min="0" max="10" value="4" style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+                    
+                    <div style="font-size: 11px; margin-bottom: 12px;">
+                        <label style="display: flex; align-items: center;">
+                            <input type="checkbox" id="verified" checked style="margin-right: 6px;">
+                            <span>Verified by community partner (+20%)</span>
+                        </label>
+                    </div>
+                    
+                    <button onclick="calculateEngageEJV('${store.storeId}', '${store.name}', ${store.ejv_v2})" 
+                            style="width: 100%; padding: 10px; background: #ff5722; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">
+                        Calculate EJV v4.2
+                    </button>
+                    
+                    <button onclick="showEngageMode()" 
+                            style="width: 100%; padding: 8px; background: #666; color: white; border: none; border-radius: 6px; margin-top: 8px; cursor: pointer;">
+                        ← Back
+                    </button>
+                </div>
+            `;
+        }
+
+        async function calculateEngageEJV(storeId, storeName, baseEjv) {
+            const mentoring_hours = parseFloat(document.getElementById('mentoring_hours').value) || 0;
+            const volunteering_hours = parseFloat(document.getElementById('volunteering_hours').value) || 0;
+            const verified = document.getElementById('verified').checked;
+            
+            try {
+                const response = await fetch(`/api/ejv-v4.2/${storeId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        zip: currentZip,
+                        location: storeName,
+                        purchase: 100,
+                        participation: {
+                            mentoring: {
+                                hours: mentoring_hours,
+                                verified: verified,
+                                duration_months: 12
+                            },
+                            volunteering: {
+                                hours: volunteering_hours,
+                                verified: verified,
+                                duration_months: 6
+                            }
+                        }
+                    })
+                });
+                
+                const data = await response.json();
+                displayEngageResults(storeName, data, baseEjv);
+            } catch (error) {
+                showResult(`Error calculating EJV v4.2: ${error.message}`);
+            }
+        }
+
+        function displayEngageResults(storeName, data, baseEjv) {
+            const storeListDiv = document.getElementById('storeList');
+            const ejv42 = data.ejv_v42;
+            const paf = data.participation.paf;
+            const amplification = ejv42.amplification_value;
+            
+            storeListDiv.innerHTML = `
+                <div style="font-size: 12px; font-weight: 600; margin-bottom: 10px; color: #ff5722;">
+                    🤝 ${storeName} - EJV v4.2 Results
+                </div>
+                
+                <div style="background: linear-gradient(135deg, #ff5722 0%, #ff9800 100%); padding: 15px; border-radius: 8px; margin-bottom: 12px; color: white;">
+                    <div style="font-size: 20px; font-weight: 700; margin-bottom: 5px;">
+                        $${ejv42.elvr_amplified.toFixed(2)}
+                    </div>
+                    <div style="font-size: 11px; opacity: 0.9;">Amplified Local Value Retained (ELVR)</div>
+                </div>
+                
+                <div style="background: white; padding: 12px; border-radius: 6px; margin-bottom: 10px;">
+                    <div style="font-size: 11px; line-height: 1.8;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                            <span style="color: #666;">Base ELVR (v4.1):</span>
+                            <span style="font-weight: 600;">$${ejv42.elvr_base.toFixed(2)}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                            <span style="color: #666;">PAF Multiplier:</span>
+                            <span style="font-weight: 600; color: #ff5722;">${paf.toFixed(3)}x</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding-top: 5px; border-top: 1px solid #eee;">
+                            <span style="color: #ff5722; font-weight: 600;">Amplification:</span>
+                            <span style="font-weight: 600; color: #ff5722;">+$${amplification.toFixed(2)} (+${((paf - 1) * 100).toFixed(1)}%)</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="background: #f5f5f5; padding: 10px; border-radius: 6px; font-size: 10px; color: #666; line-height: 1.6; margin-bottom: 12px;">
+                    <strong>Interpretation:</strong><br>
+                    ${data.interpretation.message}
+                </div>
+                
+                <button onclick="showEngageMode()" 
+                        style="width: 100%; padding: 10px; background: #666; color: white; border: none; border-radius: 6px; cursor: pointer;">
+                    ← Back to Engage Mode
+                </button>
             `;
         }
 
