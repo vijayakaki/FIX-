@@ -1,64 +1,99 @@
 # EJV v4.2 Calculation Guide
-## Agency-Enabled Economic Justice Value
+## Participation & Agency Amplification
 
 **Version:** 4.2  
-**Last Updated:** January 22, 2026
+**Last Updated:** January 23, 2026  
+**Architecture:** v2 (baseline) → v4.1 (decomposed flows) → v4.2 (participation amplification)
 
 ---
 
 ## Core Formula
 
 ```
-EJV v4.2 = Community EJV v4.1 × PAF
+ELVR v4.2 = ELVR v4.1 × PAF
 ```
 
 **Where:**
-- **Community EJV v4.1** = Base justice-weighted local impact
+- **ELVR v4.1** = Estimated Local Value Retained (decomposed flows from v4.1)
 - **PAF** = Participation Amplification Factor (1.0 to 1.25)
+- **ELVR v4.2** = Amplified local value retained through verified participation
 
 ---
 
 ## Canonical Definition
 
-EJV v4.2 quantifies the justice-weighted community impact of economic activity by combining decomposed, time-aware local value flows with explicit participation pathways—such as mentoring, volunteering, and community investment—that amplify long-term equity outcomes.
+EJV v4.2 amplifies the decomposed local value flows from v4.1 by recognizing verified participation pathways—such as mentoring, volunteering, sponsorship, and apprenticeships—that multiply community benefit through civic engagement and agency.
 
-**In Simple Terms:** EJV v4.2 turns impact measurement into impact participation by recognizing that time, skills, and civic engagement strengthen how economic activity translates into lasting community benefit.
+**In Simple Terms:** v4.2 takes the estimated local value retained from v4.1's decomposed flows and amplifies it through verified participation actions that strengthen community agency.
+
+---
+
+## Architecture Overview
+
+### Version Flow:
+1. **EJV v2**: Government-only baseline (9 dimensions)
+   - Used in LOCATOR for objective comparison
+   - No estimates or third-party data
+
+2. **EJV v4.1**: Decomposed Local Capture + Financing-Aware
+   - Breaks transaction into 5 components: wages, suppliers, taxes, financing, ownership
+   - Time-aware for financing (interest over loan life)
+   - Produces ELVR (retained) and EVL (leakage)
+   - Uses v2 for justice weighting
+   - **Used in LOCATOR as optional advanced view**
+
+3. **EJV v4.2**: Participation & Agency Amplification
+   - Applies PAF multiplier to v4.1's ELVR
+   - Requires verified participation evidence
+   - **Used ONLY in ENABLE workflow**
+   - Never shown in LOCATOR
 
 ---
 
 ## Step-by-Step Calculation
 
-### Step 1: Calculate Base Community Impact (v4.1)
+### Step 1: Calculate Base Decomposed Flows (v4.1)
 
-Starting from EJV v2 (current implementation):
+v4.1 decomposes the transaction into local capture components:
 
 ```
-Community EJV = (Purchase Amount × Local Capture) × (Justice Score / 100)
+ELVR = P × ΣLCᵢ
 ```
 
-#### Components:
+#### Five Components (LCᵢ):
 
-**1. Purchase Amount (P):** Transaction value (e.g., $100)
+| Component | Weight | Description | Range |
+|-----------|--------|-------------|-------|
+| **LC_wages** | 35% | % of wages to local workers | 40-95% |
+| **LC_suppliers** | 25% | % from local suppliers | 15-80% |
+| **LC_taxes** | 15% | % taxes paid locally | 60-90% |
+| **LC_financing** | 15% | % financing costs local | 20-95% |
+| **LC_ownership** | 10% | % local ownership | 5-100% |
 
-**2. Local Capture (LC):** Percentage of money staying local through hiring
-- Range: 40-98% depending on store
-- Formula: `local_hire_percentage + unemployment_adjustment`
-- Higher unemployment = higher LC adjustment (+0-20%)
+**Aggregate Local Capture:**
+```
+LC_aggregate = (LC_wages × 0.35) + (LC_suppliers × 0.25) + (LC_taxes × 0.15) + 
+               (LC_financing × 0.15) + (LC_ownership × 0.10)
+```
 
-**3. Justice Score (JS_ZIP):** 0-100 composite across 9 dimensions
-- Each dimension normalized to 0-1 scale
-- ZIP Need Modifiers applied to 3 dimensions (AES, ART, HWI)
-- Average all 9 dimensions × 100
-
-#### Example:
+#### Example (Local Small Business):
 ```
 Purchase: $100
-Local Capture: 82% (0.82)
-Justice Score: 70.6
+Business Type: local_small_business
 
-Base EJV v4.1 = ($100 × 0.82) × (70.6/100)
-              = $82 × 0.706
-              = $57.89
+Component Values:
+- LC_wages: 0.80 (80%)
+- LC_suppliers: 0.65 (65%)
+- LC_taxes: 0.80 (80%)
+- LC_financing: 0.70 (70%)
+- LC_ownership: 0.90 (90%)
+
+LC_aggregate = (0.80 × 0.35) + (0.65 × 0.25) + (0.80 × 0.15) + (0.70 × 0.15) + (0.90 × 0.10)
+             = 0.28 + 0.1625 + 0.12 + 0.105 + 0.09
+             = 0.7575 (75.75%)
+
+ELVR v4.1 = $100 × 0.7575 = $75.75
+EVL = $100 - $75.75 = $24.25
 ```
 
 ---
@@ -118,18 +153,20 @@ PAF = 1.0 + min(Sum_of_All_Contributions, 0.25)
 ## Complete Worked Example
 
 ### Scenario:
-Local supermarket in Manhattan (ZIP 10001) with active participation
+Local coffee shop in Manhattan (ZIP 10001) with active community participation
 
 ### Input Data:
 
 **Transaction:**
 - Purchase Amount: $100
+- Business Type: local_small_business
 
-**Base Metrics:**
-- Local Hire: 82%
-- Justice Score: 70.6
-- Unemployment: 3.1%
-- Median Income: $106,509
+**v4.1 Decomposed Local Capture (Defaults):**
+- LC_wages: 0.80 (80%)
+- LC_suppliers: 0.65 (65%)
+- LC_taxes: 0.80 (80%)
+- LC_financing: 0.70 (70%)
+- LC_ownership: 0.90 (90%)
 
 **Participation Data:**
 ```json
@@ -151,11 +188,15 @@ Local supermarket in Manhattan (ZIP 10001) with active participation
 
 ### Detailed Calculation Steps:
 
-#### 1. Base EJV v4.1:
+#### 1. Calculate v4.1 Base (ELVR):
 ```
-Community EJV v4.1 = $100 × 0.82 × 0.706 
-                   = $82 × 0.706
-                   = $57.89
+LC_aggregate = (0.80 × 0.35) + (0.65 × 0.25) + (0.80 × 0.15) + (0.70 × 0.15) + (0.90 × 0.10)
+             = 0.28 + 0.1625 + 0.12 + 0.105 + 0.09
+             = 0.7575
+
+ELVR v4.1 = $100 × 0.7575 = $75.75
+EVL = $100 - $75.75 = $24.25
+Retention: 75.75%
 ```
 
 #### 2. Calculate PAF:
@@ -197,11 +238,11 @@ PAF = 1.0 + min(0.0312, 0.25)
 Rounded: 1.031
 ```
 
-#### 3. Calculate EJV v4.2:
+#### 3. Calculate ELVR v4.2:
 ```
-EJV v4.2 = Base Impact × PAF
-         = $57.89 × 1.031
-         = $59.68
+ELVR v4.2 = ELVR v4.1 × PAF
+          = $75.75 × 1.031
+          = $78.10
 ```
 
 ---
@@ -210,14 +251,16 @@ EJV v4.2 = Base Impact × PAF
 
 | Metric | Value |
 |--------|-------|
-| Base Impact (v4.1) | $57.89 |
+| Base ELVR (v4.1) | $75.75 |
+| Base EVL (v4.1) | $24.25 |
+| Base Retention % | 75.75% |
 | Participation Amplification Factor | 1.031 |
-| **EJV v4.2 Community Impact** | **$59.68** |
-| Amplification Value | $1.79 |
+| **ELVR v4.2 (Amplified)** | **$78.10** |
+| Amplification Value | $2.35 |
 | Amplification Percentage | 3.1% |
 
 **Interpretation:**  
-"For $100 spent with 2 participation pathways (2 hrs/week mentoring + 4 hrs/week volunteering), this creates **$59.68** in justice-weighted community impact. Participation adds **$1.79** (3.1%) through civic engagement, strengthening how economic activity translates into lasting community benefit."
+"For $100 spent with 2 participation pathways (2 hrs/week mentoring + 4 hrs/week volunteering), the estimated local value retained increases to **$78.10** (from $75.75 base). Participation adds **$2.35** (3.1%) through civic engagement, strengthening community agency and multiplying local benefit."
 
 ---
 
@@ -227,9 +270,9 @@ EJV v4.2 = Base Impact × PAF
 ```
 Input: No participation activities
 PAF = 1.0
-EJV v4.2 = $57.89 × 1.0 = $57.89
+ELVR v4.2 = $75.75 × 1.0 = $75.75
 
-Interpretation: Base impact only, no amplification
+Interpretation: Base decomposed flows only, no participation amplification
 ```
 
 ### Scenario B: Light Participation
@@ -260,9 +303,9 @@ Sponsorship: 0.05 × 1.0 × 1.2 × 1.0 = 0.060
 Total = 0.108
 
 PAF = 1.0 + 0.108 = 1.108
-EJV v4.2 = $57.89 × 1.108 = $64.14
+ELVR v4.2 = $75.75 × 1.108 = $83.93
 
-Amplification: $6.25 (10.8%)
+Amplification: $8.18 (10.8%)
 ```
 
 ### Scenario D: Maximum Participation
@@ -279,26 +322,31 @@ Facilities:     0.02 × 1.0 × 1.2 × 1.0 = 0.024
 Total = 0.300 → CAPPED at 0.25
 
 PAF = 1.0 + 0.25 = 1.25 (maximum)
-EJV v4.2 = $57.89 × 1.25 = $72.36
+ELVR v4.2 = $75.75 × 1.25 = $94.69
 
-Amplification: $14.47 (25%)
+Amplification: $18.94 (25%)
 ```
 
 ---
 
 ## Key Design Principles
 
-### 1. PAF is Bounded
+### 1. v4.2 Builds on v4.1 Decomposed Flows
+- **v4.1** decomposes transactions into 5 local capture components
+- **v4.2** amplifies the ELVR through verified participation
+- **Never** mixes v4.2 with v2; always v2 → v4.1 → v4.2
+
+### 2. PAF is Bounded
 - **Minimum:** 1.0 (no participation)
 - **Maximum:** 1.25 (25% amplification)
 - **Purpose:** Prevents infinite scaling or gaming the system
 
-### 2. Verification Matters
+### 3. Verification Matters
 - **Unverified activities:** Full base weight (multiplier = 1.0)
 - **Verified activities:** +20% bonus (multiplier = 1.2)
 - **Purpose:** Encourages credible reporting and community partnerships
 
-### 3. Duration Rewards Commitment
+### 4. Duration Rewards Commitment
 - **Short-term (<3 months):** Minimal impact (0-25% of full weight)
 - **Medium-term (6 months):** Half weight (50%)
 - **Long-term (12+ months):** Full weight (100%)
@@ -546,6 +594,128 @@ def calculate_paf(participation_data):
 
 ---
 
+## Workflow & Version Usage
+
+### LOCATOR Workflow
+**Purpose:** Objective comparison using government data
+
+**Versions Used:**
+1. **EJV v2** (Default): Government-only baseline (9 dimensions)
+   - Always shown for all businesses
+   - Repeatable, transparent, reviewer-safe
+   
+2. **EJV v4.1** (Optional Advanced): Decomposed flows + financing
+   - Toggle: "Show Advanced Impact (v4.1)"
+   - Adds ELVR/EVL breakdown
+   - Shows estimated retention vs leakage
+
+**Never Show v4.2 in LOCATOR**
+
+### ENABLE Workflow
+**Purpose:** Agency & participation tracking
+
+**Version Used:**
+- **EJV v4.2 ONLY**: Participation amplification
+  - Requires verified actions
+  - Human-in-the-loop checks
+  - Time-bound uplift (decays unless renewed)
+
+### Data Flow
+```
+LOCATOR → Selected business + transaction → ENABLE
+         ↓                                    ↓
+    v2 + v4.1 metrics                  Apply v4.2 (PAF)
+         ↓                                    ↓
+    Objective baseline              Participation uplift
+```
+
+---
+
+## API Usage
+
+### v4.1 Endpoint (Decomposed Flows)
+```bash
+POST /api/ejv-v4.1/coffee_shop_10001
+Content-Type: application/json
+
+{
+  "zip": "10001",
+  "location": "Manhattan Coffee Shop",
+  "purchase": 100,
+  "business_type": "local_small_business",
+  "local_hire_pct": 0.85,
+  "supplier_local_pct": 0.70,
+  "apr": 5.5,
+  "loan_term_months": 12,
+  "down_payment": 20
+}
+```
+
+**Response:**
+```json
+{
+  "elvr": 76.50,
+  "evl": 23.50,
+  "retention_percentage": 76.5,
+  "local_capture_components": {
+    "lc_wages": 0.85,
+    "lc_suppliers": 0.70,
+    "lc_taxes": 0.80,
+    "lc_financing": 0.70,
+    "lc_ownership": 0.90,
+    "lc_aggregate": 0.785
+  },
+  "ejv_v2_baseline": { ... }
+}
+```
+
+### v4.2 Endpoint (Participation Amplification)
+```bash
+POST /api/ejv-v4.2/coffee_shop_10001
+Content-Type: application/json
+
+{
+  "zip": "10001",
+  "location": "Manhattan Coffee Shop",
+  "purchase": 100,
+  "business_type": "local_small_business",
+  "participation": {
+    "mentoring": {
+      "hours": 2,
+      "verified": true,
+      "duration_months": 12
+    },
+    "volunteering": {
+      "hours": 4,
+      "verified": false,
+      "duration_months": 6
+    }
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "version": "4.2",
+  "ejv_v42": {
+    "elvr_amplified": 78.10,
+    "elvr_base": 75.75,
+    "amplification_factor": 1.031,
+    "amplification_value": 2.35,
+    "retention_percentage": 78.1
+  },
+  "participation": {
+    "paf": 1.031,
+    "paf_range": "1.0 - 1.25",
+    "activities": [ ... ]
+  },
+  "base_v41_metrics": { ... }
+}
+```
+
+---
+
 ## Key Insight
 
 **EJV v4.2 = Economic Activity × Participation Agency**
@@ -555,6 +725,11 @@ It measures not just what money does, but how people strengthen what money can a
 ---
 
 ## Documentation
+
+**Version Guide:**
+- EJV v2: Baseline (9 dimensions, government data)
+- EJV v4.1: Decomposed flows (ELVR/EVL, financing-aware)
+- EJV v4.2: Participation amplification (PAF multiplier)
 
 **API Help Endpoint:**
 ```

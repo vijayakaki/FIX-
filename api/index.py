@@ -542,7 +542,7 @@ def calculate_ejv_v2(store_id, purchase_amount=100.0, state_fips="01", county_fi
             "JCE": round(dimensions["JCE"], 3),
             "FSI": round(dimensions["FSI"], 3),
             "CED": round(dimensions["CED"], 3),
-            "ESD": round(dimensions["ESD"], 3),
+            "ESD": round(dimensions["ESD"], 3)
         },
         "adjusted_dimensions": {k: round(v, 3) for k, v in adjusted_dimensions.items()},
         "wage_score": round(w_score * 25, 2),
@@ -556,6 +556,198 @@ def calculate_ejv_v2(store_id, purchase_amount=100.0, state_fips="01", county_fi
         "unemployment_rate": round(economic_data.get('unemployment_rate', 5.0), 1),
         "local_hire_pct": lc,
         "calculation_formula": f"EJV v2 = ({purchase_amount} × {round(lc, 2)}) × ({round(js_zip, 2)}/100) = ${round(ejv_v2, 2)}"
+    }
+
+# ==========================================
+# EJV v4.1: Decomposed Local Capture + Financing-Aware
+# ==========================================
+
+# Local Capture Component Defaults by business type
+LOCAL_CAPTURE_DEFAULTS = {
+    "worker_cooperative": {
+        "wages": 0.95, "suppliers": 0.80, "taxes": 0.90, "financing": 0.95, "ownership": 1.00
+    },
+    "b_corp": {
+        "wages": 0.85, "suppliers": 0.70, "taxes": 0.85, "financing": 0.80, "ownership": 0.80
+    },
+    "local_small_business": {
+        "wages": 0.80, "suppliers": 0.65, "taxes": 0.80, "financing": 0.70, "ownership": 0.90
+    },
+    "regional_chain": {
+        "wages": 0.60, "suppliers": 0.40, "taxes": 0.70, "financing": 0.50, "ownership": 0.30
+    },
+    "national_chain": {
+        "wages": 0.50, "suppliers": 0.25, "taxes": 0.65, "financing": 0.30, "ownership": 0.10
+    },
+    "large_corporation": {
+        "wages": 0.40, "suppliers": 0.15, "taxes": 0.60, "financing": 0.20, "ownership": 0.05
+    },
+    "unknown": {
+        "wages": 0.60, "suppliers": 0.45, "taxes": 0.70, "financing": 0.50, "ownership": 0.40
+    }
+}
+
+def calculate_local_capture_components(business_type="unknown", local_hire_pct=None, 
+                                       supplier_local_pct=None, tax_local_pct=None,
+                                       financing_local_pct=None, ownership_local_pct=None):
+    """
+    Calculate decomposed local capture (LC) components for EJV v4.1
+    
+    Components:
+    - LC_wages: Percentage of wages paid to local workers
+    - LC_suppliers: Percentage of procurement from local suppliers
+    - LC_taxes: Percentage of taxes paid to local jurisdiction
+    - LC_financing: Percentage of financing costs retained locally
+    - LC_ownership: Percentage of ownership that is local
+    
+    Returns:
+        dict: Local capture components and aggregate
+    """
+    defaults = LOCAL_CAPTURE_DEFAULTS.get(business_type, LOCAL_CAPTURE_DEFAULTS["unknown"])
+    
+    # Use provided values or defaults
+    lc_wages = local_hire_pct if local_hire_pct is not None else defaults["wages"]
+    lc_suppliers = supplier_local_pct if supplier_local_pct is not None else defaults["suppliers"]
+    lc_taxes = tax_local_pct if tax_local_pct is not None else defaults["taxes"]
+    lc_financing = financing_local_pct if financing_local_pct is not None else defaults["financing"]
+    lc_ownership = ownership_local_pct if ownership_local_pct is not None else defaults["ownership"]
+    
+    # Aggregate local capture (weighted average)
+    # Weights: wages 35%, suppliers 25%, taxes 15%, financing 15%, ownership 10%
+    lc_aggregate = (lc_wages * 0.35 + lc_suppliers * 0.25 + lc_taxes * 0.15 + 
+                    lc_financing * 0.15 + lc_ownership * 0.10)
+    
+    return {
+        "lc_wages": round(lc_wages, 3),
+        "lc_suppliers": round(lc_suppliers, 3),
+        "lc_taxes": round(lc_taxes, 3),
+        "lc_financing": round(lc_financing, 3),
+        "lc_ownership": round(lc_ownership, 3),
+        "lc_aggregate": round(lc_aggregate, 3),
+        "data_source": "estimated" if local_hire_pct is None else "mixed"
+    }
+
+# ---------------------------------------
+# EJV v4.1 CALCULATION - Decomposed Local Capture + Financing-Aware
+# ---------------------------------------
+def calculate_ejv_v41(store_id, purchase_amount=100.0, state_fips="01", county_fips="089", tract_fips="010100", zip_code="10001", location_name="Unknown",
+                      business_type="unknown", local_hire_pct=None, supplier_local_pct=None, tax_local_pct=None,
+                      financing_local_pct=None, ownership_local_pct=None, apr=None, loan_term_months=None, down_payment=0.0):
+    """
+    EJV v4.1: Decomposed Local Capture + Financing-Aware
+    
+    Formula: ELVR = P × ΣLCᵢ (Estimated Local Value Retained)
+             EVL = P - ELVR (Estimated Value Leakage)
+    
+    Where:
+    - P = Purchase Amount ($)
+    - LCᵢ = Local Capture components (wages, suppliers, taxes, financing, ownership)
+    - ELVR = Estimated Local Value Retained
+    - EVL = Estimated Value Leakage
+    
+    Components:
+    - LC_wages: % of wages paid to local workers
+    - LC_suppliers: % of procurement from local suppliers
+    - LC_taxes: % of taxes paid to local jurisdiction
+    - LC_financing: % of financing costs retained locally (time-aware)
+    - LC_ownership: % of ownership that is local
+    
+    This uses EJV v2's 9 dimensions for justice weighting, combined with decomposed flows.
+    """
+    # Get EJV v2 baseline (9 dimensions, government data only)
+    ejv_v2_result = calculate_ejv_v2(store_id, purchase_amount, state_fips, county_fips, 
+                                      tract_fips, zip_code, location_name)
+    
+    # Get payroll data for local hire percentage
+    economic_data = get_local_economic_indicators(zip_code)
+    payroll = get_payroll_data(store_id, zip_code=zip_code, economic_data=economic_data)
+    
+    # Override local_hire_pct if provided, otherwise use payroll data
+    if local_hire_pct is None:
+        local_hire_pct = payroll["local_hire_pct"]
+    
+    # Calculate decomposed local capture components
+    lc_components = calculate_local_capture_components(
+        business_type=business_type,
+        local_hire_pct=local_hire_pct,
+        supplier_local_pct=supplier_local_pct,
+        tax_local_pct=tax_local_pct,
+        financing_local_pct=financing_local_pct,
+        ownership_local_pct=ownership_local_pct
+    )
+    
+    # Calculate financing impact if loan parameters provided (time-aware)
+    financing_impact = 0.0
+    financing_details = None
+    if apr is not None and loan_term_months is not None:
+        financed_amount = purchase_amount - down_payment
+        if financed_amount > 0 and apr > 0:
+            # Calculate total interest over loan life
+            monthly_rate = apr / 12 / 100
+            monthly_payment = financed_amount * (monthly_rate * (1 + monthly_rate)**loan_term_months) / \
+                            ((1 + monthly_rate)**loan_term_months - 1)
+            total_paid = monthly_payment * loan_term_months
+            total_interest = total_paid - financed_amount
+            local_interest = total_interest * lc_components["lc_financing"]
+            financing_impact = local_interest
+            
+            financing_details = {
+                "financed_amount": round(financed_amount, 2),
+                "apr": apr,
+                "loan_term_months": loan_term_months,
+                "monthly_payment": round(monthly_payment, 2),
+                "total_interest": round(total_interest, 2),
+                "local_interest_retained": round(local_interest, 2)
+            }
+    
+    # Calculate ELVR (Estimated Local Value Retained)
+    # ELVR = P × ΣLCᵢ using weighted aggregate + financing impact
+    elvr = purchase_amount * lc_components["lc_aggregate"] + financing_impact
+    
+    # Calculate EVL (Estimated Value Leakage)
+    evl = (purchase_amount + (financing_impact / lc_components["lc_financing"] if lc_components["lc_financing"] > 0 else 0)) - elvr
+    
+    # Calculate retention percentage
+    total_value = purchase_amount + (financing_impact / lc_components["lc_financing"] if lc_components["lc_financing"] > 0 else 0)
+    retention_pct = (elvr / total_value * 100) if total_value > 0 else 0
+
+    return {
+        "store_id": store_id,
+        "location": location_name,
+        "zip_code": zip_code,
+        "ejv_version": "4.1",
+        
+        # v4.1 Specific: Decomposed flows
+        "elvr": round(elvr, 2),  # Estimated Local Value Retained ($)
+        "evl": round(evl, 2),  # Estimated Value Leakage ($)
+        "retention_percentage": round(retention_pct, 1),
+        "leakage_percentage": round(100 - retention_pct, 1),
+        
+        # Purchase details
+        "purchase_amount": purchase_amount,
+        "down_payment": down_payment,
+        "financing_details": financing_details,
+        
+        # Decomposed local capture components
+        "local_capture_components": lc_components,
+        "business_type": business_type,
+        
+        # v2 baseline for comparison (9 dimensions, gov data only)
+        "ejv_v2_baseline": {
+            "EJV": ejv_v2_result["EJV"],
+            "justice_score": ejv_v2_result["justice_score"],
+            "dimensions": ejv_v2_result["dimensions"]
+        },
+        
+        # Economic context
+        "median_income": ejv_v2_result["median_income"],
+        "living_wage": ejv_v2_result["living_wage"],
+        "unemployment_rate": round(economic_data.get('unemployment_rate', 5.0), 1),
+        
+        # Calculation notes
+        "calculation_method": "decomposed_flows",
+        "data_disclaimer": "Estimates based on public data and economic modeling",
+        "formula": f"ELVR = {purchase_amount} × {round(lc_components['lc_aggregate'], 3)} = ${round(elvr, 2)}"
     }
 
 # ---------------------------------------
@@ -1049,34 +1241,114 @@ def get_ejv(store_id):
 
 @app.route('/api/ejv-v2/<store_id>', methods=['GET'])
 def get_ejv_v2(store_id):
-    """Get EJV v2 (Justice-Weighted Local Impact) for a single store"""
+    """Get EJV v2 (Justice-Weighted Local Impact) for a single store - 9 dimensions"""
     zip_code = request.args.get('zip', '10001')
     location = request.args.get('location', 'Unknown')
     purchase_amount = float(request.args.get('purchase', '100.0'))
     result = calculate_ejv_v2(store_id, purchase_amount=purchase_amount, zip_code=zip_code, location_name=location)
     return jsonify(result)
 
+@app.route('/api/ejv-v4.1/<store_id>', methods=['POST', 'GET'])
+def get_ejv_v41(store_id):
+    """Get EJV v4.1 (Decomposed Local Capture + Financing-Aware)"""
+    if request.method == 'POST':
+        data = request.json or {}
+        zip_code = data.get('zip', '10001')
+        location = data.get('location', 'Unknown')
+        purchase_amount = float(data.get('purchase', 100.0))
+        business_type = data.get('business_type', 'unknown')
+        
+        # Decomposed local capture components (optional overrides)
+        local_hire_pct = data.get('local_hire_pct')
+        supplier_local_pct = data.get('supplier_local_pct')
+        tax_local_pct = data.get('tax_local_pct')
+        financing_local_pct = data.get('financing_local_pct')
+        ownership_local_pct = data.get('ownership_local_pct')
+        
+        # Financing parameters (optional)
+        apr = data.get('apr')
+        loan_term_months = data.get('loan_term_months')
+        down_payment = float(data.get('down_payment', 0.0))
+    else:
+        zip_code = request.args.get('zip', '10001')
+        location = request.args.get('location', 'Unknown')
+        purchase_amount = float(request.args.get('purchase', '100.0'))
+        business_type = request.args.get('business_type', 'unknown')
+        local_hire_pct = None
+        supplier_local_pct = None
+        tax_local_pct = None
+        financing_local_pct = None
+        ownership_local_pct = None
+        apr = None
+        loan_term_months = None
+        down_payment = 0.0
+    
+    result = calculate_ejv_v41(
+        store_id, 
+        purchase_amount=purchase_amount, 
+        zip_code=zip_code, 
+        location_name=location,
+        business_type=business_type,
+        local_hire_pct=local_hire_pct,
+        supplier_local_pct=supplier_local_pct,
+        tax_local_pct=tax_local_pct,
+        financing_local_pct=financing_local_pct,
+        ownership_local_pct=ownership_local_pct,
+        apr=apr,
+        loan_term_months=loan_term_months,
+        down_payment=down_payment
+    )
+    return jsonify(result)
+
 @app.route('/api/ejv-v4.2/<store_id>', methods=['POST'])
 def get_ejv_v42(store_id):
     """
-    Get EJV v4.2 (Agency-Enabled Economic Justice Value)
-    Includes participation pathways that amplify community impact
+    Get EJV v4.2 (Participation & Agency Amplification)
+    Applies PAF (Participation Amplification Factor) to EJV v4.1 decomposed flows
+    Built on EJV v4.1 (decomposed local capture)
     """
     data = request.json or {}
     zip_code = data.get('zip', '10001')
     location = data.get('location', 'Unknown')
     purchase_amount = float(data.get('purchase', 100.0))
     participation_data = data.get('participation', {})
+    business_type = data.get('business_type', 'unknown')
     
-    # Calculate base EJV v4.1 (using v2 as proxy for now)
-    ejv_v41 = calculate_ejv_v2(store_id, purchase_amount=purchase_amount, zip_code=zip_code, location_name=location)
+    # Decomposed local capture components (optional overrides)
+    local_hire_pct = data.get('local_hire_pct')
+    supplier_local_pct = data.get('supplier_local_pct')
+    tax_local_pct = data.get('tax_local_pct')
+    financing_local_pct = data.get('financing_local_pct')
+    ownership_local_pct = data.get('ownership_local_pct')
+    
+    # Financing parameters (optional)
+    apr = data.get('apr')
+    loan_term_months = data.get('loan_term_months')
+    down_payment = float(data.get('down_payment', 0.0))
+    
+    # Calculate base EJV v4.1 (decomposed local capture)
+    ejv_v41 = calculate_ejv_v41(
+        store_id, 
+        purchase_amount=purchase_amount, 
+        zip_code=zip_code, 
+        location_name=location,
+        business_type=business_type,
+        local_hire_pct=local_hire_pct,
+        supplier_local_pct=supplier_local_pct,
+        tax_local_pct=tax_local_pct,
+        financing_local_pct=financing_local_pct,
+        ownership_local_pct=ownership_local_pct,
+        apr=apr,
+        loan_term_months=loan_term_months,
+        down_payment=down_payment
+    )
     
     # Calculate Participation Amplification Factor
     paf = calculate_paf(participation_data)
     
-    # Calculate EJV v4.2
-    community_ejv_v41 = ejv_v41['ejv_v2']  # Base community impact
-    community_ejv_v42 = community_ejv_v41 * paf
+    # Calculate EJV v4.2 (Apply PAF to v4.1's ELVR)
+    elvr_v41 = ejv_v41['elvr']  # Base local value retained from v4.1
+    elvr_v42 = elvr_v41 * paf  # Amplified by participation
     
     # Participation breakdown
     participation_summary = []
@@ -1096,29 +1368,35 @@ def get_ejv_v42(store_id):
         "zip_code": zip_code,
         "version": "4.2",
         "ejv_v42": {
-            "community_impact": round(community_ejv_v42, 2),
-            "base_impact_v41": round(community_ejv_v41, 2),
+            "elvr_amplified": round(elvr_v42, 2),  # Estimated Local Value Retained with participation
+            "elvr_base": round(elvr_v41, 2),  # Base from v4.1
             "amplification_factor": paf,
-            "amplification_value": round(community_ejv_v42 - community_ejv_v41, 2),
-            "formula": f"EJV v4.2 = ${community_ejv_v41:.2f} × {paf} = ${community_ejv_v42:.2f}"
+            "amplification_value": round(elvr_v42 - elvr_v41, 2),
+            "retention_percentage": round((elvr_v42 / (purchase_amount + (ejv_v41.get('financing_details', {}).get('total_interest', 0) if ejv_v41.get('financing_details') else 0)) * 100) if purchase_amount > 0 else 0, 1),
+            "formula": f"ELVR v4.2 = ${elvr_v41:.2f} × {paf} = ${elvr_v42:.2f}"
         },
         "participation": {
             "active_pathways": len(participation_data),
             "paf": paf,
             "paf_range": "1.0 - 1.25",
-            "activities": participation_summary
+            "activities": participation_summary,
+            "note": "PAF amplifies v4.1 decomposed flows through verified participation actions"
         },
-        "base_metrics": {
+        "base_v41_metrics": {
             "purchase_amount": purchase_amount,
-            "local_capture": ejv_v41['local_capture'],
-            "justice_score": ejv_v41['justice_score_zip'],
-            "unemployment_rate": ejv_v41['unemployment_rate'],
-            "median_income": ejv_v41['median_income']
+            "elvr": ejv_v41['elvr'],
+            "evl": ejv_v41['evl'],
+            "local_capture_aggregate": ejv_v41['local_capture_components']['lc_aggregate'],
+            "local_capture_components": ejv_v41['local_capture_components'],
+            "business_type": business_type,
+            "financing_details": ejv_v41.get('financing_details'),
+            "ejv_v2_baseline": ejv_v41['ejv_v2_baseline']
         },
         "interpretation": {
-            "message": f"For ${purchase_amount} spent with {len(participation_data)} participation pathway(s), this creates ${community_ejv_v42:.2f} in justice-weighted community impact.",
-            "amplification_effect": f"Participation adds ${community_ejv_v42 - community_ejv_v41:.2f} ({((paf - 1.0) * 100):.1f}%) through civic engagement.",
-            "sustainability": "Participation pathways strengthen how economic activity translates into lasting community benefit."
+            "message": f"For ${purchase_amount} spent with {len(participation_data)} participation pathway(s), ELVR increases to ${elvr_v42:.2f} (from ${elvr_v41:.2f} base).",
+            "amplification_effect": f"Participation adds ${elvr_v42 - elvr_v41:.2f} ({((paf - 1.0) * 100):.1f}%) through civic engagement.",
+            "sustainability": "Participation pathways strengthen community agency and multiply local economic benefit.",
+            "data_source": "v4.1 uses government data + estimates; v4.2 requires verified participation evidence"
         }
     })
 
