@@ -1468,17 +1468,9 @@
                     storeItem.className = 'store-item';
                     storeItem.style.borderLeftColor = categoryIcon.color;
                     
-                    // Get website from rawStores
-                    const rawStore = rawStores.find(s => s.id === store.id);
-                    const website = rawStore?.tags?.website || rawStore?.tags?.['contact:website'] || rawStore?.tags?.url || null;
-                    
-                    // Get address from rawStores
-                    const address = [
-                        rawStore?.tags?.['addr:housenumber'],
-                        rawStore?.tags?.['addr:street'],
-                        rawStore?.tags?.['addr:city'],
-                        rawStore?.tags?.['addr:state']
-                    ].filter(Boolean).join(' ');
+                    // Get address and website from store object (already stored during EJV calculation)
+                    const address = store.address || '';
+                    const website = store.website || null;
                     
                     // Best/worst indicator
                     let rankBadge = '';
@@ -1527,25 +1519,11 @@
             const best = sorted[0];
             const worst = sorted[sorted.length - 1];
             
-            // Get websites and addresses
-            const bestRawStore = rawStores.find(s => s.id === best.id);
-            const worstRawStore = rawStores.find(s => s.id === worst.id);
-            const bestWebsite = bestRawStore?.tags?.website || bestRawStore?.tags?.['contact:website'] || bestRawStore?.tags?.url || null;
-            const worstWebsite = worstRawStore?.tags?.website || worstRawStore?.tags?.['contact:website'] || worstRawStore?.tags?.url || null;
-            
-            // Get addresses
-            const bestAddress = [
-                bestRawStore?.tags?.['addr:housenumber'],
-                bestRawStore?.tags?.['addr:street'],
-                bestRawStore?.tags?.['addr:city'],
-                bestRawStore?.tags?.['addr:state']
-            ].filter(Boolean).join(' ');
-            const worstAddress = [
-                worstRawStore?.tags?.['addr:housenumber'],
-                worstRawStore?.tags?.['addr:street'],
-                worstRawStore?.tags?.['addr:city'],
-                worstRawStore?.tags?.['addr:state']
-            ].filter(Boolean).join(' ');
+            // Get addresses and websites from stored objects
+            const bestAddress = best.address || '';
+            const worstAddress = worst.address || '';
+            const bestWebsite = best.website || null;
+            const worstWebsite = worst.website || null;
             
             const storeListDiv = document.getElementById('storeList');
             storeListDiv.innerHTML = `
@@ -2438,6 +2416,21 @@ out center;`;
                 console.log(`EJV v4.1 - ELVR: $${elvr}, EVL: $${evl}, Retention: ${data.retention_percentage}%`);
 
                 // Store in global array for compare/optimize modes
+                // Get address from rawStores
+                const rawStore = rawStores.find(s => s.id === storeId);
+                const storeAddress = rawStore ? [
+                    rawStore.tags?.['addr:housenumber'],
+                    rawStore.tags?.['addr:street'],
+                    rawStore.tags?.['addr:city'],
+                    rawStore.tags?.['addr:state']
+                ].filter(Boolean).join(' ') : '';
+                
+                const storeWebsite = rawStore ? (
+                    rawStore.tags?.website || 
+                    rawStore.tags?.['contact:website'] || 
+                    rawStore.tags?.url || null
+                ) : null;
+                
                 const storeEJV = {
                     id: storeId,
                     storeId: storeId,
@@ -2449,7 +2442,9 @@ out center;`;
                     ejv_v2_baseline: ejvV2Baseline,
                     data: data,
                     lat: storeData.find(s => s.id === storeId)?.lat,
-                    lon: storeData.find(s => s.id === storeId)?.lon
+                    lon: storeData.find(s => s.id === storeId)?.lon,
+                    address: storeAddress,
+                    website: storeWebsite
                 };
                 
                 // Update or add to array
