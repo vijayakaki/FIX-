@@ -1433,31 +1433,87 @@
             }
             
             const storeListDiv = document.getElementById('storeList');
-            storeListDiv.innerHTML = '<div style="font-size: 12px; font-weight: 600; margin-bottom: 10px; color: #28a745;">Comparing ' + allStoresEJV.length + ' stores:</div>';
             
-            // Sort by ELVR (v4.1 retained value)
-            const sorted = [...allStoresEJV].sort((a, b) => (b.elvr || 0) - (a.elvr || 0));
+            // Group stores by type
+            const storesByType = {};
+            allStoresEJV.forEach(store => {
+                const type = store.type || 'default';
+                if (!storesByType[type]) {
+                    storesByType[type] = [];
+                }
+                storesByType[type].push(store);
+            });
             
-            sorted.forEach((store, index) => {
-                const storeItem = document.createElement('div');
-                storeItem.className = 'store-item';
-                storeItem.style.borderLeftColor = getStoreIcon(store.type).color;
-                storeItem.innerHTML = `
-                    <div class="store-name">
-                        <span class="store-icon">${getStoreIcon(store.type).icon}</span>
-                        #${index + 1} - ${store.name}
-                    </div>
-                    <div style="display: flex; gap: 10px; margin-top: 5px;">
-                        <span style="font-size: 11px; background: #667eea; color: white; padding: 3px 8px; border-radius: 3px;">ELVR: $${(store.elvr || 0).toFixed(2)}</span>
-                        <span style="font-size: 11px; background: #dc3545; color: white; padding: 3px 8px; border-radius: 3px;">EVL: $${(store.evl || 0).toFixed(2)}</span>
-                        <span style="font-size: 11px; background: #28a745; color: white; padding: 3px 8px; border-radius: 3px;">${(store.retention_percentage || 0).toFixed(1)}%</span>
-                    </div>
-                `;
-                storeItem.onclick = () => {
-                    map.setView([store.lat, store.lon], 16);
-                    updateRightDashboard(store.data, store.name);
-                };
-                storeListDiv.appendChild(storeItem);
+            // Sort by ELVR within each type
+            Object.keys(storesByType).forEach(type => {
+                storesByType[type].sort((a, b) => (b.elvr || 0) - (a.elvr || 0));
+            });
+            
+            storeListDiv.innerHTML = '<div style="font-size: 12px; font-weight: 600; margin-bottom: 10px; color: #28a745;">⚖️ Comparing ' + allStoresEJV.length + ' stores by category:</div>';
+            
+            // Display each category with its stores
+            Object.keys(storesByType).forEach(type => {
+                const stores = storesByType[type];
+                const categoryIcon = getStoreIcon(type);
+                
+                // Category header
+                const categoryHeader = document.createElement('div');
+                categoryHeader.style.cssText = 'background: #f8f9fa; padding: 8px 10px; border-radius: 4px; margin: 10px 0 5px 0; font-weight: 600; font-size: 11px; color: #333;';
+                categoryHeader.innerHTML = `${categoryIcon.icon} ${categoryIcon.name} (${stores.length})`;
+                storeListDiv.appendChild(categoryHeader);
+                
+                // Display stores in this category
+                stores.forEach((store, index) => {
+                    const storeItem = document.createElement('div');
+                    storeItem.className = 'store-item';
+                    storeItem.style.borderLeftColor = categoryIcon.color;
+                    
+                    // Get website from rawStores
+                    const rawStore = rawStores.find(s => s.id === store.id);
+                    const website = rawStore?.tags?.website || rawStore?.tags?.['contact:website'] || rawStore?.tags?.url || null;
+                    
+                    // Get address from rawStores
+                    const address = [
+                        rawStore?.tags?.['addr:housenumber'],
+                        rawStore?.tags?.['addr:street'],
+                        rawStore?.tags?.['addr:city'],
+                        rawStore?.tags?.['addr:state']
+                    ].filter(Boolean).join(' ');
+                    
+                    // Best/worst indicator
+                    let rankBadge = '';
+                    if (index === 0 && stores.length > 1) {
+                        rankBadge = '<span style="background: #28a745; color: white; padding: 2px 6px; border-radius: 3px; font-size: 9px; margin-left: 5px;">🏆 BEST</span>';
+                    } else if (index === stores.length - 1 && stores.length > 1) {
+                        rankBadge = '<span style="background: #dc3545; color: white; padding: 2px 6px; border-radius: 3px; font-size: 9px; margin-left: 5px;">⚠ LEAST</span>';
+                    }
+                    
+                    storeItem.innerHTML = `
+                        <div class="store-name" style="display: flex; align-items: center; justify-content: space-between;">
+                            <span>
+                                <span class="store-icon">${categoryIcon.icon}</span>
+                                #${index + 1} - ${store.name}
+                            </span>
+                            ${rankBadge}
+                        </div>
+                        <div style="font-size: 11px; color: #666; margin: 5px 0;">
+                            📍 ${address ? `<span style="color: #555;">${address}</span>` : '<span style="color: #999;">Address not available</span>'}
+                        </div>
+                        <div style="font-size: 11px; color: #666; margin: 5px 0;">
+                            🌐 ${website ? `<a href="${website}" target="_blank" rel="noopener noreferrer" style="color: #667eea; text-decoration: none;">Visit Website</a>` : '<span style="color: #999;">Website not available</span>'}
+                        </div>
+                        <div style="display: flex; gap: 8px; margin-top: 5px; flex-wrap: wrap;">
+                            <span style="font-size: 10px; background: #667eea; color: white; padding: 3px 8px; border-radius: 3px;">ELVR: $${(store.elvr || 0).toFixed(2)}</span>
+                            <span style="font-size: 10px; background: #dc3545; color: white; padding: 3px 8px; border-radius: 3px;">EVL: $${(store.evl || 0).toFixed(2)}</span>
+                            <span style="font-size: 10px; background: #28a745; color: white; padding: 3px 8px; border-radius: 3px;">${(store.retention_percentage || 0).toFixed(1)}%</span>
+                        </div>
+                    `;
+                    storeItem.onclick = () => {
+                        map.setView([store.lat, store.lon], 16);
+                        updateRightDashboard(store.data, store.name);
+                    };
+                    storeListDiv.appendChild(storeItem);
+                });
             });
         }
 
@@ -1471,13 +1527,39 @@
             const best = sorted[0];
             const worst = sorted[sorted.length - 1];
             
+            // Get websites and addresses
+            const bestRawStore = rawStores.find(s => s.id === best.id);
+            const worstRawStore = rawStores.find(s => s.id === worst.id);
+            const bestWebsite = bestRawStore?.tags?.website || bestRawStore?.tags?.['contact:website'] || bestRawStore?.tags?.url || null;
+            const worstWebsite = worstRawStore?.tags?.website || worstRawStore?.tags?.['contact:website'] || worstRawStore?.tags?.url || null;
+            
+            // Get addresses
+            const bestAddress = [
+                bestRawStore?.tags?.['addr:housenumber'],
+                bestRawStore?.tags?.['addr:street'],
+                bestRawStore?.tags?.['addr:city'],
+                bestRawStore?.tags?.['addr:state']
+            ].filter(Boolean).join(' ');
+            const worstAddress = [
+                worstRawStore?.tags?.['addr:housenumber'],
+                worstRawStore?.tags?.['addr:street'],
+                worstRawStore?.tags?.['addr:city'],
+                worstRawStore?.tags?.['addr:state']
+            ].filter(Boolean).join(' ');
+            
             const storeListDiv = document.getElementById('storeList');
             storeListDiv.innerHTML = `
-                <div style="font-size: 12px; font-weight: 600; margin-bottom: 10px; color: #ffc107;">Optimization Results:</div>
+                <div style="font-size: 12px; font-weight: 600; margin-bottom: 10px; color: #ffc107;">✨ Optimization Results:</div>
                 
                 <div style="background: #d4edda; padding: 12px; border-radius: 6px; margin-bottom: 10px; border-left: 4px solid #28a745;">
                     <div style="font-size: 11px; font-weight: 700; color: #155724; margin-bottom: 5px;">🏆 BEST CHOICE</div>
                     <div style="font-weight: 600; color: #333; margin-bottom: 3px;">${getStoreIcon(best.type).icon} ${best.name}</div>
+                    <div style="font-size: 11px; color: #666; margin-bottom: 5px;">
+                        📍 ${bestAddress ? `<span style="color: #555;">${bestAddress}</span>` : '<span style="color: #999;">Address not available</span>'}
+                    </div>
+                    <div style="font-size: 11px; color: #666; margin-bottom: 5px;">
+                        🌐 ${bestWebsite ? `<a href="${bestWebsite}" target="_blank" rel="noopener noreferrer" style="color: #667eea; text-decoration: none; font-weight: 600;">Visit Website</a>` : '<span style="color: #999;">Website not available</span>'}
+                    </div>
                     <div style="font-size: 11px; color: #666;">ELVR: $${(best.elvr || 0).toFixed(2)} | EVL: $${(best.evl || 0).toFixed(2)} | Retention: ${(best.retention_percentage || 0).toFixed(1)}%</div>
                     <div style="font-size: 10px; color: #28a745; margin-top: 5px;">✓ Highest local value retention</div>
                 </div>
@@ -1485,6 +1567,12 @@
                 <div style="background: #f8d7da; padding: 12px; border-radius: 6px; border-left: 4px solid #dc3545;">
                     <div style="font-size: 11px; font-weight: 700; color: #721c24; margin-bottom: 5px;">⚠️ LEAST IMPACT</div>
                     <div style="font-weight: 600; color: #333; margin-bottom: 3px;">${getStoreIcon(worst.type).icon} ${worst.name}</div>
+                    <div style="font-size: 11px; color: #666; margin-bottom: 5px;">
+                        📍 ${worstAddress ? `<span style="color: #555;">${worstAddress}</span>` : '<span style="color: #999;">Address not available</span>'}
+                    </div>
+                    <div style="font-size: 11px; color: #666; margin-bottom: 5px;">
+                        🌐 ${worstWebsite ? `<a href="${worstWebsite}" target="_blank" rel="noopener noreferrer" style="color: #667eea; text-decoration: none; font-weight: 600;">Visit Website</a>` : '<span style="color: #999;">Website not available</span>'}
+                    </div>
                     <div style="font-size: 11px; color: #666;">ELVR: $${(worst.elvr || 0).toFixed(2)} | EVL: $${(worst.evl || 0).toFixed(2)} | Retention: ${(worst.retention_percentage || 0).toFixed(1)}%</div>
                     <div style="font-size: 10px; color: #dc3545; margin-top: 5px;">⚠ Lower local value retention</div>
                 </div>
@@ -1829,6 +1917,13 @@
 
         async function searchStores(lat, lon, radiusMeters, category) {
             clearMarkers();
+            
+            // Clear previous search data to prevent mixing results
+            allStoresEJV = [];
+            ejvCache = {};
+            rawStores = [];
+            storeData = [];
+            
             showResult('Searching for stores...');
 
             try {
@@ -1931,9 +2026,19 @@ out center;`;
 
                 console.log(`Found ${stores.length} stores, calling displayStores`);
                 console.log('Sample store data:', stores[0]);
-                showResult(`Found ${stores.length} store(s)`);
+                showResult(`Found ${stores.length} store(s) - Calculating EJV scores...`);
                 displayStores(stores);
                 console.log(`Markers on map: ${markers.length}`);
+                
+                // Auto-calculate EJV for all stores to enable comparison
+                setTimeout(async () => {
+                    for (const store of stores.slice(0, Math.min(stores.length, 20))) { // Limit to 20 stores
+                        const storeName = store.tags?.name || store.tags?.shop || store.tags?.amenity || 'Unnamed Store';
+                        await calculateEJV(store.id, storeName, false);
+                    }
+                    showResult(`Found ${stores.length} store(s) - Ready to compare!`);
+                    console.log('EJV calculation complete for all stores');
+                }, 500);
 
             } catch (error) {
                 console.error('Error:', error);
@@ -2017,6 +2122,11 @@ out center;`;
                     store.tags?.['addr:city']
                 ].filter(Boolean).join(' ');
 
+                // Extract website from OSM tags
+                const website = store.tags?.website || 
+                               store.tags?.['contact:website'] || 
+                               store.tags?.url || null;
+
                 // Store data for dashboard
                 storeData.push({
                     id: store.id,
@@ -2069,6 +2179,9 @@ out center;`;
                                 <strong style="flex: 1; font-size: 14px;">${storeName}</strong>
                             </div>
                             ${address ? `<div style="font-size: 12px; color: #666; margin-bottom: 8px;">📍 ${address}</div>` : ''}
+                            <div style="font-size: 12px; color: #666; margin-bottom: 8px;">
+                                🌐 ${website ? `<a href="${website}" target="_blank" rel="noopener noreferrer" style="color: #667eea; text-decoration: none; font-weight: 600;">Visit Website</a>` : '<span style="color: #999;">Website not available</span>'}
+                            </div>
                             <div style="background: #f8f9fa; padding: 8px; border-radius: 5px; margin-bottom: 10px;">
                                 <small style="color: #666;">Category: <strong style="color: ${storeIcon.color};">${shopType}</strong></small>
                             </div>
@@ -2090,6 +2203,9 @@ out center;`;
                         <span class="store-icon">${storeIcon.icon}</span>
                         <span>${storeName}</span>
                         <span style="color: #ffa500; font-size: 10px;">★</span>
+                    </div>
+                    <div style="font-size: 11px; color: #666; margin-bottom: 6px;">
+                        🌐 ${website ? `<a href="${website}" target="_blank" rel="noopener noreferrer" style="color: #667eea; text-decoration: none;">Visit Website</a>` : '<span style="color: #999;">Website not available</span>'}
                     </div>
                     <div class="ejv-scores" style="margin: 8px 0; padding: 8px; background: #f8f9fa; border-radius: 4px;">
                         <div style="display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 11px;">
@@ -2559,6 +2675,10 @@ out center;`;
             
             // v4.2 only shown in ENGAGE mode
             if (decisionMode === 'engage') {
+                // Show the engage metrics grid
+                const engageMetricsGrid = document.getElementById('engageMetricsGrid');
+                engageMetricsGrid.style.display = 'grid';
+                
                 document.getElementById('ejvV42Display').textContent = '$' + ejvV42.toFixed(2);
                 
                 // Show participation panel

@@ -391,6 +391,268 @@ Content-Type: application/json
 
 ---
 
+## Data Sources & Methodology
+
+### Overview
+
+EJV v4.1 combines **government data** (where available) with **economic modeling estimates** to decompose transaction flows into 5 components.
+
+**Data Philosophy:**
+- Use government data for wages, demographics, taxes
+- Use industry research for supply chain patterns
+- Use economic modeling for business-specific LC components
+- Clearly label estimates vs. measured data
+
+### Component-Specific Data Sources
+
+#### 1. LC_wages (35% weight)
+
+**Primary Data:**
+
+**A. BLS OEWS (Occupation Employment and Wage Statistics)**
+- **URL**: https://www.bls.gov/oes/
+- **Version**: May 2024
+- **Use**: Wage levels by occupation and location
+- **Reliability**: ±5% accuracy
+
+**B. Census LODES (Worker Flows)**
+- **URL**: https://lehd.ces.census.gov/data/
+- **Version**: 2021
+- **Use**: Where workers live vs. work (commute patterns)
+- **Coverage**: Block-level employment flows
+
+**C. BLS LAUS (Unemployment)**
+- **URL**: https://www.bls.gov/lau/
+- **Update**: Monthly
+- **Use**: Unemployment rate affects local hiring
+- **Formula**: Higher unemployment → Higher local hire (+0-20% bonus)
+
+**Business Type Defaults** (when specific data unavailable):
+- Large corporation: 0.40 (40% workers local)
+- National chain: 0.50
+- Regional chain: 0.60
+- Local small business: 0.80
+- Worker cooperative: 0.95
+
+**Source**: Industry employment patterns + regional labor market analysis
+
+---
+
+#### 2. LC_suppliers (25% weight)
+
+**Data Sources (Industry Research):**
+
+**A. BEA Regional Accounts**
+- **URL**: https://www.bea.gov/data/gdp/gdp-county-metro-and-other-areas
+- **Use**: Regional supply chain patterns
+- **Measures**: Input-output tables, procurement patterns
+
+**B. Economic Census**
+- **URL**: https://www.census.gov/programs-surveys/economic-census.html
+- **Frequency**: Every 5 years (2022 most recent)
+- **Use**: Business-to-business transactions, supply chain concentration
+
+**C. Industry Supply Chain Studies**
+- **Sources**: Industry associations, academic research, CSR reports
+- **Coverage**: Varies by industry (food retail better documented)
+
+**Reliability**: ±20-30% (most estimated, limited transparency)
+
+---
+
+#### 3. LC_taxes (15% weight)
+
+**Primary Data:**
+
+**A. BEA Government Finances**
+- **URL**: https://www.bea.gov/data/income-saving/state-and-local-government-finances
+- **Use**: Tax revenue distribution (local/state/federal)
+
+**B. Census Government Finances**
+- **URL**: https://www.census.gov/programs-surveys/gov-finances.html
+- **Use**: State and local tax revenues, property tax, sales tax rates
+
+**C. State/Local Tax Codes**
+- **Sources**: State revenue departments, municipal codes
+- **Use**: Sales tax rates (state + local), property tax rates
+
+**Typical breakdown**:
+- Local + State taxes: 60-90% (usually 70-80%)
+- Federal taxes: 10-40% (usually 20-30%)
+
+**Reliability**: High (±5%), tax structures are public
+
+---
+
+#### 4. LC_financing (15% weight)
+
+**Data Sources:**
+
+**A. FDIC Bank Data**
+- **URL**: https://www.fdic.gov/analysis/bank-find/
+- **Use**: Bank locations and deposit sources
+- **Coverage**: All FDIC-insured banks
+
+**B. NCUA Credit Union Data**
+- **URL**: https://www.ncua.gov/analysis/credit-union-corporate-call-report-data
+- **Use**: Credit union locations and membership
+
+**C. CDFI Fund**
+- **URL**: https://www.cdfifund.gov/
+- **Use**: Community Development Financial Institutions directory
+
+**Lender Type Classification:**
+
+| Lender Type | LC_financing | Reliability |
+|-------------|--------------|-------------|
+| CDFI | 0.90-0.95 | High |
+| Credit Union | 0.80-0.90 | High |
+| Community Bank | 0.70-0.80 | Medium |
+| Regional Bank | 0.40-0.60 | Medium |
+| National Bank | 0.20-0.30 | Medium |
+| Private Equity | 0.05-0.15 | Low |
+
+**Reliability**: Medium (±15%), based on lender type identification
+
+---
+
+#### 5. LC_ownership (10% weight)
+
+**Data Sources:**
+
+**A. Business Registration Records**
+- **Sources**: State Secretaries of State
+- **Use**: Legal ownership structure (corporation vs. LLC vs. cooperative)
+
+**B. SEC EDGAR (Public Companies)**
+- **URL**: https://www.sec.gov/edgar
+- **Use**: Shareholder information for public companies
+
+**C. Cooperative Registries**
+- **Sources**: National Cooperative Business Association, state registries
+- **Use**: Identify worker/consumer cooperatives
+
+**D. B Corp Directory**
+- **URL**: https://www.bcorporation.net/en-us/find-a-b-corp
+- **Use**: B Corp certified businesses
+
+**Ownership Type Classification:**
+
+| Ownership Type | LC_ownership | Data Source |
+|----------------|--------------|-------------|
+| Worker Cooperative | 1.00 | Cooperative registries |
+| Local Family Business | 0.85-0.95 | Business registration + local address |
+| ESOP (Broad-based) | 0.75-0.85 | DOL ESOP database |
+| Regional Corp | 0.25-0.40 | SEC filings + HQ location |
+| National Corp | 0.10-0.20 | SEC filings, diffuse ownership |
+
+**Reliability**: Medium (±20%), ownership structures complex
+
+---
+
+### Data Quality Summary
+
+| Component | Primary Source | Reliability | Transparency |
+|-----------|----------------|-------------|--------------|
+| **LC_wages** | BLS OEWS + LODES | ±10% | High (government data) |
+| **LC_suppliers** | Industry research + BEA | ±25% | Low (proprietary) |
+| **LC_taxes** | BEA + tax codes | ±5% | High (public records) |
+| **LC_financing** | FDIC + NCUA + lender type | ±15% | Medium (lender classification) |
+| **LC_ownership** | Business registrations + SEC | ±20% | Medium (complex structures) |
+
+### Default Business Type Values
+
+Used when specific business data unavailable:
+
+```python
+LOCAL_CAPTURE_DEFAULTS = {
+    "worker_cooperative": {
+        "lc_wages": 0.95,
+        "lc_suppliers": 0.80,
+        "lc_taxes": 0.90,
+        "lc_financing": 0.95,
+        "lc_ownership": 1.00
+    },
+    "local_small_business": {
+        "lc_wages": 0.80,
+        "lc_suppliers": 0.65,
+        "lc_taxes": 0.80,
+        "lc_financing": 0.70,
+        "lc_ownership": 0.90
+    },
+    "regional_chain": {
+        "lc_wages": 0.60,
+        "lc_suppliers": 0.40,
+        "lc_taxes": 0.70,
+        "lc_financing": 0.50,
+        "lc_ownership": 0.30
+    },
+    "national_chain": {
+        "lc_wages": 0.50,
+        "lc_suppliers": 0.25,
+        "lc_taxes": 0.65,
+        "lc_financing": 0.30,
+        "lc_ownership": 0.10
+    },
+    "large_corporation": {
+        "lc_wages": 0.40,
+        "lc_suppliers": 0.15,
+        "lc_taxes": 0.60,
+        "lc_financing": 0.20,
+        "lc_ownership": 0.05
+    }
+}
+```
+
+**Source**: Industry employment patterns, supply chain research, ownership structure analysis
+
+### Data Limitations
+
+**Important Disclaimers:**
+
+1. **Estimates, Not Audited Flows**: v4.1 provides directional estimates based on public data and economic modeling, not audited financial flow tracking.
+
+2. **Business Type Generalizations**: Default LC values are industry averages; actual businesses may vary significantly.
+
+3. **Supply Chain Opacity**: LC_suppliers is least transparent—supply chains are often proprietary and complex.
+
+4. **Time-Aware Approximation**: Financing calculations use standard amortization; actual terms may vary.
+
+5. **Ownership Complexity**: Corporate structures can be multi-layered; LC_ownership estimates primary level only.
+
+### Citation Format
+
+**For Research/Academic Use:**
+```
+EJV v4.1 calculations use publicly available data from:
+
+- Bureau of Labor Statistics (2024). Occupational Employment and Wage 
+  Statistics (OEWS), May 2024. https://www.bls.gov/oes/
+
+- U.S. Census Bureau (2021). LEHD Origin-Destination Employment Statistics 
+  (LODES). https://lehd.ces.census.gov/data/
+
+- Bureau of Economic Analysis (2024). Regional Economic Accounts. 
+  https://www.bea.gov/data/gdp/gdp-county-metro-and-other-areas
+
+- Federal Deposit Insurance Corporation. Bank Find Suite. 
+  https://www.fdic.gov/analysis/bank-find/
+
+All data accessed: January 2026
+```
+
+**For Tool Attribution:**
+```
+EJV v4.1 decomposes economic flows using:
+- Government data (BLS, Census, BEA, FDIC/NCUA)
+- Industry research (supply chain analysis)
+- Economic modeling (business type defaults)
+
+This is a directional estimate, not audited financial tracking.
+```
+
+---
+
 ## Workflow Usage
 
 ### LOCATOR Page:

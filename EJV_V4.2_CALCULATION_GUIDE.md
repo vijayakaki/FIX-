@@ -545,7 +545,405 @@ POST /api/ejv-v4.2/<store_id>
 
 ---
 
-## Data Sources
+## Data Sources & Verification
+
+### Overview
+
+EJV v4.2 builds on v4.1's data sources and adds **participation tracking data** that requires verification.
+
+**Two-Tier Data Architecture:**
+1. **Base v4.1 Data**: Government + economic modeling (see v4.1 guide)
+2. **Participation Data**: User-reported + verified evidence
+
+### Base Data (from v4.1)
+
+All v4.1 data sources apply:
+- BLS OEWS (wages)
+- Census LODES (worker flows)
+- BEA Regional Accounts (supply chains)
+- FDIC/NCUA (financing)
+- Business registrations (ownership)
+
+**See [EJV v4.1 Data Sources](EJV_V4.1_CALCULATION_GUIDE.md#data-sources) for complete documentation.**
+
+### Participation Data Sources (New in v4.2)
+
+#### 1. Mentoring Programs
+
+**Data Required:**
+- Hours per week of mentoring provided
+- Duration (months active)
+- Number of mentees
+- Verification documentation
+
+**Verification Sources:**
+
+**A. Partner Organizations**
+- **School Districts**: MOUs, program records
+- **Workforce Development**: Training program documentation
+- **Nonprofit Partners**: Collaboration agreements, attendance logs
+
+**B. Documentation Types:**
+- Signed mentor agreements
+- Time logs (mentoring hours)
+- Completion certificates
+- Program evaluations
+- Mentee testimonials (anonymous)
+
+**C. Third-Party Verification:**
+- **VolunteerMatch**: https://www.volunteermatch.org/ (verified hours)
+- **LinkedIn Volunteering**: Endorsed volunteer experience
+- **CivicDinners**: Community conversation facilitation records
+
+**Data Format:**
+```json
+{
+  "activity_type": "mentoring",
+  "hours_per_week": 5,
+  "duration_months": 12,
+  "verified": true,
+  "verification_source": "Local High School MOA",
+  "verification_date": "2025-09-15",
+  "verification_document": "mentoring_agreement_2025.pdf"
+}
+```
+
+**Reliability**: High when verified (±10%), Low when self-reported only (±50%)
+
+---
+
+#### 2. Volunteering
+
+**Data Required:**
+- Hours per week volunteered
+- Duration (months active)  
+- Type of volunteer work
+- Organization served
+- Verification
+
+**Verification Sources:**
+
+**A. Volunteer Management Platforms**
+- **VolunteerMatch**: Verified volunteer hours
+- **Galaxy Digital**: Volunteer tracking system
+- **Track It Forward**: Hours tracking with verification
+- **SignUpGenius**: Event-based volunteering
+
+**B. Nonprofit Organizations**
+- 501(c)(3) verification letters
+- Volunteer coordinator confirmation
+- Service hour logs
+- Event attendance records
+
+**C. Corporate Volunteer Programs**
+- Employer-sponsored volunteer tracking
+- Dollars for Doers programs
+- Team volunteering events
+
+**Documentation Requirements:**
+- Organization EIN (IRS 501(c)(3) status)
+- Volunteer role description
+- Time logs signed by supervisor
+- Minimum 10 hours for inclusion
+
+**Data Format:**
+```json
+{
+  "activity_type": "volunteering",
+  "hours_per_week": 3,
+  "duration_months": 6,
+  "organization": "Local Food Bank",
+  "organization_ein": "12-3456789",
+  "verified": true,
+  "verification_source": "Volunteer Coordinator",
+  "verification_contact": "coordinator@foodbank.org"
+}
+```
+
+**Reliability**: High with third-party verification (±5%), Medium with org letter (±15%)
+
+---
+
+#### 3. Sponsorship
+
+**Data Required:**
+- Sponsorship amount ($)
+- Event/organization sponsored
+- Duration (one-time or ongoing)
+- Community benefit
+- Verification
+
+**Verification Sources:**
+
+**A. Financial Records**
+- Bank statements (payments)
+- Donation receipts (501(c)(3) orgs)
+- Sponsorship agreements
+- Invoice/payment documentation
+
+**B. Public Recognition**
+- Event programs listing sponsors
+- Website sponsor pages
+- Press releases
+- Social media acknowledgments
+
+**C. Tax Documentation**
+- Form 1099 (payments to orgs)
+- Charitable contribution records
+- Business expense documentation
+
+**Documentation Requirements:**
+- Sponsorship agreement or contract
+- Proof of payment
+- Organization confirmation letter
+- Community benefit statement
+
+**Data Format:**
+```json
+{
+  "activity_type": "sponsorship",
+  "annual_amount": 5000,
+  "recipient": "Youth Soccer League",
+  "verified": true,
+  "verification_source": "Sponsorship Agreement + Receipt",
+  "verification_documents": [
+    "sponsorship_contract_2025.pdf",
+    "payment_receipt_5000.pdf"
+  ]
+}
+```
+
+**Reliability**: Very high (±5%), financial records are auditable
+
+---
+
+#### 4. Apprenticeships
+
+**Data Required:**
+- Number of apprentices
+- Program duration
+- Skills taught
+- Completion rate
+- Verification
+
+**Verification Sources:**
+
+**A. Department of Labor Registered Apprenticeship**
+- **URL**: https://www.apprenticeship.gov/
+- **Use**: Official registered apprenticeship programs
+- **Verification**: Program registration number
+- **Data**: Apprentice hours, competencies, completion
+
+**B. Community College Partnerships**
+- Partnership agreements
+- Dual enrollment records
+- Credit hour completion
+- Industry certifications earned
+
+**C. Industry Certifications**
+- OSHA certifications
+- Professional licenses earned
+- Industry-specific credentials
+- Competency assessments
+
+**D. Business Records**
+- Apprenticeship agreements
+- Training hour logs
+- Skill progression tracking
+- Wage progression records
+
+**Documentation Requirements:**
+- Apprenticeship program outline
+- Individual apprentice agreements (anonymized)
+- Training hour logs
+- Completion/graduation records
+- Post-apprenticeship employment data
+
+**Data Format:**
+```json
+{
+  "activity_type": "apprenticeships",
+  "number_apprentices": 3,
+  "duration_months": 24,
+  "program_type": "DOL Registered",
+  "registration_number": "APP-2024-12345",
+  "verified": true,
+  "verification_source": "DOL Apprenticeship.gov",
+  "completion_rate": 0.85
+}
+```
+
+**Reliability**: Very high for registered programs (±5%), Medium for informal (±25%)
+
+---
+
+#### 5. Community Organizing
+
+**Data Required:**
+- Type of organizing (union, tenant, community coalition)
+- Role (participant, organizer, supporter)
+- Duration and intensity
+- Community impact
+- Verification
+
+**Verification Sources:**
+
+**A. Labor Organizations**
+- Union membership cards
+- Organizing committee participation
+- Collective bargaining agreement signatures
+- Solidarity fund contributions
+
+**B. Community Groups**
+- Tenant association membership
+- Community coalition participation records
+- Meeting attendance logs
+- Campaign documentation
+
+**C. Public Records**
+- Union election filings (NLRB)
+- Petition signatures
+- Public testimony (city council, etc.)
+- Media coverage of organizing efforts
+
+**D. Organizational Confirmation**
+- Letter from organizing group
+- Membership verification
+- Leadership role confirmation
+- Campaign participation records
+
+**Documentation Requirements:**
+- Organization bylaws or charter
+- Membership documentation
+- Participation records (meetings, actions)
+- Impact statement (what was achieved)
+- Verification from organization leadership
+
+**Data Format:**
+```json
+{
+  "activity_type": "organizing",
+  "organization_type": "tenant_union",
+  "role": "steering_committee",
+  "hours_per_month": 8,
+  "duration_months": 18,
+  "verified": true,
+  "verification_source": "Organization Secretary",
+  "verification_contact": "secretary@tenantsunion.org",
+  "impact": "Achieved rent stabilization for 200 units"
+}
+```
+
+**Reliability**: High with org verification (±10%), Low without (±40%)
+
+---
+
+### Verification Process
+
+#### Step 1: User Submission
+- User submits participation claim via ENABLE interface
+- Uploads supporting documentation
+- Provides contact info for verification
+
+#### Step 2: Document Review
+- System checks document completeness
+- Flags missing information
+- Validates document format/authenticity
+
+#### Step 3: Third-Party Verification
+- Contact verification source (organization, program coordinator)
+- Confirm participation details
+- Document verification in system
+
+#### Step 4: Time-Bound Validation
+- Verification valid for 12 months
+- Annual re-verification required
+- Expired verification = PAF reverts to 1.0
+
+#### Step 5: Audit Trail
+- All verification steps logged
+- Documents stored securely
+- Audit-ready documentation
+
+### Verification Standards
+
+**Gold Standard (1.2× multiplier):**
+- Official program registration (e.g., DOL apprenticeship)
+- Financial records (e.g., sponsorship payments)
+- Third-party platform verification (e.g., VolunteerMatch)
+- Government records (e.g., NLRB union election)
+
+**Silver Standard (1.0× multiplier):**
+- Organization confirmation letter
+- Signed time logs from supervisor
+- Partnership agreements
+- Event documentation with participation proof
+
+**Bronze Standard (0.8× multiplier, temporary):**
+- Self-reported with some documentation
+- Pending verification
+- Maximum 30 days before requiring upgrade
+
+**No Verification (0× multiplier):**
+- Self-reported only, no documentation
+- Does not contribute to PAF
+- User encouraged to obtain verification
+
+### Data Privacy & Security
+
+**Privacy Protections:**
+- Individual names anonymized in calculations
+- Aggregate participation only
+- Secure document storage (encrypted)
+- GDPR/CCPA compliant
+- User controls data sharing
+
+**Data Retention:**
+- Active participation: Stored throughout engagement + 1 year
+- Historical: Aggregated only (individual records deleted)
+- Verification documents: 7 years (audit requirement)
+
+**Access Controls:**
+- User: Full access to own data
+- Verifiers: Limited to assigned claims
+- Administrators: Audit access only
+- Public: Aggregated statistics only
+
+### Data Quality Metrics
+
+**Participation Data Reliability:**
+
+| Verification Level | PAF Impact | Reliability | Audit-Ready |
+|-------------------|-----------|-------------|-------------|
+| Gold (Third-party platform) | Full (1.2×) | ±5% | ✅ Yes |
+| Silver (Org confirmation) | Full (1.0×) | ±10% | ✅ Yes |
+| Bronze (Pending) | Reduced (0.8×) | ±25% | ⚠️ Conditional |
+| None (Self-report) | None (0×) | N/A | ❌ No |
+
+### Data Update Frequency
+
+| Data Type | Update Frequency | Verification Refresh |
+|-----------|------------------|---------------------|
+| **Participation Hours** | Weekly | Real-time |
+| **Verification Status** | As submitted | Within 7 days |
+| **PAF Calculation** | Real-time | On verification change |
+| **Base v4.1 Data** | Monthly | Census/BLS release cycle |
+| **Verification Expiry** | Daily check | 12-month validity |
+
+### API Access for Verification
+
+**Verification Partners:**
+- VolunteerMatch API: Automated hour verification
+- DOL Apprenticeship API: Program registration lookup
+- IRS EIN Verification: 501(c)(3) status check
+- NLRB API: Union election records
+
+**Rate Limits:**
+- Verification checks: 100/day per user
+- Document uploads: 10 MB max per file
+- API calls: Standard rate limits apply
+
+### Data Sources
 
 ### Economic Data (Base v4.1)
 - **BLS OEWS:** Real wage data (May 2024)
