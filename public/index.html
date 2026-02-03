@@ -4541,8 +4541,10 @@ out center;`;
                             if (v2Element && ejvData.data.ejv_simplified?.ejv_percentage) {
                                 v2Element.textContent = ejvData.data.ejv_simplified.ejv_percentage.toFixed(1) + '%';
                             }
-                            if (v41Element && ejvData.data.retention_percentage) {
-                                v41Element.textContent = ejvData.data.retention_percentage.toFixed(1) + '%';
+                            if (v41Element) {
+                                // Use real EJV 4.1 retention if available, otherwise use simplified retention
+                                const v41Retention = ejvData.data.ejv_v41_retention || ejvData.data.retention_percentage || 0;
+                                v41Element.textContent = v41Retention.toFixed(1) + '%';
                             }
                             
                             // Update component scores
@@ -4766,13 +4768,16 @@ out center;`;
                         unemployment_rate: ejvData.local_context?.unemployment_rate || 5.0,
                         median_income: ejvData.local_context?.median_income || 50000
                     },
-                    // Calculate v4.1 flows from ELVR (approximation based on components)
-                    local_capture_components: {
-                        wages: (ejvData.components?.W_fair_wage || 0) * 0.35,
-                        suppliers: (ejvData.components?.L_local_impact || 0) * 0.25,
-                        taxes: 0.15,
-                        financing: 0.15,
-                        ownership: 0.10
+                    // Use real EJV v4.1 data if available, otherwise fallback to approximation
+                    ejv_v41: ejvData.ejv_v41 || null,
+                    ejv_v41_retention: ejvData.ejv_v41?.retention_percentage || 0,
+                    local_capture_components: ejvData.ejv_v41?.local_capture_components || {
+                        lc_wages: (ejvData.components?.W_fair_wage || 0) * 0.35,
+                        lc_suppliers: (ejvData.components?.L_local_impact || 0) * 0.25,
+                        lc_taxes: 0.15,
+                        lc_financing: 0.15,
+                        lc_ownership: 0.10,
+                        lc_aggregate: 0
                     }
                 };
 
@@ -5113,11 +5118,11 @@ out center;`;
             }
             
             if (v41Display) {
-                // Calculate LC_aggregate from retention percentage
-                const lcAggregate = retainedPercent > 0 ? retainedPercent : 0;
-                const v41Value = lcAggregate > 0 ? lcAggregate.toFixed(1) + '%' : '-';
+                // Use real EJV 4.1 retention percentage if available, otherwise use simplified EJV retention
+                const ejvV41Retention = data.ejv_v41_retention > 0 ? data.ejv_v41_retention : retainedPercent;
+                const v41Value = ejvV41Retention > 0 ? ejvV41Retention.toFixed(1) + '%' : '-';
                 v41Display.textContent = v41Value;
-                console.log('Set ejvV41Display to:', v41Value, '(LC_aggregate/retention% was:', lcAggregate, ')');
+                console.log('Set ejvV41Display to:', v41Value, '(EJV 4.1 LC_aggregate was:', ejvV41Retention, '%)');
             } else {
                 console.error('ERROR: ejvV41Display element not found!');
             }
@@ -5230,19 +5235,24 @@ out center;`;
             const flowOwnershipElem = document.getElementById('flowOwnership');
             
             if (flowWagesElem) {
-                flowWagesElem.textContent = lc.wages ? '$' + (lc.wages * 100).toFixed(2) : '-';
+                const wageValue = lc.lc_wages ? '$' + (lc.lc_wages * 35).toFixed(2) : (lc.wages ? '$' + (lc.wages * 100).toFixed(2) : '-');
+                flowWagesElem.textContent = wageValue;
             }
             if (flowSuppliersElem) {
-                flowSuppliersElem.textContent = lc.suppliers ? '$' + (lc.suppliers * 100).toFixed(2) : '-';
+                const supplierValue = lc.lc_suppliers ? '$' + (lc.lc_suppliers * 25).toFixed(2) : (lc.suppliers ? '$' + (lc.suppliers * 100).toFixed(2) : '-');
+                flowSuppliersElem.textContent = supplierValue;
             }
             if (flowTaxesElem) {
-                flowTaxesElem.textContent = lc.taxes ? '$' + (lc.taxes * 100).toFixed(2) : '-';
+                const taxValue = lc.lc_taxes ? '$' + (lc.lc_taxes * 15).toFixed(2) : (lc.taxes ? '$' + (lc.taxes * 100).toFixed(2) : '-');
+                flowTaxesElem.textContent = taxValue;
             }
             if (flowFinancingElem) {
-                flowFinancingElem.textContent = lc.financing ? '$' + (lc.financing * 100).toFixed(2) : '-';
+                const finValue = lc.lc_financing ? '$' + (lc.lc_financing * 15).toFixed(2) : (lc.financing ? '$' + (lc.financing * 100).toFixed(2) : '-');
+                flowFinancingElem.textContent = finValue;
             }
             if (flowOwnershipElem) {
-                flowOwnershipElem.textContent = lc.ownership ? '$' + (lc.ownership * 100).toFixed(2) : '-';
+                const ownValue = lc.lc_ownership ? '$' + (lc.lc_ownership * 10).toFixed(2) : (lc.ownership ? '$' + (lc.ownership * 100).toFixed(2) : '-');
+                flowOwnershipElem.textContent = ownValue;
             }
 
             // Formula display
