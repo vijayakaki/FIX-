@@ -4487,7 +4487,7 @@ out center;`;
                             <span id="ejv-v2-${store.id}" style="font-weight: 700; color: #7b1fa2;">...</span>
                         </div>
                         <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 11px;">
-                            <span style="color: #666;">EJV v4.1 (Adv):</span>
+                            <span style="color: #666;">EJV v4.1 (%):</span>
                             <span id="ejv-v41-${store.id}" style="font-weight: 700; color: #1976d2;">...</span>
                         </div>
                         <div style="border-top: 1px solid #e0e0e0; padding-top: 6px; margin-top: 6px;">
@@ -4541,8 +4541,8 @@ out center;`;
                             if (v2Element && ejvData.data.ejv_simplified?.ejv_percentage) {
                                 v2Element.textContent = ejvData.data.ejv_simplified.ejv_percentage.toFixed(1) + '%';
                             }
-                            if (v41Element && ejvData.data.elvr) {
-                                v41Element.textContent = '$' + ejvData.data.elvr.toFixed(2);
+                            if (v41Element && ejvData.data.retention_percentage) {
+                                v41Element.textContent = ejvData.data.retention_percentage.toFixed(1) + '%';
                             }
                             
                             // Update component scores
