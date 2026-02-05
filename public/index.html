@@ -6206,7 +6206,7 @@ out center;`;
             // Search using Overpass API (OpenStreetMap)
             const radius = 5000; // 5km radius
             const overpassQuery = `
-                [out:json][timeout:25];
+                [out:json][timeout:15];
                 (
                     node["name"~"${chainName}",i](around:${radius},${lat},${lon});
                     way["name"~"${chainName}",i](around:${radius},${lat},${lon});
@@ -6345,11 +6345,34 @@ out center;`;
             showLoading(true);
             showResult(`Calculating EJV for ${store.name}...`);
             
-            const storeEjv = await calculateStoreEJV(store.id || `store_${storeIndex}`, store.name, true);
-            if (storeEjv && storeEjv.data) {
-                updateRightDashboard(storeEjv.data, store.name);
+            try {
+                // Set current ZIP from store's ZIP code
+                if (store.zipCode) {
+                    currentZip = store.zipCode;
+                } else {
+                    // Get ZIP code from geocoding if not available
+                    const geocodeUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${store.lat}&lon=${store.lon}&addressdetails=1`;
+                    const geocodeResponse = await fetch(geocodeUrl);
+                    const geocodeData = await geocodeResponse.json();
+                    currentZip = geocodeData.address?.postcode || '10001';
+                }
+                
+                // Call the main calculateEJV function with proper parameters
+                const storeId = store.id || `store_${storeIndex}`;
+                const storeEjv = await calculateEJV(storeId, store.name, true);
+                
+                if (storeEjv && storeEjv.data) {
+                    updateRightDashboard(storeEjv.data, store.name);
+                    showResult(`✓ EJV calculated for ${store.name}: ${storeEjv.data.ejv?.toFixed(2) || 'N/A'}`);
+                } else {
+                    showResult(`Could not calculate EJV for ${store.name}`);
+                }
+            } catch (error) {
+                console.error('Chain store EJV calculation error:', error);
+                showResult('Error calculating EJV. Please try again.');
+            } finally {
+                showLoading(false);
             }
-            showLoading(false);
         }
         
         async function calculateSingleStoreEJV(storeIndex) {
@@ -6357,11 +6380,34 @@ out center;`;
             showLoading(true);
             showResult(`Calculating EJV for ${store.name}...`);
             
-            const storeEjv = await calculateStoreEJV(store.id || 'store_0', store.name, true);
-            if (storeEjv && storeEjv.data) {
-                updateRightDashboard(storeEjv.data, store.name);
+            try {
+                // Set current ZIP from store's ZIP code
+                if (store.zipCode) {
+                    currentZip = store.zipCode;
+                } else {
+                    // Get ZIP code from geocoding if not available
+                    const geocodeUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${store.lat}&lon=${store.lon}&addressdetails=1`;
+                    const geocodeResponse = await fetch(geocodeUrl);
+                    const geocodeData = await geocodeResponse.json();
+                    currentZip = geocodeData.address?.postcode || '10001';
+                }
+                
+                // Call the main calculateEJV function with proper parameters
+                const storeId = store.id || 'store_0';
+                const storeEjv = await calculateEJV(storeId, store.name, true);
+                
+                if (storeEjv && storeEjv.data) {
+                    updateRightDashboard(storeEjv.data, store.name);
+                    showResult(`✓ EJV calculated for ${store.name}: ${storeEjv.data.ejv?.toFixed(2) || 'N/A'}`);
+                } else {
+                    showResult(`Could not calculate EJV for ${store.name}`);
+                }
+            } catch (error) {
+                console.error('Single store EJV calculation error:', error);
+                showResult('Error calculating EJV. Please try again.');
+            } finally {
+                showLoading(false);
             }
-            showLoading(false);
         }
         
         function displayChainSearchResults(stores, chainName) {
