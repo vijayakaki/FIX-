@@ -6323,10 +6323,83 @@ out center;`;
                 
             } catch (error) {
                 console.error('Nearby search error:', error);
+                
+                // If Overpass API times out or fails, try geocoding specific store location
+                if (error.message.includes('504') || error.message.includes('timeout')) {
+                    console.log('→ Overpass API unavailable, using geocoding fallback...');
+                    showResult(`Overpass API is busy. Searching for ${chainName.toUpperCase()} location via geocoding...`);
+                    
+                    try {
+                        // Geocode specific store by name and location
+                        const geocodeUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(chainName + ' near ' + lat + ',' + lon)}&limit=5&addressdetails=1`;
+                        const geocodeResponse = await fetch(geocodeUrl);
+                        const geocodeResults = await geocodeResponse.json();
+                        
+                        if (geocodeResults.length > 0) {
+                            console.log(`✓ Found ${geocodeResults.length} locations via geocoding`);
+                            
+                            // Convert geocode results to store data
+                            window.storeData = geocodeResults.slice(0, 5).map((result, idx) => {
+                                const storeLat = parseFloat(result.lat);
+                                const storeLon = parseFloat(result.lon);
+                                const distance = calculateDistance(lat, lon, storeLat, storeLon);
+                                
+                                return {
+                                    id: `${chainName}_geocoded_${idx}`,
+                                    name: result.display_name.split(',')[0] || chainName.toUpperCase(),
+                                    address: result.display_name,
+                                    lat: storeLat,
+                                    lon: storeLon,
+                                    distance: distance,
+                                    category: 'store',
+                                    zipCode: result.address?.postcode || currentZip,
+                                    ejv: null,
+                                    rawScore: null,
+                                    breakdown: null
+                                };
+                            }).sort((a, b) => a.distance - b.distance);
+                            
+                            rawStores = [...window.storeData];
+                            
+                            // Add markers
+                            window.storeData.forEach((store, idx) => {
+                                const marker = L.marker([store.lat, store.lon], {
+                                    icon: L.divIcon({
+                                        className: 'custom-div-icon',
+                                        html: `<div style="background: #4CAF50; width: 32px; height: 32px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 11px; color: white;">${idx + 1}</div>`,
+                                        iconSize: [32, 32],
+                                        iconAnchor: [16, 16]
+                                    })
+                                }).addTo(map);
+                                
+                                marker.bindPopup(`
+                                    <div style="min-width: 200px;">
+                                        <strong>${store.name}</strong><br>
+                                        <span style="font-size: 11px; color: #666;">${store.address}</span><br>
+                                        <span style="font-size: 10px; color: #999;">${store.distance.toFixed(2)} km away</span><br>
+                                        <button onclick="calculateChainStoreEJV(${idx})" style="margin-top: 8px; padding: 6px 12px; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px; width: 100%; font-weight: 600;">
+                                            Calculate EJV
+                                        </button>
+                                    </div>
+                                `);
+                                
+                                markers.push(marker);
+                            });
+                            
+                            displayChainSearchResults(window.storeData, chainName);
+                            showResult(`Found ${window.storeData.length} ${chainName.toUpperCase()} location(s) nearby`);
+                            showLoading(false);
+                            return;
+                        }
+                    } catch (geocodeError) {
+                        console.error('Geocoding fallback error:', geocodeError);
+                    }
+                }
+                
+                // Final fallback - show user location
                 showResult(`No ${chainName.toUpperCase()} stores found within 3km. Showing your search location - you can still calculate EJV for any store at this address.`);
                 showLoading(false);
                 
-                // Fallback to single location marker
                 try {
                     await searchSingleLocation(chainName, lat, lon, `${chainName.toUpperCase()} - Your Location`);
                 } catch (fallbackError) {
