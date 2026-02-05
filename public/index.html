@@ -2024,28 +2024,49 @@
 
             <!-- Map -->
             <div class="map-container">
-                <!-- Search Bar with Location -->
-                <div style="position: absolute; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; display: flex; gap: 8px; align-items: center;">
-                    <button 
-                        id="locationBtn"
-                        onclick="getUserLocation()" 
-                        title="Use my current location"
-                        style="padding: 12px 16px; background: #4caf50; color: white; border: none; border-radius: 25px; font-size: 16px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 6px; white-space: nowrap;"
-                    >
-                        📍 My Location
-                    </button>
-                    <input 
-                        id="searchInput" 
-                        placeholder="Search: 'Walmart near me', address, or ZIP code..." 
-                        style="width: 450px; padding: 12px 15px; border: 2px solid #667eea; border-radius: 25px; font-size: 14px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); outline: none;"
-                        onkeypress="if(event.key==='Enter') performSearch()"
-                    />
-                    <button 
-                        onclick="performSearch()" 
-                        style="padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 25px; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); white-space: nowrap;"
-                    >
-                        🔍 Search
-                    </button>
+                <!-- Enhanced Search Bar with Quick Buttons -->
+                <div style="position: absolute; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; display: flex; flex-direction: column; gap: 10px; align-items: center;">
+                    <!-- Main Search Row -->
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <button 
+                            id="locationBtn"
+                            onclick="getUserLocation()" 
+                            title="Use my current location"
+                            style="padding: 12px 16px; background: #4caf50; color: white; border: none; border-radius: 25px; font-size: 16px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 6px; white-space: nowrap; transition: all 0.3s;"
+                            onmouseover="this.style.background='#45a049'"
+                            onmouseout="this.style.background='#4caf50'"
+                        >
+                            📍 My Location
+                        </button>
+                        <div style="position: relative;">
+                            <input 
+                                id="searchInput" 
+                                placeholder="🔍 Search stores: 'Walmart', 'Target near me', or enter address..." 
+                                style="width: 480px; padding: 12px 50px 12px 15px; border: 2px solid #667eea; border-radius: 25px; font-size: 14px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); outline: none; transition: all 0.3s;"
+                                onkeypress="if(event.key==='Enter') performSearch()"
+                                onfocus="this.style.borderColor='#764ba2'; this.style.boxShadow='0 4px 20px rgba(102,126,234,0.4)'"
+                                onblur="this.style.borderColor='#667eea'; this.style.boxShadow='0 4px 15px rgba(0,0,0,0.2)'"
+                            />
+                            <button 
+                                onclick="performSearch()" 
+                                style="position: absolute; right: 4px; top: 50%; transform: translateY(-50%); padding: 8px 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.3s;"
+                                onmouseover="this.style.transform='translateY(-50%) scale(1.05)'"
+                                onmouseout="this.style.transform='translateY(-50%) scale(1)'"
+                            >
+                                Search
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Quick Search Buttons -->
+                    <div style="display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; max-width: 700px;">
+                        <button onclick="quickSearch('walmart')" style="padding: 6px 14px; background: white; color: #667eea; border: 2px solid #667eea; border-radius: 15px; font-size: 12px; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: all 0.2s;" onmouseover="this.style.background='#667eea'; this.style.color='white'" onmouseout="this.style.background='white'; this.style.color='#667eea'">🛒 Walmart</button>
+                        <button onclick="quickSearch('target')" style="padding: 6px 14px; background: white; color: #667eea; border: 2px solid #667eea; border-radius: 15px; font-size: 12px; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: all 0.2s;" onmouseover="this.style.background='#667eea'; this.style.color='white'" onmouseout="this.style.background='white'; this.style.color='#667eea'">🎯 Target</button>
+                        <button onclick="quickSearch('costco')" style="padding: 6px 14px; background: white; color: #667eea; border: 2px solid #667eea; border-radius: 15px; font-size: 12px; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: all 0.2s;" onmouseover="this.style.background='#667eea'; this.style.color='white'" onmouseout="this.style.background='white'; this.style.color='#667eea'">🏪 Costco</button>
+                        <button onclick="quickSearch('kroger')" style="padding: 6px 14px; background: white; color: #667eea; border: 2px solid #667eea; border-radius: 15px; font-size: 12px; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: all 0.2s;" onmouseover="this.style.background='#667eea'; this.style.color='white'" onmouseout="this.style.background='white'; this.style.color='#667eea'">🛍️ Kroger</button>
+                        <button onclick="quickSearch('whole foods')" style="padding: 6px 14px; background: white; color: #667eea; border: 2px solid #667eea; border-radius: 15px; font-size: 12px; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: all 0.2s;" onmouseover="this.style.background='#667eea'; this.style.color='white'" onmouseout="this.style.background='white'; this.style.color='#667eea'">🥬 Whole Foods</button>
+                        <button onclick="quickSearch('starbucks')" style="padding: 6px 14px; background: white; color: #667eea; border: 2px solid #667eea; border-radius: 15px; font-size: 12px; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: all 0.2s;" onmouseover="this.style.background='#667eea'; this.style.color='white'" onmouseout="this.style.background='white'; this.style.color='#667eea'">☕ Starbucks</button>
+                    </div>
                 </div>
                 
                 <div id="map"></div>
@@ -6119,6 +6140,13 @@ out center;`;
                     }
                 }
             );
+        }
+        
+        // Quick search function for popular chains
+        async function quickSearch(chainName) {
+            const searchInput = document.getElementById('searchInput');
+            searchInput.value = chainName + ' near me';
+            await performSearch();
         }
         
         async function performSearch() {
