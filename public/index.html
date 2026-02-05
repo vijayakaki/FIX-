@@ -6224,9 +6224,9 @@ out center;`;
             showResult(`Searching for ${chainName.toUpperCase()} stores near you...`);
             
             // Search using Overpass API (OpenStreetMap) with timeout
-            const radius = 5000; // 5km radius
+            const radius = 3000; // 3km radius (faster results)
             const overpassQuery = `
-                [out:json][timeout:10];
+                [out:json][timeout:12];
                 (
                     node["name"~"${chainName}",i](around:${radius},${lat},${lon});
                     way["name"~"${chainName}",i](around:${radius},${lat},${lon});
@@ -6235,9 +6235,9 @@ out center;`;
             `;
             
             try {
-                // Create timeout promise (12 seconds to allow for network delay)
+                // Create timeout promise (15 seconds to allow for network delay)
                 const timeoutPromise = new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error('Search timeout')), 12000)
+                    setTimeout(() => reject(new Error('Search timeout')), 15000)
                 );
                 
                 const fetchPromise = fetch('https://overpass-api.de/api/interpreter', {
@@ -6323,15 +6323,15 @@ out center;`;
                 
             } catch (error) {
                 console.error('Nearby search error:', error);
-                showResult(`Could not find ${chainName.toUpperCase()} stores nearby. Showing search location...`);
+                showResult(`No ${chainName.toUpperCase()} stores found within 3km. Showing your search location - you can still calculate EJV for any store at this address.`);
                 showLoading(false);
                 
-                // Fallback to single location
+                // Fallback to single location marker
                 try {
-                    await searchSingleLocation(chainName, lat, lon, `${chainName.toUpperCase()} - Search Location`);
+                    await searchSingleLocation(chainName, lat, lon, `${chainName.toUpperCase()} - Your Location`);
                 } catch (fallbackError) {
                     console.error('Fallback search error:', fallbackError);
-                    showResult('Search failed. Please try again or use a different location.');
+                    showResult('Search failed. Please try a specific address or store name.');
                     showLoading(false);
                 }
             }
