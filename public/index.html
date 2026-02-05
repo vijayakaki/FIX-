@@ -3283,9 +3283,10 @@
             console.log('========================================');
             console.log('✓ Page loaded');
             
-            // Update user display
-            if (currentUser && currentUser.username) {
-                document.getElementById('userDisplay').textContent = `👤 ${currentUser.username}`;
+            // Update user display (if element exists)
+            const userDisplayElement = document.getElementById('userDisplay');
+            if (currentUser && currentUser.username && userDisplayElement) {
+                userDisplayElement.textContent = `👤 ${currentUser.username}`;
                 console.log('✓ User display updated:', currentUser.username);
             }
             
