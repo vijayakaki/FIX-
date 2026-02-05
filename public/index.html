@@ -4679,9 +4679,16 @@ out center;`;
                     const r4 = ((seed * 5.1) % 233280) / 233280;
                     const r5 = ((seed * 7.2) % 233280) / 233280;
                     
+                    // Create fallback data with EJV score matching retention percentage
+                    const fallbackEjvScore = 0.55 + (r1 * 0.20);  // 0.55-0.75 (55-75%)
+                    const fallbackEjvPct = fallbackEjvScore * 100;  // 55-75%
+                    const purchaseAmt = 100.0;
+                    const fallbackElvr = purchaseAmt * fallbackEjvScore;
+                    const fallbackEvl = purchaseAmt - fallbackElvr;
+                    
                     ejvData = {
-                        ejv_score: 0.70 + (r1 * 0.25),
-                        ejv_percentage: 70 + (r1 * 25),
+                        ejv_score: fallbackEjvScore,
+                        ejv_percentage: fallbackEjvPct,
                         components: {
                             W_fair_wage: 0.75 + (r2 * 0.20),
                             P_pay_equity: 0.70 + (r3 * 0.25),
@@ -4690,9 +4697,9 @@ out center;`;
                             E_environmental: 0.50 + (r1 * 0.30)
                         },
                         economic_impact: {
-                            elvr: 55.5 + (r1 * 20),
-                            evl: 44.5 - (r1 * 20),
-                            retention_percent: 55 + (r1 * 20)
+                            elvr: fallbackElvr,
+                            evl: fallbackEvl,
+                            retention_percent: fallbackEjvPct
                         },
                         formula: "EJV = (W + P + L + A + E) / 5",
                         data_sources: [
