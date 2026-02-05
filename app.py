@@ -635,121 +635,7 @@ def get_procurement_data(store_id, store_name=None, store_type="supermarket"):
 # CALCULATE EJV 4.1 (5 LOCAL CAPTURE COMPONENTS)
 # ---------------------------------------
 
-def calculate_ejv_v41(store_id, store_name=None, location=None, zip_code="10001", purchase_amount=100.0):
-    """
-    Calculate EJV v4.1 using 5 Local Capture components:
-    LC_wages (35%) - Percentage of wages paid to local workers
-    LC_suppliers (25%) - Percentage of procurement from local suppliers
-    LC_taxes (15%) - Percentage of taxes to local/state vs federal
-    LC_financing (15%) - Percentage of financing from local lenders
-    LC_ownership (10%) - Percentage of ownership by local residents
-    
-    Returns LC_aggregate, ELVR, and EVL
-    """
-    print(f"\n=== Calculating EJV v4.1 for {store_id} ===")
-    
-    # Get store type and business size multipliers
-    store_type = get_store_type_from_id(store_id)
-    size_multipliers = get_business_size_multiplier(store_name or "")
-    
-    # Get payroll data for local hiring information
-    payroll = get_payroll_data(store_id, store_type=store_type, store_name=store_name, location=location, zip_code=zip_code)
-    
-    # 1. LC_wages (35%) - Local hiring percentage with variance
-    lc_wages = payroll["local_hire_pct"]  # Already has store-specific variance
-    
-    # 2. LC_suppliers (25%) - Local procurement with variance
-    procurement_data = get_procurement_data(store_id, store_name, store_type)
-    lc_suppliers = procurement_data["local_purchasing_percent"] / 100.0
-    
-    # 3. LC_taxes (15%) - State/local tax retention (relatively consistent)
-    # Most retail taxes are state/local (sales tax, property tax)
-    # Federal income tax is the main leakage
-    # Base: 70-80% local/state retention
-    base_tax_retention = 0.75
-    lc_taxes = min(0.90, base_tax_retention)
-    
-    # 4. LC_financing (15%) - Local banking/lending
-    # Varies significantly by business type
-    financing_baseline = {
-        "national_chain": 0.25,      # Global/national lenders
-        "regional_chain": 0.50,      # Mix of regional and national
-        "local_independent": 0.70    # Local banks and credit unions
-    }
-    base_financing = financing_baseline.get(size_multipliers['size'], 0.50)
-    lc_financing = min(0.95, base_financing)
-    
-    # 5. LC_ownership (10%) - Local ownership
-    ownership_baseline = {
-        "national_chain": 0.10,      # Distributed shareholders
-        "regional_chain": 0.30,      # Some regional ownership
-        "local_independent": 0.90    # Local owner(s)
-    }
-    base_ownership = ownership_baseline.get(size_multipliers['size'], 0.50)
-    lc_ownership = min(1.0, base_ownership)
-    
-    # Calculate LC_aggregate using proper EJV 4.1 weights
-    lc_aggregate = (lc_wages * 0.35) + (lc_suppliers * 0.25) + (lc_taxes * 0.15) + (lc_financing * 0.15) + (lc_ownership * 0.10)
-    
-    # Calculate ELVR and EVL
-    elvr_v41 = purchase_amount * lc_aggregate
-    evl_v41 = purchase_amount - elvr_v41
-    
-    print(f"\n✓ EJV v4.1 Local Capture Components:")
-    print(f"  LC_wages (35%): {lc_wages:.3f}")
-    print(f"  LC_suppliers (25%): {lc_suppliers:.3f}")
-    print(f"  LC_taxes (15%): {lc_taxes:.3f}")
-    print(f"  LC_financing (15%): {lc_financing:.3f}")
-    print(f"  LC_ownership (10%): {lc_ownership:.3f}")
-    print(f"  LC_aggregate: {lc_aggregate:.3f} ({lc_aggregate*100:.1f}%)")
-    print(f"  ELVR: ${elvr_v41:.2f}")
-    print(f"  EVL: ${evl_v41:.2f}\n")
-    
-    return {
-        "store_id": store_id,
-        "store_name": store_name or "Unknown",
-        "location": location or "Unknown",
-        "zip_code": zip_code,
-        "ejv_version": "4.1",
-        
-        # Local Capture Components
-        "local_capture_components": {
-            "lc_wages": round(lc_wages, 3),
-            "lc_suppliers": round(lc_suppliers, 3),
-            "lc_taxes": round(lc_taxes, 3),
-            "lc_financing": round(lc_financing, 3),
-            "lc_ownership": round(lc_ownership, 3),
-            "lc_aggregate": round(lc_aggregate, 3)
-        },
-        
-        # Economic Impact
-        "purchase_amount": purchase_amount,
-        "elvr": round(elvr_v41, 2),
-        "evl": round(evl_v41, 2),
-        "retention_percentage": round(lc_aggregate * 100, 1),
-        "leakage_percentage": round((1 - lc_aggregate) * 100, 1),
-        
-        # Component Weights
-        "weights": {
-            "wages": 0.35,
-            "suppliers": 0.25,
-            "taxes": 0.15,
-            "financing": 0.15,
-            "ownership": 0.10
-        },
-        
-        "formula": f"LC_aggregate = (LC_wages × 0.35) + (LC_suppliers × 0.25) + (LC_taxes × 0.15) + (LC_financing × 0.15) + (LC_ownership × 0.10)",
-        "calculation": f"ELVR = ${purchase_amount} × {lc_aggregate:.3f} = ${elvr_v41:.2f}",
-        
-        "data_sources": [
-            "Census LODES (Worker Flows)",
-            "BLS OEWS (Wage Data)",
-            "BEA Regional Accounts (Supply Chain)",
-            "State/Local Tax Codes",
-            "FDIC/NCUA (Banking Data)",
-            "Business Registration (Ownership)"
-        ]
-    }
+
 
 # ---------------------------------------
 # CALCULATE EJV COMPONENTS (W, P, L, A, E)
@@ -1296,22 +1182,9 @@ def get_ejv_simple(store_id):
     # Calculate Simplified EJV
     result = calculate_ejv_simplified(store_id, store_name=store_name, location=location, zip_code=zip_code)
     
-    # Also calculate EJV v4.1 and include it
-    ejv_v41 = calculate_ejv_v41(store_id, store_name=store_name, location=location, zip_code=zip_code)
-    result['ejv_v41'] = ejv_v41
-    
     return jsonify(result)
 
-@app.route('/api/ejv/v4.1/<store_id>', methods=['GET'])
-def get_ejv_v41_endpoint(store_id):
-    """Get EJV v4.1 - 5 Local Capture Components (wages, suppliers, taxes, financing, ownership)"""
-    zip_code = request.args.get('zip', '10001')
-    location = request.args.get('location', 'Unknown')
-    store_name = request.args.get('name', None)
-    purchase_amount = float(request.args.get('purchase', 100.0))
-    
-    result = calculate_ejv_v41(store_id, store_name=store_name, location=location, zip_code=zip_code, purchase_amount=purchase_amount)
-    return jsonify(result)
+
 
 @app.route('/api/ejv-v4.2/<store_id>', methods=['POST'])
 def get_ejv_v42(store_id):

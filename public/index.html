@@ -2066,13 +2066,6 @@
                             </div>
                             <button class="help-btn" onclick="showHelpModal('simple')" data-tooltip="Learn about Simplified EJV - 5 Components: Fair Wage, Equity, Local Impact, Affordability, Environmental - Click for details" style="position: absolute; top: 6px; right: 6px;">❓</button>
                         </div>
-                        <div style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); padding: 10px; border-radius: 6px; text-align: center; border: 2px solid #2196f3; position: relative;">
-                            <div id="ejvV41Display" style="font-size: 20px; font-weight: 700; color: #1976d2;">-</div>
-                            <div style="font-size: 9px; color: #0d47a1; margin-top: 2px; text-transform: uppercase; font-weight: 600;" data-tooltip="Local Capture Aggregate - Percentage of purchase value retained in local economy">
-                                EJV v4.1 (%)
-                            </div>
-                            <button class="help-btn" onclick="showHelpModal('v4.1')" data-tooltip="Learn about EJV v4.1 - Decomposed Flows (Wages 35%, Suppliers 25%, Taxes 15%, Financing 15%, Ownership 10%) - Click for details" style="position: absolute; top: 6px; right: 6px;">❓</button>
-                        </div>
                     </div>
                     
                     <div id="engageMetricsGrid" style="display: none; grid-template-columns: 1fr; gap: 8px; margin-bottom: 12px;">
@@ -2133,21 +2126,7 @@
                         </div>
                     </div>
                     
-                    <div id="flowsGrid" style="margin-bottom: 12px;">
-                        <div style="font-size: 11px; font-weight: 600; color: #333; margin-bottom: 8px;">EJV v4.1 - 5 Local Capture Flows</div>
-                        <div style="display: grid; grid-template-columns: 1fr; gap: 4px;">
-                            <div style="display: flex; justify-content: space-between; padding: 4px 6px; font-size: 9px; background: #f0f4ff; border-radius: 3px;">
-                                <span style="color: #666;">💼 Wages (35%)</span>
-                                <span id="flowWages" style="font-weight: 600; color: #1976d2;">-</span>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; padding: 4px 6px; font-size: 9px; background: #fff; border-radius: 3px;">
-                                <span style="color: #666;">🏪 Suppliers (25%)</span>
-                                <span id="flowSuppliers" style="font-weight: 600; color: #1976d2;">-</span>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; padding: 4px 6px; font-size: 9px; background: #f0f4ff; border-radius: 3px;">
-                                <span style="color: #666;">🏛️ Taxes (15%)</span>
-                                <span id="flowTaxes" style="font-weight: 600; color: #1976d2;">-</span>
-                            </div>
+
                             <div style="display: flex; justify-content: space-between; padding: 4px 6px; font-size: 9px; background: #fff; border-radius: 3px;">
                                 <span style="color: #666;">💰 Financing (15%)</span>
                                 <span id="flowFinancing" style="font-weight: 600; color: #1976d2;">-</span>
@@ -4486,10 +4465,6 @@ out center;`;
                             <span style="color: #666;">Simplified EJV:</span>
                             <span id="ejv-v2-${store.id}" style="font-weight: 700; color: #7b1fa2;">...</span>
                         </div>
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 11px;">
-                            <span style="color: #666;">EJV v4.1 (%):</span>
-                            <span id="ejv-v41-${store.id}" style="font-weight: 700; color: #1976d2;">...</span>
-                        </div>
                         <div style="border-top: 1px solid #e0e0e0; padding-top: 6px; margin-top: 6px;">
                             <div style="font-size: 10px; font-weight: 600; color: #555; margin-bottom: 4px;">Simplified EJV Components (0-100):</div>
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3px; font-size: 10px;">
@@ -4541,14 +4516,7 @@ out center;`;
                             if (v2Element && ejvData.data.ejv_simplified?.ejv_percentage) {
                                 v2Element.textContent = ejvData.data.ejv_simplified.ejv_percentage.toFixed(1) + '%';
                             }
-                            if (v41Element) {
-                                // Use real EJV 4.1 retention if available, otherwise use simplified retention
-                                const v41Retention = ejvData.data.ejv_v41_retention || ejvData.data.retention_percentage || 0;
-                                v41Element.textContent = v41Retention.toFixed(1) + '%';
-                            }
-                            
-                            // Update component scores
-                            const wageElement = document.getElementById(`wage-${store.id}`);
+
                             const hiringElement = document.getElementById(`hiring-${store.id}`);
                             const communityElement = document.getElementById(`community-${store.id}`);
                             const participationElement = document.getElementById(`participation-${store.id}`);
@@ -4768,17 +4736,7 @@ out center;`;
                         unemployment_rate: ejvData.local_context?.unemployment_rate || 5.0,
                         median_income: ejvData.local_context?.median_income || 50000
                     },
-                    // Use real EJV v4.1 data if available, otherwise fallback to approximation
-                    ejv_v41: ejvData.ejv_v41 || null,
-                    ejv_v41_retention: ejvData.ejv_v41?.retention_percentage || 0,
-                    local_capture_components: ejvData.ejv_v41?.local_capture_components || {
-                        lc_wages: (ejvData.components?.W_fair_wage || 0) * 0.35,
-                        lc_suppliers: (ejvData.components?.L_local_impact || 0) * 0.25,
-                        lc_taxes: 0.15,
-                        lc_financing: 0.15,
-                        lc_ownership: 0.10,
-                        lc_aggregate: 0
-                    }
+
                 };
 
                 console.log('Combined EJV Data:', data);
@@ -5117,15 +5075,7 @@ out center;`;
                 console.error('ERROR: ejvV2Display element not found!');
             }
             
-            if (v41Display) {
-                // Use real EJV 4.1 retention percentage if available, otherwise use simplified EJV retention
-                const ejvV41Retention = data.ejv_v41_retention > 0 ? data.ejv_v41_retention : retainedPercent;
-                const v41Value = ejvV41Retention > 0 ? ejvV41Retention.toFixed(1) + '%' : '-';
-                v41Display.textContent = v41Value;
-                console.log('Set ejvV41Display to:', v41Value, '(EJV 4.1 LC_aggregate was:', ejvV41Retention, '%)');
-            } else {
-                console.error('ERROR: ejvV41Display element not found!');
-            }
+
             
             console.log('Display values set - check screen');
             
