@@ -6203,10 +6203,10 @@ out center;`;
         async function searchNearbyChainStores(chainName, lat, lon) {
             showResult(`Searching for ${chainName.toUpperCase()} stores near you...`);
             
-            // Search using Overpass API (OpenStreetMap)
+            // Search using Overpass API (OpenStreetMap) with timeout
             const radius = 5000; // 5km radius
             const overpassQuery = `
-                [out:json][timeout:15];
+                [out:json][timeout:10];
                 (
                     node["name"~"${chainName}",i](around:${radius},${lat},${lon});
                     way["name"~"${chainName}",i](around:${radius},${lat},${lon});
@@ -6215,12 +6215,28 @@ out center;`;
             `;
             
             try {
-                const response = await fetch('https://overpass-api.de/api/interpreter', {
+                // Create timeout promise (12 seconds to allow for network delay)
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Search timeout')), 12000)
+                );
+                
+                const fetchPromise = fetch('https://overpass-api.de/api/interpreter', {
                     method: 'POST',
                     body: overpassQuery
                 });
                 
+                const response = await Promise.race([fetchPromise, timeoutPromise]);
+                
+                if (!response.ok) {
+                    throw new Error(`API returned status ${response.status}`);
+                }
+                
                 const data = await response.json();
+                
+                if (!data || !data.elements) {
+                    throw new Error('Invalid API response');
+                }
+                
                 const stores = data.elements || [];
                 
                 if (stores.length === 0) {
@@ -6284,8 +6300,17 @@ out center;`;
                 
             } catch (error) {
                 console.error('Nearby search error:', error);
-                showResult(`Error searching for nearby stores. Showing single location instead.`);
-                await searchSingleLocation(chainName, lat, lon, chainName);
+                showResult(`Could not find ${chainName.toUpperCase()} stores nearby. Showing search location...`);
+                showLoading(false);
+                
+                // Fallback to single location
+                try {
+                    await searchSingleLocation(chainName, lat, lon, `${chainName.toUpperCase()} - Search Location`);
+                } catch (fallbackError) {
+                    console.error('Fallback search error:', fallbackError);
+                    showResult('Search failed. Please try again or use a different location.');
+                    showLoading(false);
+                }
             }
         }
         
