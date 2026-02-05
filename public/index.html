@@ -6153,9 +6153,12 @@ out center;`;
                 }
                 
                 // Check if "near me" search requires user location
+                console.log('→ Checking location: query includes "near me"?', query.includes('near me'), '| userLocation exists?', !!userLocation);
                 if (query.includes('near me') && !userLocation) {
+                    console.log('→ Requesting user location...');
                     showResult('Getting your location...');
                     await getUserLocation();
+                    console.log('→ Location request complete. userLocation:', !!userLocation);
                     if (!userLocation) {
                         showResult('Location permission denied. Please click "My Location" button or search with an address.');
                         showLoading(false);
