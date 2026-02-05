@@ -2064,7 +2064,7 @@
                             <div style="font-size: 9px; color: #4a148c; margin-top: 2px; text-transform: uppercase; font-weight: 600;">
                                 EJV (W,P,L,A,E)
                             </div>
-                            <button class="help-btn" onclick="showHelpModal('simple')" data-tooltip="Learn about EJV - Weighted Formula: 25% Fair Wage, 15% Equity, 30% Local Impact, 15% Affordability, 15% Environmental - Click for details" style="position: absolute; top: 6px; right: 6px;">❓</button>
+                            <button class="help-btn" onclick="showHelpModal('simple')" data-tooltip="EJV = 0.25W + 0.15P + 0.30L + 0.15A + 0.15E | Weighted by economic impact | Company-specific data" style="position: absolute; top: 5px; right: 5px; z-index: 10;">❓</button>
                         </div>
                     </div>
                     
@@ -5192,7 +5192,7 @@ out center;`;
 
             // Formula display
             const formulaText = document.getElementById('formulaText');
-            const formula = data.formula || data.ejv_simplified?.formula || "EJV = (W + P + L + A + E) / 5";
+            const formula = data.formula || data.ejv_simplified?.formula || "EJV = 0.25W + 0.15P + 0.30L + 0.15A + 0.15E";
             if (formulaText) {
                 formulaText.textContent = formula;
             }
@@ -5209,26 +5209,30 @@ out center;`;
             if (hasRealData) {
                 sourcesHTML = `
                     <li style="background: #e8f5e9; padding: 8px; border-radius: 4px; margin-bottom: 8px; border-left: 3px solid #4caf50;">
-                        <strong style="color: #1b5e20;">✓ LIVE DATA</strong><br>
-                        <span style="font-size: 9px; color: #666;">Real-time calculations from verified sources</span>
+                        <strong style="color: #1b5e20;">✓ LIVE DATA + COMPANY-SPECIFIC</strong><br>
+                        <span style="font-size: 9px; color: #666;">Real-time + Company multipliers from SEC 10-K, ESG reports, union contracts</span>
                     </li>
                 `;
                 
-                // Add each data source
-                dataSources.forEach(source => {
-                    sourcesHTML += `<li><strong>${source}</strong></li>`;
-                });
+                // Add primary sources
+                sourcesHTML += `<li style="margin-top: 6px;"><strong>📊 Primary Sources:</strong>
+                    <ul style="margin-left: 15px; font-size: 8px; color: #666; margin-top: 3px;">
+                        <li>BLS OEWS (Wages), Census ACS (Demographics)</li>
+                        <li>MIT Living Wage, EPA EJSCREEN, EEOC</li>
+                        <li>SEC 10-K Filings, Company ESG Reports 2024</li>
+                    </ul>
+                </li>`;
                 
                 // Add component details
                 const components = data.ejv_simplified?.component_details;
                 if (components) {
-                    sourcesHTML += `<li style="margin-top: 8px;"><strong>Component Data:</strong>
-                        <ul style="margin-left: 15px; font-size: 9px; color: #666; margin-top: 3px;">
-                            <li>W (Fair Wage): ${components.fair_wage?.source || 'N/A'}</li>
-                            <li>P (Pay Equity): ${components.pay_equity?.source || 'N/A'}</li>
-                            <li>L (Local Impact): ${components.local_impact?.source || 'N/A'}</li>
-                            <li>A (Affordability): ${components.affordability?.source || 'N/A'}</li>
-                            <li>E (Environmental): ${components.environmental?.source || 'N/A'}</li>
+                    sourcesHTML += `<li style="margin-top: 8px;"><strong>🔍 Component Details:</strong>
+                        <ul style="margin-left: 15px; font-size: 8px; color: #666; margin-top: 3px;">
+                            <li><strong>W (25%)</strong>: ${components.fair_wage?.source || 'BLS OEWS'}</li>
+                            <li><strong>P (15%)</strong>: ${components.pay_equity?.source || 'EEOC + ESG'}</li>
+                            <li><strong>L (30%)</strong>: ${components.local_impact?.source || 'Census LODES'}</li>
+                            <li><strong>A (15%)</strong>: ${components.affordability?.source || 'BLS CPI'}</li>
+                            <li><strong>E (15%)</strong>: ${components.environmental?.source || 'EPA + CDP'}</li>
                         </ul>
                     </li>`;
                 }

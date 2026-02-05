@@ -1558,18 +1558,38 @@ def get_ejv_simple_help():
                 "BLS Consumer Expenditure Survey - Basket pricing",
                 "Census ACS - Demographics and income",
                 "EPA EJSCREEN - Environmental justice data",
-                "EEOC - Equity and diversity data",
-                "SEC EDGAR - Public company data"
+                "EEOC Public Records - Equity and diversity data",
+                "SEC EDGAR 10-K Filings - Public company disclosures"
             ],
             "academic_nonprofit": [
                 "MIT Living Wage Calculator",
-                "CDP Database - Corporate sustainability"
+                "CDP Database - Corporate sustainability",
+                "Fortune 100 Best Companies - Workplace rankings"
             ],
             "industry_research": [
                 "Supply chain patterns by business type",
                 "Procurement benchmarks",
-                "Business size multipliers"
+                "Business size multipliers (Civic Economics)"
+            ],
+            "company_specific": [
+                "Union Contracts (UFCW 2024) - Wage agreements",
+                "Company ESG Reports 2024 - Sustainability commitments",
+                "Glassdoor Reviews 2024 - Employee wage data",
+                "Company 10-K Filings - Supply chain structure",
+                "EPA Green Power Partnership - Renewable energy",
+                "Company Diversity Reports - DEI metrics"
             ]
+        },
+        "company_differentiation": {
+            "description": "The system uses company-specific multipliers based on verified data to differentiate businesses of the same type",
+            "examples": {
+                "costco": "1.30x wages ($17-18/hr), 1.35x equity, 1.25x environmental",
+                "whole_foods": "1.20x wages, 1.40x environmental (organic, 100% renewable)",
+                "wegmans": "1.18x wages, 1.30x equity (Fortune 100 Best), 1.20x local procurement",
+                "kroger": "0.95x wages ($14-15/hr), 0.95x equity, 0.80x local procurement",
+                "walmart": "0.92x wages ($14/hr), 0.85x equity, 1.20x environmental (Project Gigaton)"
+            },
+            "methodology": "Multipliers derived from 10-K SEC filings, union contracts, EEOC records, company ESG reports, and Fortune rankings"
         },
         "comparison_to_v1": {
             "v1": "Traditional 0-100 composite score (W+H+C+P)",
