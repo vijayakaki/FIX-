@@ -6148,7 +6148,18 @@ out center;`;
                 
                 if (isChainSearch) {
                     chainName = chainKeywords.find(keyword => query.includes(keyword));
-                    console.log('Detected chain search:', chainName);
+                    console.log('✓ Detected chain search:', chainName);
+                }
+                
+                // Check if "near me" search requires user location
+                if (query.includes('near me') && !userLocation) {
+                    showResult('Getting your location...');
+                    await getUserLocation();
+                    if (!userLocation) {
+                        showResult('Location permission denied. Please click "My Location" button or search with an address.');
+                        showLoading(false);
+                        return;
+                    }
                 }
                 
                 // Determine search location
@@ -6159,19 +6170,23 @@ out center;`;
                     searchLat = userLocation.lat;
                     searchLon = userLocation.lon;
                     searchAddress = 'Your Location';
-                } else if (userLocation && isChainSearch) {
-                    // Chain search uses user location by default
+                    console.log('✓ Using user location:', searchLat, searchLon);
+                } else if (userLocation && isChainSearch && !query.includes('near')) {
+                    // Chain search uses user location by default if no other location specified
                     searchLat = userLocation.lat;
                     searchLon = userLocation.lon;
                     searchAddress = 'Your Location';
-                } else {
-                    // Geocode the address/ZIP
-                    const geocodeUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1&addressdetails=1`;
+                    console.log('✓ Using user location for chain search:', searchLat, searchLon);
+                } else if (!isChainSearch || (isChainSearch && !userLocation)) {
+                    // Geocode the address/ZIP or chain name with location
+                    const searchQuery = query.replace('near me', '').trim();
+                    const geocodeUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=1&addressdetails=1`;
+                    console.log('→ Geocoding:', searchQuery);
                     const geocodeResponse = await fetch(geocodeUrl);
                     const geocodeResults = await geocodeResponse.json();
                     
                     if (geocodeResults.length === 0) {
-                        showResult('Location not found. Try a different search term or use "My Location" button.');
+                        showResult('Location not found. Try clicking "My Location" button first or use a specific address.');
                         showLoading(false);
                         return;
                     }
@@ -6180,6 +6195,7 @@ out center;`;
                     searchLon = parseFloat(geocodeResults[0].lon);
                     searchAddress = geocodeResults[0].display_name;
                     currentZip = geocodeResults[0].address?.postcode || currentZip || '10001';
+                    console.log('✓ Geocoded to:', searchLat, searchLon);
                 }
                 
                 // Center map
