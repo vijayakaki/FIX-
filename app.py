@@ -641,9 +641,9 @@ def get_procurement_data(store_id, store_name=None, store_type="supermarket"):
 # CALCULATE EJV COMPONENTS (W, P, L, A, E)
 # ---------------------------------------
 
-def calculate_ejv_simplified(store_id, store_name=None, location=None, zip_code="10001", state_fips="01", county_fips="089", tract_fips="010100"):
+def calculate_ejv(store_id, store_name=None, location=None, zip_code="10001", state_fips="01", county_fips="089", tract_fips="010100"):
     """
-    Calculate Simplified EJV using 5 components:
+    Calculate EJV using 5 components:
     W = Fair Wage Score (0-1)
     P = Pay & Equity Score (0-1)
     L = Local Impact Score (0-1)
@@ -660,7 +660,7 @@ def calculate_ejv_simplified(store_id, store_name=None, location=None, zip_code=
     - EPA: Environmental data
     - Industry research: Procurement patterns
     """
-    print(f"\n=== Calculating Simplified EJV for {store_id} ===")
+    print(f"\n=== Calculating EJV for {store_id} ===")
     
     # Get store type for industry-specific data
     store_type = get_store_type_from_id(store_id)
@@ -728,7 +728,7 @@ def calculate_ejv_simplified(store_id, store_name=None, location=None, zip_code=
         "store_name": store_name or "Unknown",
         "location": location or "Unknown",
         "zip_code": zip_code,
-        "ejv_version": "Simplified 5-Component",
+        "ejv_version": "5-Component",
         
         # Overall EJV Score (0-1)
         "ejv_score": round(ejv_score, 3),
@@ -1174,13 +1174,13 @@ def about_fix():
 
 @app.route('/api/ejv/simple/<store_id>', methods=['GET'])
 def get_ejv_simple(store_id):
-    """Get new simplified 5-component EJV (W, P, L, A, E) for a single store"""
+    """Get 5-component EJV (W, P, L, A, E) for a single store"""
     zip_code = request.args.get('zip', '10001')
     location = request.args.get('location', 'Unknown')
     store_name = request.args.get('name', None)
     
-    # Calculate Simplified EJV
-    result = calculate_ejv_simplified(store_id, store_name=store_name, location=location, zip_code=zip_code)
+    # Calculate EJV
+    result = calculate_ejv(store_id, store_name=store_name, location=location, zip_code=zip_code)
     
     return jsonify(result)
 
@@ -1199,8 +1199,8 @@ def get_ejv_v42(store_id):
     purchase_amount = float(data.get('purchase', 100.0))
     participation_data = data.get('participation', {})
     
-    # Calculate base simplified EJV
-    ejv_simple = calculate_ejv_simplified(store_id, store_name=store_name, location=location, zip_code=zip_code)
+    # Calculate base EJV
+    ejv_simple = calculate_ejv(store_id, store_name=store_name, location=location, zip_code=zip_code)
     elvr_v41 = ejv_simple['economic_impact']['elvr']  # Use ELVR from simplified calculation
     
     # Calculate Participation Amplification Factor

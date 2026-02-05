@@ -2062,9 +2062,9 @@
                         <div style="background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%); padding: 10px; border-radius: 6px; text-align: center; border: 2px solid #9c27b0; position: relative;">
                             <div id="ejvV2Display" style="font-size: 20px; font-weight: 700; color: #7b1fa2;">-</div>
                             <div style="font-size: 9px; color: #4a148c; margin-top: 2px; text-transform: uppercase; font-weight: 600;">
-                                Simplified EJV (W,P,L,A,E)
+                                EJV (W,P,L,A,E)
                             </div>
-                            <button class="help-btn" onclick="showHelpModal('simple')" data-tooltip="Learn about Simplified EJV - 5 Components: Fair Wage, Equity, Local Impact, Affordability, Environmental - Click for details" style="position: absolute; top: 6px; right: 6px;">❓</button>
+                            <button class="help-btn" onclick="showHelpModal('simple')" data-tooltip="Learn about EJV - 5 Components: Fair Wage, Equity, Local Impact, Affordability, Environmental - Click for details" style="position: absolute; top: 6px; right: 6px;">❓</button>
                         </div>
                     </div>
                     
@@ -2094,7 +2094,7 @@
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
                         <div style="background: #f8f9fa; padding: 10px; border-radius: 6px; text-align: center; border-left: 3px solid #28a745;">
                             <div id="wealthRetained" style="font-size: 16px; font-weight: 700; color: #28a745;">0%</div>
-                            <div style="font-size: 9px; color: #666; margin-top: 3px; cursor: help;" data-tooltip="Percentage of purchase value that stays in the local economy through wages, suppliers, taxes, financing, and ownership">Estimated Local Retention (%)</div>
+                            <div style="font-size: 9px; color: #666; margin-top: 3px; cursor: help;" data-tooltip="Percentage of purchase value that stays in the local economy through wages, suppliers, and taxes">Estimated Local Retention (%)</div>
                         </div>
                         <div style="background: #f8f9fa; padding: 10px; border-radius: 6px; text-align: center; border-left: 3px solid #dc3545;">
                             <div id="wealthLeakage" style="font-size: 16px; font-weight: 700; color: #dc3545;">0%</div>
@@ -2123,18 +2123,6 @@
                         <div style="display: flex; justify-content: space-between; padding: 5px 0; font-size: 10px;">
                             <span style="color: #666;" title="Environmental - sustainability metrics">E (Environmental)</span>
                             <span id="dashboardParticipationScore" style="font-weight: 700; color: #667eea;">-</span>
-                        </div>
-                    </div>
-                    
-
-                            <div style="display: flex; justify-content: space-between; padding: 4px 6px; font-size: 9px; background: #fff; border-radius: 3px;">
-                                <span style="color: #666;">💰 Financing (15%)</span>
-                                <span id="flowFinancing" style="font-weight: 600; color: #1976d2;">-</span>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; padding: 4px 6px; font-size: 9px; background: #f0f4ff; border-radius: 3px;">
-                                <span style="color: #666;">👥 Ownership (10%)</span>
-                                <span id="flowOwnership" style="font-weight: 600; color: #1976d2;">-</span>
-                            </div>
                         </div>
                     </div>
                     
@@ -4462,11 +4450,11 @@ out center;`;
                     </div>
                     <div class="ejv-scores" style="margin: 8px 0; padding: 8px; background: #f8f9fa; border-radius: 4px;">
                         <div style="display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 11px;">
-                            <span style="color: #666;">Simplified EJV:</span>
+                            <span style="color: #666;">EJV:</span>
                             <span id="ejv-v2-${store.id}" style="font-weight: 700; color: #7b1fa2;">...</span>
                         </div>
                         <div style="border-top: 1px solid #e0e0e0; padding-top: 6px; margin-top: 6px;">
-                            <div style="font-size: 10px; font-weight: 600; color: #555; margin-bottom: 4px;">Simplified EJV Components (0-100):</div>
+                            <div style="font-size: 10px; font-weight: 600; color: #555; margin-bottom: 4px;">EJV Components (0-100):</div>
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3px; font-size: 10px;">
                                 <div style="display: flex; justify-content: space-between;">
                                     <span style="color: #666;" title="Fair Wage">W:</span>
@@ -5175,14 +5163,12 @@ out center;`;
                 console.log('Set E (Environmental) to:', E_environmental.toFixed(1));
             }
 
-            // EJV v4.1 - 5 Local Capture Flows (per $100 spent)
+            // EJV Local Capture Flows (per $100 spent)
             const lc = data.local_capture_components || {};
             
             const flowWagesElem = document.getElementById('flowWages');
             const flowSuppliersElem = document.getElementById('flowSuppliers');
             const flowTaxesElem = document.getElementById('flowTaxes');
-            const flowFinancingElem = document.getElementById('flowFinancing');
-            const flowOwnershipElem = document.getElementById('flowOwnership');
             
             if (flowWagesElem) {
                 const wageValue = lc.lc_wages ? '$' + (lc.lc_wages * 35).toFixed(2) : (lc.wages ? '$' + (lc.wages * 100).toFixed(2) : '-');
@@ -5195,14 +5181,6 @@ out center;`;
             if (flowTaxesElem) {
                 const taxValue = lc.lc_taxes ? '$' + (lc.lc_taxes * 15).toFixed(2) : (lc.taxes ? '$' + (lc.taxes * 100).toFixed(2) : '-');
                 flowTaxesElem.textContent = taxValue;
-            }
-            if (flowFinancingElem) {
-                const finValue = lc.lc_financing ? '$' + (lc.lc_financing * 15).toFixed(2) : (lc.financing ? '$' + (lc.financing * 100).toFixed(2) : '-');
-                flowFinancingElem.textContent = finValue;
-            }
-            if (flowOwnershipElem) {
-                const ownValue = lc.lc_ownership ? '$' + (lc.lc_ownership * 10).toFixed(2) : (lc.ownership ? '$' + (lc.ownership * 100).toFixed(2) : '-');
-                flowOwnershipElem.textContent = ownValue;
             }
 
             // Formula display
