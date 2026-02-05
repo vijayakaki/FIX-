@@ -2024,43 +2024,21 @@
 
             <!-- Map -->
             <div class="map-container">
-                <!-- Simple Search Options -->>
-                <div style="position: absolute; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 8px 30px rgba(0,0,0,0.3); min-width: 500px;">
-                    <h3 style="margin: 0 0 15px 0; color: #667eea; font-size: 18px; text-align: center;">🔍 Find Stores Near You</h3>
+                <!-- Compact Search Panel (Top Right) -->
+                <div style="position: absolute; top: 15px; right: 15px; z-index: 1000; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); width: 320px;">
+                    <h4 style="margin: 0 0 12px 0; color: #667eea; font-size: 15px; font-weight: 700;">🔍 Find Stores</h4>
                     
-                    <!-- Option 1: Search by ZIP Code -->
-                    <div style="margin-bottom: 15px; padding: 12px; background: #f8f9fa; border-radius: 10px;">
-                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px;">📍 Search by ZIP Code</label>
-                        <div style="display: flex; gap: 8px;">
-                            <input 
-                                id="zipInput" 
-                                type="text"
-                                placeholder="Enter ZIP code (e.g., 35801)" 
-                                style="flex: 1; padding: 10px 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; outline: none;"
-                                onkeypress="if(event.key==='Enter') searchByZipCode()"
-                                onfocus="this.style.borderColor='#667eea'"
-                                onblur="this.style.borderColor='#ddd'"
-                            />
-                            <button 
-                                onclick="searchByZipCode()" 
-                                style="padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; white-space: nowrap;"
-                            >
-                                Search
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <!-- Option 2: Search Stores Near Me -->
-                    <div style="margin-bottom: 15px; padding: 12px; background: #f8f9fa; border-radius: 10px;">
-                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px;">🏪 Search Stores Near My Location</label>
-                        <div style="display: flex; gap: 8px;">
+                    <!-- Option 1: Search Stores Near Me -->
+                    <div style="margin-bottom: 12px;">
+                        <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #555; font-size: 12px;">🏪 Store Near Me</label>
+                        <div style="display: flex; gap: 6px;">
                             <select 
                                 id="storeSelect" 
-                                style="flex: 1; padding: 10px 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; outline: none; cursor: pointer;"
+                                style="flex: 1; padding: 8px 10px; border: 2px solid #ddd; border-radius: 6px; font-size: 13px; outline: none; cursor: pointer;"
                                 onfocus="this.style.borderColor='#667eea'"
                                 onblur="this.style.borderColor='#ddd'"
                             >
-                                <option value="">Select a store...</option>
+                                <option value="">Select store...</option>
                                 <option value="walmart">🛒 Walmart</option>
                                 <option value="target">🎯 Target</option>
                                 <option value="costco">🏪 Costco</option>
@@ -2073,31 +2051,31 @@
                             </select>
                             <button 
                                 onclick="searchStoreNearMe()" 
-                                style="padding: 10px 20px; background: #4caf50; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; white-space: nowrap;"
+                                style="padding: 8px 14px; background: #4caf50; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 12px; white-space: nowrap;"
                             >
-                                Find Near Me
+                                Find
                             </button>
                         </div>
                     </div>
                     
-                    <!-- Option 3: Search by Address -->
-                    <div style="padding: 12px; background: #f8f9fa; border-radius: 10px;">
-                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px;">🗺️ Search by Address or Location</label>
-                        <div style="display: flex; gap: 8px;">
+                    <!-- Option 2: Search by Address -->
+                    <div>
+                        <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #555; font-size: 12px;">🗺️ Search by Address</label>
+                        <div style="display: flex; gap: 6px;">
                             <input 
                                 id="addressInput" 
                                 type="text"
-                                placeholder="Enter store name and address (e.g., Walmart Huntsville AL)" 
-                                style="flex: 1; padding: 10px 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; outline: none;"
+                                placeholder="e.g., Walmart Huntsville AL" 
+                                style="flex: 1; padding: 8px 10px; border: 2px solid #ddd; border-radius: 6px; font-size: 13px; outline: none;"
                                 onkeypress="if(event.key==='Enter') searchByAddress()"
                                 onfocus="this.style.borderColor='#667eea'"
                                 onblur="this.style.borderColor='#ddd'"
                             />
                             <button 
                                 onclick="searchByAddress()" 
-                                style="padding: 10px 20px; background: #764ba2; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; white-space: nowrap;"
+                                style="padding: 8px 14px; background: #667eea; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 12px; white-space: nowrap;"
                             >
-                                Search
+                                Go
                             </button>
                         </div>
                     </div>
@@ -6229,7 +6207,7 @@ out center;`;
             }
         }
         
-        // Search stores near user's current location
+        // Search stores near user's current location (using fast geocoding instead of Overpass)
         async function searchStoreNearMe() {
             const storeSelect = document.getElementById('storeSelect');
             const storeName = storeSelect.value;
@@ -6246,21 +6224,94 @@ out center;`;
             if (!userLocation) {
                 await getUserLocation();
                 if (!userLocation) {
-                    showResult('Location permission denied. Please enable location or use ZIP code search.');
+                    showResult('Location permission denied. Please enable location access in your browser.');
                     showLoading(false);
                     return;
                 }
             }
             
-            // Search for stores near user location
-            const searchInput = document.getElementById('searchInput');
-            if (searchInput) {
-                searchInput.value = storeName + ' near me';
+            try {
+                // Use geocoding to find stores (faster than Overpass API)
+                console.log(`→ Searching for ${storeName} near [${userLocation.lat}, ${userLocation.lon}]`);
+                const geocodeUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(storeName + ' near ' + userLocation.lat + ',' + userLocation.lon)}&limit=10&addressdetails=1`;
+                const response = await fetch(geocodeUrl);
+                const results = await response.json();
+                
+                if (results.length === 0) {
+                    showResult(`No ${storeName.toUpperCase()} stores found nearby. Try searching by address instead.`);
+                    showLoading(false);
+                    return;
+                }
+                
+                console.log(`✓ Found ${results.length} ${storeName} locations`);
+                
+                // Clear existing markers and data
+                clearMarkers();
+                window.storeData = [];
+                
+                // Process results
+                window.storeData = results.map((result, idx) => {
+                    const storeLat = parseFloat(result.lat);
+                    const storeLon = parseFloat(result.lon);
+                    const distance = calculateDistance(userLocation.lat, userLocation.lon, storeLat, storeLon);
+                    
+                    return {
+                        id: `${storeName}_${idx}`,
+                        name: result.display_name.split(',')[0] || storeName.toUpperCase(),
+                        address: result.display_name,
+                        lat: storeLat,
+                        lon: storeLon,
+                        distance: distance,
+                        category: 'store',
+                        zipCode: result.address?.postcode || currentZip,
+                        ejv: null,
+                        rawScore: null,
+                        breakdown: null
+                    };
+                }).sort((a, b) => a.distance - b.distance).slice(0, 8);
+                
+                rawStores = [...window.storeData];
+                
+                // Center map on user location
+                map.setView([userLocation.lat, userLocation.lon], 12);
+                
+                // Add markers
+                window.storeData.forEach((store, idx) => {
+                    const marker = L.marker([store.lat, store.lon], {
+                        icon: L.divIcon({
+                            className: 'custom-div-icon',
+                            html: `<div style="background: #4CAF50; width: 30px; height: 30px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 11px; color: white;">${idx + 1}</div>`,
+                            iconSize: [30, 30],
+                            iconAnchor: [15, 15]
+                        })
+                    }).addTo(map);
+                    
+                    marker.bindPopup(`
+                        <div style="min-width: 200px;">
+                            <strong>${store.name}</strong><br>
+                            <span style="font-size: 11px; color: #666;">${store.address}</span><br>
+                            <span style="font-size: 10px; color: #999;">${store.distance.toFixed(2)} km away</span><br>
+                            <button onclick="calculateChainStoreEJV(${idx})" style="margin-top: 8px; padding: 6px 12px; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px; width: 100%; font-weight: 600;">
+                                Calculate EJV
+                            </button>
+                        </div>
+                    `);
+                    
+                    markers.push(marker);
+                });
+                
+                displayChainSearchResults(window.storeData, storeName);
+                showResult(`Found ${window.storeData.length} ${storeName.toUpperCase()} location(s) nearby`);
+                showLoading(false);
+                
+            } catch (error) {
+                console.error('Store search error:', error);
+                showResult(`Error searching for ${storeName}. Please try again or use address search.`);
+                showLoading(false);
             }
-            await performSearch();
         }
         
-        // Search by address
+        // Search by address (using geocoding)
         async function searchByAddress() {
             const addressInput = document.getElementById('addressInput');
             const address = addressInput.value.trim();
@@ -6270,12 +6321,125 @@ out center;`;
                 return;
             }
             
-            // Use the existing performSearch with the address
-            const searchInput = document.getElementById('searchInput');
-            if (searchInput) {
-                searchInput.value = address;
+            showLoading(true);
+            showResult(`Searching for "${address}"...`);
+            
+            try {
+                // Geocode the address
+                const geocodeUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=5&addressdetails=1`;
+                console.log('→ Geocoding address:', address);
+                const response = await fetch(geocodeUrl);
+                const results = await response.json();
+                
+                if (results.length === 0) {
+                    showResult('Location not found. Please try a different address or search term.');
+                    showLoading(false);
+                    return;
+                }
+                
+                console.log(`✓ Found ${results.length} location(s)`);
+                
+                // Clear existing markers
+                clearMarkers();
+                window.storeData = [];
+                
+                // If multiple results, show them all
+                if (results.length > 1) {
+                    window.storeData = results.map((result, idx) => {
+                        const storeLat = parseFloat(result.lat);
+                        const storeLon = parseFloat(result.lon);
+                        
+                        return {
+                            id: `address_${idx}`,
+                            name: result.display_name.split(',')[0],
+                            address: result.display_name,
+                            lat: storeLat,
+                            lon: storeLon,
+                            distance: 0,
+                            category: 'location',
+                            zipCode: result.address?.postcode || currentZip,
+                            ejv: null,
+                            rawScore: null,
+                            breakdown: null
+                        };
+                    });
+                    
+                    rawStores = [...window.storeData];
+                    
+                    // Center on first result
+                    map.setView([window.storeData[0].lat, window.storeData[0].lon], 13);
+                    
+                    // Add markers
+                    window.storeData.forEach((store, idx) => {
+                        const marker = L.marker([store.lat, store.lon], {
+                            icon: L.divIcon({
+                                className: 'custom-div-icon',
+                                html: `<div style="background: #764ba2; width: 30px; height: 30px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 11px; color: white;">${idx + 1}</div>`,
+                                iconSize: [30, 30],
+                                iconAnchor: [15, 15]
+                            })
+                        }).addTo(map);
+                        
+                        marker.bindPopup(`
+                            <div style="min-width: 200px;">
+                                <strong>${store.name}</strong><br>
+                                <span style="font-size: 11px; color: #666;">${store.address}</span><br>
+                                <button onclick="calculateChainStoreEJV(${idx})" style="margin-top: 8px; padding: 6px 12px; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px; width: 100%; font-weight: 600;">
+                                    Calculate EJV
+                                </button>
+                            </div>
+                        `);
+                        
+                        markers.push(marker);
+                    });
+                    
+                    displayChainSearchResults(window.storeData, 'Locations');
+                    showResult(`Found ${window.storeData.length} location(s) matching "${address}"`);
+                } else {
+                    // Single result
+                    const result = results[0];
+                    const storeLat = parseFloat(result.lat);
+                    const storeLon = parseFloat(result.lon);
+                    
+                    map.setView([storeLat, storeLon], 15);
+                    currentZip = result.address?.postcode || currentZip;
+                    
+                    window.storeData = [{
+                        id: 'address_0',
+                        name: result.display_name.split(',')[0],
+                        address: result.display_name,
+                        lat: storeLat,
+                        lon: storeLon,
+                        distance: 0,
+                        category: 'location',
+                        zipCode: currentZip,
+                        ejv: null,
+                        rawScore: null,
+                        breakdown: null
+                    }];
+                    
+                    const marker = L.marker([storeLat, storeLon]).addTo(map);
+                    marker.bindPopup(`
+                        <div style="min-width: 200px;">
+                            <strong>${window.storeData[0].name}</strong><br>
+                            <span style="font-size: 11px; color: #666;">${window.storeData[0].address}</span><br>
+                            <button onclick="calculateChainStoreEJV(0)" style="margin-top: 8px; padding: 6px 12px; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px; width: 100%; font-weight: 600;">
+                                Calculate EJV
+                            </button>
+                        </div>
+                    `).openPopup();
+                    markers.push(marker);
+                    
+                    showResult(`Found: ${window.storeData[0].name}. Click marker to calculate EJV.`);
+                }
+                
+                showLoading(false);
+                
+            } catch (error) {
+                console.error('Address search error:', error);
+                showResult('Error searching address. Please try again.');
+                showLoading(false);
             }
-            await performSearch();
         }
         
         // Quick search function for popular chains
