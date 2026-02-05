@@ -6224,8 +6224,15 @@ out center;`;
             if (!userLocation) {
                 await getUserLocation();
                 if (!userLocation) {
-                    showResult('Location permission denied. Please enable location access in your browser.');
+                    showResult(`❌ Location access denied. Please use "Search by Address" instead - type "${storeName} [your city]"`);
                     showLoading(false);
+                    
+                    // Auto-focus address input
+                    const addressInput = document.getElementById('addressInput');
+                    if (addressInput) {
+                        addressInput.focus();
+                        addressInput.placeholder = `Try: ${storeName} Huntsville AL`;
+                    }
                     return;
                 }
             }
