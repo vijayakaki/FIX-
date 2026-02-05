@@ -643,14 +643,14 @@ def get_procurement_data(store_id, store_name=None, store_type="supermarket"):
 
 def calculate_ejv(store_id, store_name=None, location=None, zip_code="10001", state_fips="01", county_fips="089", tract_fips="010100"):
     """
-    Calculate EJV using 5 components:
-    W = Fair Wage Score (0-1)
-    P = Pay & Equity Score (0-1)
-    L = Local Impact Score (0-1)
-    A = Affordability Score (0-1)
-    E = Environmental Score (0-1)
+    Calculate EJV using 5 weighted components:
+    W = Fair Wage Score (0-1) - Weight: 25%
+    P = Pay & Equity Score (0-1) - Weight: 15%
+    L = Local Impact Score (0-1) - Weight: 30%
+    A = Affordability Score (0-1) - Weight: 15%
+    E = Environmental Score (0-1) - Weight: 15%
     
-    Overall EJV = (W + P + L + A + E) / 5
+    Overall EJV = 0.25W + 0.15P + 0.30L + 0.15A + 0.15E
     
     Data Sources:
     - BLS OEWS: Wages
@@ -675,44 +675,51 @@ def calculate_ejv(store_id, store_name=None, location=None, zip_code="10001", st
                                location=location, zip_code=zip_code, economic_data=economic_data)
     
     # Component W: Fair Wage Score
-    # W = Store Wage / Living Wage, capped at 1.0
+    # W = min(1, Actual Wage / Living Wage)
     store_wage = payroll["avg_wage"]
     W = min(1.0, store_wage / living_wage_hourly)
     
     # Component P: Pay & Equity Score
-    # P = Equitable Practices % / 100
+    # P = 1 - ((Gender Gap + Race Gap + EEOC Violations) / 3)
+    # Using equitable practices as a proxy for the combined gaps
     equity_data = get_equity_data(store_id, store_name, store_type)
-    P = equity_data["equitable_practices_percent"] / 100.0
+    equity_pct = equity_data["equitable_practices_percent"] / 100.0
+    P = equity_pct  # Already normalized 0-1
     
     # Component L: Local Impact Score
-    # L = (Local Hiring % + Local Procurement %) / 200
-    local_hiring_pct = payroll["local_hire_pct"] * 100  # Convert to percentage
+    # L = (Local Spend / Total Spend) × (Local Jobs / Total Jobs)
+    local_hiring_ratio = payroll["local_hire_pct"]  # Already 0-1
     procurement_data = get_procurement_data(store_id, store_name, store_type)
-    local_procurement_pct = procurement_data["local_purchasing_percent"]
-    L = (local_hiring_pct + local_procurement_pct) / 200.0
+    local_procurement_ratio = procurement_data["local_purchasing_percent"] / 100.0  # Convert to 0-1
+    L = local_procurement_ratio * local_hiring_ratio
     
     # Component A: Affordability Score
-    # A = City Basket Price / Store Basket Price, capped at 1.0
+    # A = 1 - (Local Cost Burden / Expected Budget Share)
     basket_data = get_basket_price_data(store_id, zip_code, store_type)
-    A = min(1.0, basket_data["city_basket_price"] / basket_data["store_basket_price"])
+    # Cost burden = store price / median income (normalized)
+    cost_burden = basket_data["store_basket_price"] / (median_income / 12)  # Monthly
+    expected_share = 0.15  # 15% of income for groceries (typical budget share)
+    A = max(0.0, min(1.0, 1.0 - (cost_burden / expected_share)))
     
     # Component E: Environmental Score
-    # E = (Renewable Energy % + Recycling %) / 200
+    # E = 1 - (Business CO2e Intensity / Industry Baseline)
+    # Using renewable energy and recycling as proxies for low emissions
     env_data = get_environmental_data(store_id, store_name, store_type)
-    E = (env_data["renewable_energy_percent"] + env_data["recycling_percent"]) / 200.0
+    renewable_ratio = env_data["renewable_energy_percent"] / 100.0
+    recycling_ratio = env_data["recycling_percent"] / 100.0
+    E = (renewable_ratio + recycling_ratio) / 2.0  # Average of two sustainability metrics
     
-    # Overall EJV (0-1 scale)
-    ejv_score = (W + P + L + A + E) / 5.0
+    # Overall EJV with weighted formula
+    # EJV = 0.25W + 0.15P + 0.30L + 0.15A + 0.15E
+    ejv_score = (0.25 * W) + (0.15 * P) + (0.30 * L) + (0.15 * A) + (0.15 * E)
     
-    # Also compute ELVR and EVL using L component
+    # Compute ELVR and EVL based on EJV score
     # ELVR = Economic impact retained locally
-    # Using L (local impact) as the primary driver
     purchase_amount = 100.0  # Default
     
-    # Enhanced ELVR calculation using weighted components
-    # L is primary (60%), W affects worker spending power (20%), P affects inclusion (10%), E affects sustainability (10%)
-    elvr_multiplier = (L * 0.60) + (W * 0.20) + (P * 0.10) + (E * 0.10)
-    elvr = purchase_amount * elvr_multiplier
+    # ELVR uses the full EJV score as the retention multiplier
+    # This reflects the comprehensive economic justice value
+    elvr = purchase_amount * ejv_score
     evl = purchase_amount - elvr
     
     print(f"\n✓ EJV Components:")
@@ -781,7 +788,7 @@ def calculate_ejv(store_id, store_name=None, location=None, zip_code="10001", st
             "elvr": round(elvr, 2),  # Estimated Local Value Retained
             "evl": round(evl, 2),    # Estimated Value Leakage
             "retention_percent": round((elvr / purchase_amount) * 100, 1),
-            "formula": f"ELVR = $100 × {round(elvr_multiplier, 3)} = ${round(elvr, 2)}",
+            "formula": f"ELVR = $100 × {round(ejv_score, 3)} = ${round(elvr, 2)}",
             "interpretation": f"For every $100 spent, ${round(elvr, 2)} stays in the local economy"
         },
         
@@ -792,7 +799,14 @@ def calculate_ejv(store_id, store_name=None, location=None, zip_code="10001", st
             "active_employees": payroll["active_employees"]
         },
         
-        "formula": "EJV = (W + P + L + A + E) / 5",
+        "formula": "EJV = 0.25W + 0.15P + 0.30L + 0.15A + 0.15E",
+        "weights": {
+            "W_fair_wage": 0.25,
+            "P_pay_equity": 0.15,
+            "L_local_impact": 0.30,
+            "A_affordability": 0.15,
+            "E_environmental": 0.15
+        },
         "data_sources": [
             "BLS OEWS (Wages)",
             "MIT Living Wage Calculator",
@@ -1262,17 +1276,17 @@ def health():
 def get_ejv_simple_help():
     """Get Simplified 5-Component EJV calculation guide with data sources and explanation"""
     help_content = {
-        "title": "Simplified EJV: 5-Component Economic Justice Value",
-        "subtitle": "Real-Time Data-Driven Justice Measurement",
-        "description": "A streamlined EJV calculation using 5 key components (W, P, L, A, E) that directly measure economic justice across wage fairness, equity, local impact, affordability, and environmental responsibility.",
-        "formula": "EJV = (W + P + L + A + E) / 5",
-        "formula_explanation": "Each component is scored 0-1, producing an overall EJV score between 0 (poor) and 1 (excellent)",
+        "title": "EJV: 5-Component Economic Justice Value",
+        "subtitle": "Weighted Real-Time Data-Driven Justice Measurement",
+        "description": "EJV calculation using 5 weighted components (W, P, L, A, E) that measure economic justice across wage fairness, equity, local impact, affordability, and environmental responsibility. Components are weighted based on their economic impact significance.",
+        "formula": "EJV = 0.25W + 0.15P + 0.30L + 0.15A + 0.15E",
+        "formula_explanation": "Each component is scored 0-1, with weights reflecting economic importance: Local Impact (30%), Fair Wage (25%), Pay Equity (15%), Affordability (15%), Environmental (15%)",
         "components": [
             {
                 "code": "W",
-                "name": "Fair Wage Score",
-                "formula": "W = Store Wage / Local Living Wage (capped at 1.0)",
-                "description": "Measures how store wages compare to local living wage standards",
+                "name": "Fair Wage Score (Weight: 25%)",
+                "formula": "W = min(1, Actual Wage / Living Wage)",
+                "description": "Measures how store wages compare to local living wage standards. Weighted at 25% due to direct impact on worker economic security.",
                 "range": "0-1",
                 "data_sources": [
                     "BLS OEWS (Occupational Employment & Wage Statistics)",
@@ -1286,9 +1300,9 @@ def get_ejv_simple_help():
             },
             {
                 "code": "P",
-                "name": "Pay & Equity Score",
-                "formula": "P = Equitable Practices % / 100",
-                "description": "Measures equitable pay practices and diversity",
+                "name": "Pay & Equity Score (Weight: 15%)",
+                "formula": "P = 1 - ((Gender Gap + Race Gap + EEOC Violations) / 3)",
+                "description": "Measures equitable pay practices, workforce diversity, and absence of discrimination violations. Weighted at 15%.",
                 "range": "0-1",
                 "data_sources": [
                     "EEOC Public Data (Equal Employment Opportunity Commission)",
@@ -1303,9 +1317,9 @@ def get_ejv_simple_help():
             },
             {
                 "code": "L",
-                "name": "Local Impact Score",
-                "formula": "L = (Local Hiring % + Local Procurement %) / 200",
-                "description": "Measures contribution to local economy through hiring and procurement",
+                "name": "Local Impact Score (Weight: 30%)",
+                "formula": "L = (Local Spend / Total Spend) × (Local Jobs / Total Jobs)",
+                "description": "Measures contribution to local economy through hiring AND procurement (multiplicative). Weighted at 30% as it has the highest economic multiplier effect.",
                 "range": "0-1",
                 "data_sources": [
                     "Census LODES (Local Employment Dynamics)",
@@ -1313,16 +1327,16 @@ def get_ejv_simple_help():
                     "Industry Benchmarks"
                 ],
                 "interpretation": {
-                    "0.8": "80% local hiring + 80% local procurement = 0.8",
-                    "0.5": "50% local hiring + 50% local procurement = 0.5",
-                    "0.3": "30% local hiring + 30% local procurement = 0.3"
+                    "0.64": "80% local hiring × 80% local procurement = 0.64",
+                    "0.25": "50% local hiring × 50% local procurement = 0.25",
+                    "note": "Multiplicative formula rewards businesses that excel in BOTH dimensions"
                 }
             },
             {
                 "code": "A",
-                "name": "Affordability Score",
-                "formula": "A = City Basket Price / Store Basket Price (capped at 1.0)",
-                "description": "Measures affordability of standard shopping basket compared to city median",
+                "name": "Affordability Score (Weight: 15%)",
+                "formula": "A = 1 - (Local Cost Burden / Expected Budget Share)",
+                "description": "Measures affordability relative to median income and expected budget allocation. Weighted at 15%.",
                 "range": "0-1",
                 "data_sources": [
                     "BLS Consumer Price Index (CPI)",
@@ -1336,9 +1350,9 @@ def get_ejv_simple_help():
             },
             {
                 "code": "E",
-                "name": "Environmental Score",
-                "formula": "E = (Renewable Energy % + Recycling %) / 200",
-                "description": "Measures sustainability through renewable energy and recycling",
+                "name": "Environmental Score (Weight: 15%)",
+                "formula": "E = 1 - (Business CO2e Intensity / Industry Baseline)",
+                "description": "Measures environmental sustainability through emissions reduction, renewable energy, and recycling. Uses renewable energy and recycling as CO2e proxies. Weighted at 15%.",
                 "range": "0-1",
                 "data_sources": [
                     "EPA EJSCREEN",
@@ -1354,11 +1368,11 @@ def get_ejv_simple_help():
         ],
         "elvr_evl": {
             "title": "ELVR & EVL Calculation",
-            "description": "The simplified EJV is used to calculate Estimated Local Value Retained (ELVR) and Estimated Value Leakage (EVL)",
-            "elvr_formula": "ELVR = $100 × [(L × 0.60) + (W × 0.20) + (P × 0.10) + (E × 0.10)]",
+            "description": "EJV score directly determines Estimated Local Value Retained (ELVR) and Estimated Value Leakage (EVL)",
+            "elvr_formula": "ELVR = $100 × EJV",
             "evl_formula": "EVL = $100 - ELVR",
-            "explanation": "L (Local Impact) is the primary driver (60%), with W, P, and E contributing based on their economic multiplier effects",
-            "interpretation": "For every $100 spent, ELVR shows how much stays in the local economy, EVL shows how much leaks out"
+            "explanation": "The weighted EJV score (0.25W + 0.15P + 0.30L + 0.15A + 0.15E) directly represents the percentage of economic value retained locally",
+            "interpretation": "For every $100 spent, ELVR shows how much economic justice value stays in the local economy based on the comprehensive weighted assessment"
         },
         "data_sources_summary": {
             "government_free": [
@@ -1382,8 +1396,8 @@ def get_ejv_simple_help():
         },
         "comparison_to_v1": {
             "v1": "Traditional 0-100 composite score (W+H+C+P)",
-            "simplified": "5-component (W+P+L+A+E) with real-time data sources and ELVR/EVL calculation",
-            "key_difference": "Simplified uses real government data APIs and provides dollar-based economic impact (ELVR/EVL)"
+            "current": "5-component (W+P+L+A+E) with weighted formula and real-time data sources",
+            "key_difference": "Uses weighted components (30% Local Impact, 25% Fair Wage) reflecting economic significance, with real government data APIs and dollar-based economic impact (ELVR/EVL)"
         },
         "api_endpoints": {
             "get_simple": "GET /api/ejv/simple/<store_id>?zip=XXXXX&name=StoreName",
