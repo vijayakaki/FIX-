@@ -6254,6 +6254,7 @@ out center;`;
                 }
                 
                 const stores = data.elements || [];
+                console.log(`✓ Overpass API returned ${stores.length} results`);
                 
                 if (stores.length === 0) {
                     showResult(`No ${chainName.toUpperCase()} stores found within 5km. Try a different location.`);
@@ -6266,6 +6267,8 @@ out center;`;
                     const storeLat = store.lat || store.center?.lat;
                     const storeLon = store.lon || store.center?.lon;
                     const distance = calculateDistance(lat, lon, storeLat, storeLon);
+                    
+                    console.log(`Store ${idx + 1}: ${store.tags?.name} at [${storeLat}, ${storeLon}] - ${distance.toFixed(2)}km away`);
                     
                     return {
                         id: `${chainName}_${idx}`,
