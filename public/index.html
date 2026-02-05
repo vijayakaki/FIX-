@@ -6231,14 +6231,21 @@ out center;`;
             }
             
             try {
-                // Use geocoding to find stores (faster than Overpass API)
+                // Use geocoding to find stores with timeout
                 console.log(`→ Searching for ${storeName} near [${userLocation.lat}, ${userLocation.lon}]`);
-                const geocodeUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(storeName + ' near ' + userLocation.lat + ',' + userLocation.lon)}&limit=10&addressdetails=1`;
-                const response = await fetch(geocodeUrl);
+                const geocodeUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(storeName)}&limit=5&addressdetails=1&bounded=1&viewbox=${userLocation.lon-0.1},${userLocation.lat+0.1},${userLocation.lon+0.1},${userLocation.lat-0.1}`;
+                
+                // Add timeout to prevent long waits
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Search timeout - server is taking too long')), 8000)
+                );
+                
+                const fetchPromise = fetch(geocodeUrl);
+                const response = await Promise.race([fetchPromise, timeoutPromise]);
                 const results = await response.json();
                 
                 if (results.length === 0) {
-                    showResult(`No ${storeName.toUpperCase()} stores found nearby. Try searching by address instead.`);
+                    showResult(`No ${storeName.toUpperCase()} stores found nearby. Try searching by full address instead.`);
                     showLoading(false);
                     return;
                 }
@@ -6249,8 +6256,8 @@ out center;`;
                 clearMarkers();
                 window.storeData = [];
                 
-                // Process results
-                window.storeData = results.map((result, idx) => {
+                // Process results (limit to 5 for speed)
+                window.storeData = results.slice(0, 5).map((result, idx) => {
                     const storeLat = parseFloat(result.lat);
                     const storeLon = parseFloat(result.lon);
                     const distance = calculateDistance(userLocation.lat, userLocation.lon, storeLat, storeLon);
@@ -6325,10 +6332,17 @@ out center;`;
             showResult(`Searching for "${address}"...`);
             
             try {
-                // Geocode the address
-                const geocodeUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=5&addressdetails=1`;
+                // Geocode the address with timeout
+                const geocodeUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=3&addressdetails=1`;
                 console.log('→ Geocoding address:', address);
-                const response = await fetch(geocodeUrl);
+                
+                // Add timeout
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Search timeout')), 8000)
+                );
+                
+                const fetchPromise = fetch(geocodeUrl);
+                const response = await Promise.race([fetchPromise, timeoutPromise]);
                 const results = await response.json();
                 
                 if (results.length === 0) {
