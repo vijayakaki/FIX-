@@ -1463,6 +1463,13 @@ def get_ejv_simple_help():
                 "code": "W",
                 "name": "Fair Wage Score (Weight: 25%)",
                 "formula": "W = min(1, Actual Wage / Living Wage)",
+                "implementation": "W = min(1.0, store_wage / living_wage_hourly)",
+                "calculation_steps": [
+                    "1. Get store_wage from BLS OEWS for occupation",
+                    "2. Get living_wage_hourly from MIT Living Wage Calculator for ZIP code",
+                    "3. Apply company-specific wage multiplier (e.g., Costco 1.30x, Walmart 0.92x)",
+                    "4. W = min(1.0, adjusted_wage / living_wage)"
+                ],
                 "description": "Measures how store wages compare to local living wage standards. Weighted at 25% due to direct impact on worker economic security.",
                 "range": "0-1",
                 "data_sources": [
@@ -1479,6 +1486,13 @@ def get_ejv_simple_help():
                 "code": "P",
                 "name": "Pay & Equity Score (Weight: 15%)",
                 "formula": "P = 1 - ((Gender Gap + Race Gap + EEOC Violations) / 3)",
+                "implementation": "P = equitable_practices_percent / 100.0 * equity_multiplier",
+                "calculation_steps": [
+                    "1. Get industry baseline equity score (supermarket: 55%, warehouse: 60%)",
+                    "2. Apply company-specific equity multiplier (e.g., Wegmans 1.30x, Walmart 0.85x)",
+                    "3. P = (baseline * multiplier) / 100",
+                    "4. Cap at 1.0 maximum"
+                ],
                 "description": "Measures equitable pay practices, workforce diversity, and absence of discrimination violations. Weighted at 15%.",
                 "range": "0-1",
                 "data_sources": [
@@ -1496,6 +1510,14 @@ def get_ejv_simple_help():
                 "code": "L",
                 "name": "Local Impact Score (Weight: 30%)",
                 "formula": "L = (Local Spend / Total Spend) × (Local Jobs / Total Jobs)",
+                "implementation": "L = (local_procurement_pct / 100) * (local_hire_pct)",
+                "calculation_steps": [
+                    "1. Get local_hire_pct from Census unemployment + business size",
+                    "2. Get procurement baseline by business type",
+                    "3. Apply company-specific supplier multiplier (e.g., Whole Foods 1.50x, Walmart 0.60x)",
+                    "4. L = (adjusted_procurement / 100) * local_hire_pct",
+                    "5. Multiplicative: rewards excellence in BOTH dimensions"
+                ],
                 "description": "Measures contribution to local economy through hiring AND procurement (multiplicative). Weighted at 30% as it has the highest economic multiplier effect.",
                 "range": "0-1",
                 "data_sources": [
@@ -1513,6 +1535,13 @@ def get_ejv_simple_help():
                 "code": "A",
                 "name": "Affordability Score (Weight: 15%)",
                 "formula": "A = 1 - (Local Cost Burden / Expected Budget Share)",
+                "implementation": "A = max(0.0, min(1.0, 1.0 - (cost_burden / expected_share)))",
+                "calculation_steps": [
+                    "1. cost_burden = basket_price / (median_income / 12)",
+                    "2. expected_share = 0.15 (15% of income for groceries)",
+                    "3. A = 1.0 - (cost_burden / 0.15)",
+                    "4. Cap between 0.0 and 1.0"
+                ],
                 "description": "Measures affordability relative to median income and expected budget allocation. Weighted at 15%.",
                 "range": "0-1",
                 "data_sources": [
@@ -1529,6 +1558,15 @@ def get_ejv_simple_help():
                 "code": "E",
                 "name": "Environmental Score (Weight: 15%)",
                 "formula": "E = 1 - (Business CO2e Intensity / Industry Baseline)",
+                "implementation": "E = (renewable_ratio + recycling_ratio) / 2.0 * env_multiplier",
+                "calculation_steps": [
+                    "1. renewable_ratio = renewable_energy_percent / 100.0",
+                    "2. recycling_ratio = recycling_percent / 100.0",
+                    "3. Get industry baseline (supermarket: 15% renewable, 40% recycling)",
+                    "4. Apply company-specific environmental multiplier (e.g., Whole Foods 1.40x, Walgreens 0.88x)",
+                    "5. E = (renewable + recycling) / 2 * multiplier",
+                    "6. Cap at 1.0 maximum"
+                ],
                 "description": "Measures environmental sustainability through emissions reduction, renewable energy, and recycling. Uses renewable energy and recycling as CO2e proxies. Weighted at 15%.",
                 "range": "0-1",
                 "data_sources": [

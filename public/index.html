@@ -1187,7 +1187,7 @@
         .help-btn[data-tooltip]::before {
             left: auto;
             right: 0;
-            transform: translateX(0) translateY(-8px);
+            transform: translateY(-8px);
             white-space: normal;
             min-width: 250px;
             max-width: 300px;
@@ -1196,11 +1196,11 @@
         .help-btn[data-tooltip]::after {
             left: auto;
             right: 15px;
-            transform: translateX(0) translateY(-2px);
+            transform: translateY(-2px);
         }
 
         .help-btn[data-tooltip]:hover::before {
-            transform: translateX(0) translateY(-4px);
+            transform: translateY(-4px);
         }
 
         /* Help Modal Styles */
@@ -6532,9 +6532,20 @@ out center;`;
                 } else if (helpData.components) {
                     componentsHtml = helpData.components.map(comp => `
                         <div class="help-component">
-                            <h4>${comp.name}</h4>
+                            <h4>${comp.code}: ${comp.name}</h4>
                             <p><strong>Description:</strong> ${comp.description}</p>
+                            ${comp.formula ? `<p><strong>Formula:</strong> <code style="background: #f0f0f0; padding: 2px 6px; border-radius: 3px;">${comp.formula}</code></p>` : ''}
+                            ${comp.implementation ? `<p><strong>Implementation:</strong> <code style="background: #e3f2fd; padding: 2px 6px; border-radius: 3px; color: #1565c0;">${comp.implementation}</code></p>` : ''}
+                            ${comp.calculation_steps ? `
+                                <p><strong>Calculation Steps:</strong></p>
+                                <ol style="margin-left: 20px; font-size: 12px; color: #555;">
+                                    ${comp.calculation_steps.map(step => `<li>${step}</li>`).join('')}
+                                </ol>
+                            ` : ''}
                             ${comp.calculation ? `<p><strong>Calculation:</strong> <code>${comp.calculation}</code></p>` : ''}
+                            ${comp.data_sources ? `
+                                <p><strong>Data Sources:</strong> ${comp.data_sources.join(', ')}</p>
+                            ` : ''}
                             ${comp.factors ? `
                                 <p><strong>Factors:</strong></p>
                                 <ul>
