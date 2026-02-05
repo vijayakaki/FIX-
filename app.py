@@ -1617,6 +1617,43 @@ def get_ejv_simple_help():
                 "interpretation": "For every $100 spent, $66.85 stays in the local economy"
             }
         },
+        "data_sources": [
+            {
+                "source": "Bureau of Labor Statistics (BLS)",
+                "data": "OEWS wage data, CPI, Consumer Expenditure Survey",
+                "url": "https://www.bls.gov"
+            },
+            {
+                "source": "U.S. Census Bureau",
+                "data": "ACS demographics, LODES employment data, median income",
+                "url": "https://www.census.gov"
+            },
+            {
+                "source": "MIT Living Wage Calculator",
+                "data": "Living wage estimates by county",
+                "url": "https://livingwage.mit.edu"
+            },
+            {
+                "source": "EEOC (Equal Employment Opportunity Commission)",
+                "data": "Discrimination charges, diversity data",
+                "url": "https://www.eeoc.gov"
+            },
+            {
+                "source": "SEC EDGAR",
+                "data": "Company 10-K filings, supply chain disclosures",
+                "url": "https://www.sec.gov/edgar"
+            },
+            {
+                "source": "EPA (Environmental Protection Agency)",
+                "data": "EJSCREEN environmental data, Green Power Partnership",
+                "url": "https://www.epa.gov"
+            },
+            {
+                "source": "Company-Specific Reports",
+                "data": "ESG reports, sustainability commitments, union contracts (UFCW 2024)",
+                "url": ""
+            }
+        ],
         "key_insight": "Simplified EJV answers: 'How much economic justice does this business deliver across 5 measurable dimensions using real-time government data?'"
     }
     return jsonify(help_content)

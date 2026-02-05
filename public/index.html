@@ -2127,8 +2127,9 @@
                     </div>
                     
                     <div id="formulaDisplay" style="background: #f8f9fa; padding: 10px; border-radius: 6px; margin-bottom: 10px;">
-                        <strong style="color: #667eea; font-size: 10px;">📐 Formula:</strong>
-                        <div id="formulaText" style="color: #666; margin-top: 5px; font-family: monospace; font-size: 9px;"></div>
+                        <strong style="color: #667eea; font-size: 10px;">📐 Weighted Formula:</strong>
+                        <div id="formulaText" style="color: #666; margin-top: 5px; font-family: monospace; font-size: 9px;">EJV = 0.25W + 0.15P + 0.30L + 0.15A + 0.15E</div>
+                        <div style="color: #888; margin-top: 3px; font-size: 8px;">W(25%) | P(15%) | L(30%) | A(15%) | E(15%)</div>
                     </div>
                     
                     <div id="dataSourcesDisplay" style="background: #f8f9fa; padding: 10px; border-radius: 6px; font-size: 9px;">
@@ -6474,13 +6475,21 @@ out center;`;
             }
             
             try {
+                console.log('Loading help from endpoint:', endpoint);
                 const response = await fetch(endpoint);
+                console.log('Help response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
                 const helpData = await response.json();
+                console.log('Help data loaded:', helpData);
                 
                 // Populate modal content
-                document.getElementById('helpModalTitle').textContent = helpData.title;
-                document.getElementById('helpModalSubtitle').textContent = helpData.subtitle;
-                document.getElementById('helpModalDescription').textContent = helpData.description;
+                document.getElementById('helpModalTitle').textContent = helpData.title || 'EJV Help';
+                document.getElementById('helpModalSubtitle').textContent = helpData.subtitle || '';
+                document.getElementById('helpModalDescription').textContent = helpData.description || '';
                 
                 // Formula section
                 document.getElementById('helpFormula').innerHTML = `<code>${helpData.formula}</code>`;
@@ -6723,7 +6732,8 @@ out center;`;
                 
             } catch (error) {
                 console.error('Error loading help content:', error);
-                alert('Failed to load help content. Please try again.');
+                console.error('Endpoint was:', endpoint);
+                alert(`Failed to load help content from ${endpoint}. Error: ${error.message}. Check console for details.`);
             }
         }
 
