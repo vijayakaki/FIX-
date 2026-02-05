@@ -243,10 +243,8 @@ def get_payroll_data(store_id, store_type=None, store_name=None, location=None, 
     # Get business size multipliers based on store name
     size_multipliers = get_business_size_multiplier(store_name or "")
     
-    # Create deterministic store-specific variation factor (±10% range)
-    # Uses store_id hash to ensure same store always gets same variation
-    store_id_hash = hash(str(store_id)) % 10000
-    store_variation = 0.95 + (store_id_hash / 10000) * 0.10  # 0.95 to 1.05
+    # No artificial store variation - EJV based on actual business characteristics
+    store_variation = 1.0
     
     # Get real-time wage data from BLS
     industry_info = INDUSTRY_CODES.get(store_type, INDUSTRY_CODES.get("supermarket"))
@@ -293,10 +291,8 @@ def get_payroll_data(store_id, store_type=None, store_name=None, location=None, 
     base_local_hire = 0.65 + unemployment_factor  # 65-85% range based on real data
     
     # Apply business size multiplier (research-based: local stores hire more locally)
-    # Add store-specific variation (±5% range)
-    store_id_hash2 = hash(str(store_id) + "_local") % 10000
-    local_variation = 0.975 + (store_id_hash2 / 10000) * 0.05  # 0.975 to 1.025
-    local_hire_pct = min(0.95, base_local_hire * size_multipliers['local_hire_multiplier'] * local_variation)
+    # No artificial variation - based on real unemployment data and business size
+    local_hire_pct = min(0.95, base_local_hire * size_multipliers['local_hire_multiplier'])
     local_hire_pct = round(local_hire_pct, 2)
     
     # Calculate daily payroll with real-time data
@@ -305,11 +301,9 @@ def get_payroll_data(store_id, store_type=None, store_name=None, location=None, 
     # Community spending: national average is ~5% of payroll for retail/service
     # Source: Community Investment studies
     # Apply business size multiplier (research shows local businesses spend 2-3x more locally)
-    # Add store-specific variation for community spending (±10% range)
-    store_id_hash3 = hash(str(store_id) + "_community") % 10000
-    community_variation = 0.95 + (store_id_hash3 / 10000) * 0.10  # 0.95 to 1.05
+    # No artificial variation - based on business size characteristics
     base_community_spend_pct = 0.05  # 5% baseline
-    community_spend_pct = base_community_spend_pct * size_multipliers['community_spend_multiplier'] * community_variation
+    community_spend_pct = base_community_spend_pct * size_multipliers['community_spend_multiplier']
     community_spend_today = round(daily_payroll * community_spend_pct, 2)
     
     return {
@@ -497,11 +491,8 @@ def get_basket_price_data(store_id, zip_code, store_type="supermarket"):
         
         store_multiplier = store_multipliers.get(store_type, 1.0)
         
-        # Add store-specific variation (±8% range for pricing)
-        store_id_hash = hash(str(store_id) + "_pricing") % 10000
-        pricing_variation = 0.96 + (store_id_hash / 10000) * 0.08  # 0.96 to 1.04
-        
-        store_basket_price = city_basket_price * store_multiplier * pricing_variation
+        # No artificial variation - pricing based on store type only
+        store_basket_price = city_basket_price * store_multiplier
         
         print(f"[OK] Basket Pricing: City=${city_basket_price:.2f}, Store=${store_basket_price:.2f} (type: {store_type})")
         
@@ -562,15 +553,6 @@ def get_environmental_data(store_id, store_name=None, store_type="supermarket"):
         renewable_pct *= 0.7  # Less capital for solar/renewable
         recycling_pct *= 1.3  # Better local waste management
     
-    # Add store-specific variation (±15% range for environmental practices)
-    store_id_hash = hash(str(store_id) + "_renewable") % 10000
-    renewable_variation = 0.925 + (store_id_hash / 10000) * 0.15  # 0.925 to 1.075
-    renewable_pct *= renewable_variation
-    
-    store_id_hash2 = hash(str(store_id) + "_recycling") % 10000
-    recycling_variation = 0.925 + (store_id_hash2 / 10000) * 0.15  # 0.925 to 1.075
-    recycling_pct *= recycling_variation
-    
     print(f"[OK] Environmental: Renewable={renewable_pct:.1f}%, Recycling={recycling_pct:.1f}%")
     
     return {
@@ -608,11 +590,6 @@ def get_equity_data(store_id, store_name=None, store_type="supermarket"):
     if business_multipliers['type'] == 'local':
         equitable_practices_pct *= 1.15  # +15% equity bonus
     
-    # Add store-specific variation (±12% range for equity practices)
-    store_id_hash = hash(str(store_id) + "_equity") % 10000
-    equity_variation = 0.94 + (store_id_hash / 10000) * 0.12  # 0.94 to 1.06
-    equitable_practices_pct *= equity_variation
-    
     print(f"[OK] Equity: {equitable_practices_pct:.1f}% equitable practices score")
     
     return {
@@ -646,11 +623,6 @@ def get_procurement_data(store_id, store_name=None, store_type="supermarket"):
     
     # Apply business size multiplier
     local_procurement_pct *= business_multipliers.get('supplier_multiplier', 1.0)
-    
-    # Add store-specific variation (±15% range for procurement)
-    store_id_hash = hash(str(store_id) + "_procurement") % 10000
-    procurement_variation = 0.925 + (store_id_hash / 10000) * 0.15  # 0.925 to 1.075
-    local_procurement_pct *= procurement_variation
     
     print(f"[OK] Procurement: {local_procurement_pct:.1f}% local sourcing")
     
@@ -695,10 +667,7 @@ def calculate_ejv_v41(store_id, store_name=None, location=None, zip_code="10001"
     # Federal income tax is the main leakage
     # Base: 70-80% local/state retention
     base_tax_retention = 0.75
-    # Add small store-specific variation (±5%)
-    store_id_hash_tax = hash(str(store_id) + "_tax") % 10000
-    tax_variation = 0.975 + (store_id_hash_tax / 10000) * 0.05
-    lc_taxes = min(0.90, base_tax_retention * tax_variation)
+    lc_taxes = min(0.90, base_tax_retention)
     
     # 4. LC_financing (15%) - Local banking/lending
     # Varies significantly by business type
@@ -708,10 +677,7 @@ def calculate_ejv_v41(store_id, store_name=None, location=None, zip_code="10001"
         "local_independent": 0.70    # Local banks and credit unions
     }
     base_financing = financing_baseline.get(size_multipliers['size'], 0.50)
-    # Add store-specific variation (±10%)
-    store_id_hash_fin = hash(str(store_id) + "_financing") % 10000
-    financing_variation = 0.95 + (store_id_hash_fin / 10000) * 0.10
-    lc_financing = min(0.95, base_financing * financing_variation)
+    lc_financing = min(0.95, base_financing)
     
     # 5. LC_ownership (10%) - Local ownership
     ownership_baseline = {
@@ -720,10 +686,7 @@ def calculate_ejv_v41(store_id, store_name=None, location=None, zip_code="10001"
         "local_independent": 0.90    # Local owner(s)
     }
     base_ownership = ownership_baseline.get(size_multipliers['size'], 0.50)
-    # Add store-specific variation (±8%)
-    store_id_hash_own = hash(str(store_id) + "_ownership") % 10000
-    ownership_variation = 0.96 + (store_id_hash_own / 10000) * 0.08
-    lc_ownership = min(1.0, base_ownership * ownership_variation)
+    lc_ownership = min(1.0, base_ownership)
     
     # Calculate LC_aggregate using proper EJV 4.1 weights
     lc_aggregate = (lc_wages * 0.35) + (lc_suppliers * 0.25) + (lc_taxes * 0.15) + (lc_financing * 0.15) + (lc_ownership * 0.10)
