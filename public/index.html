@@ -2055,39 +2055,51 @@
             <!-- Map -->
             <div class="map-container">
                 <!-- Google-Style Search Bar (Top Center) -->
-                <div style="position: absolute; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; width: 550px; max-width: 90%;">
+                <div style="position: absolute; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; width: 650px; max-width: 90%;">
                     <div style="background: white; border-radius: 50px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); display: flex; align-items: center; padding: 4px 8px 4px 20px; transition: box-shadow 0.3s;">
                         <span style="font-size: 20px; color: #667eea; margin-right: 10px;">🔍</span>
                         <input 
                             id="simpleSearchInput" 
                             type="text"
-                            placeholder="Search stores by name and location (e.g., Walmart Huntsville)" 
+                            placeholder="Find any address or search stores (e.g., 123 Main St, Huntsville AL)" 
                             style="flex: 1; border: none; outline: none; font-size: 15px; padding: 12px 8px; background: transparent;"
                             onkeypress="if(event.key==='Enter') simpleSearch()"
                         />
                         <button 
+                            onclick="findAddress()" 
+                            style="padding: 10px 18px; background: #28a745; color: white; border: none; border-radius: 25px; font-weight: 600; cursor: pointer; font-size: 13px; margin: 0 5px; transition: all 0.3s; white-space: nowrap;"
+                            onmouseover="this.style.background='#218838'"
+                            onmouseout="this.style.background='#28a745'"
+                            title="Find and show address on map"
+                        >
+                            📍 Find
+                        </button>
+                        <button 
                             onclick="simpleSearch()" 
-                            style="padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 25px; font-weight: 600; cursor: pointer; font-size: 13px; margin: 0 5px; transition: all 0.3s;"
+                            style="padding: 10px 18px; background: #667eea; color: white; border: none; border-radius: 25px; font-weight: 600; cursor: pointer; font-size: 13px; margin: 0 5px; transition: all 0.3s;"
                             onmouseover="this.style.background='#5568d3'"
                             onmouseout="this.style.background='#667eea'"
+                            title="Search for stores"
                         >
-                            Search
+                            🏪 Search
                         </button>
                         <button 
                             onclick="openGoogleMapsSearch()" 
-                            style="padding: 10px 20px; background: #4285f4; color: white; border: none; border-radius: 25px; font-weight: 600; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 6px; transition: all 0.3s;"
+                            style="padding: 10px 15px; background: #4285f4; color: white; border: none; border-radius: 25px; font-weight: 600; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 6px; transition: all 0.3s;"
                             onmouseover="this.style.background='#357ae8'"
                             onmouseout="this.style.background='#4285f4'"
-                            title="Search on Google Maps"
+                            title="Open in Google Maps"
                         >
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="white">
                                 <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
                             </svg>
-                            Google Maps
+                            Maps
                         </button>
                     </div>
                     <div style="background: white; margin-top: 8px; border-radius: 12px; padding: 10px 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); font-size: 11px; color: #666; line-height: 1.6;">
-                        <strong style="color: #667eea;">💡 Try:</strong> "Walmart Huntsville AL" • "Target 35801" • "Starbucks Birmingham" • "123 Main St"
+                        <strong style="color: #28a745;">📍 Find:</strong> Show any address • 
+                        <strong style="color: #667eea;">🏪 Search:</strong> Find stores with EJV • 
+                        <strong style="color: #4285f4;">🗺️ Maps:</strong> Open in Google
                     </div>
                 </div>
                 
@@ -6334,6 +6346,92 @@ out center;`;
             } catch (error) {
                 console.error('Unified search error:', error);
                 showResult(`❌ Search failed: ${error.message}. Please try again.`);
+                showLoading(false);
+            }
+        }
+        
+        // Find and display address on map
+        async function findAddress() {
+            const searchInput = document.getElementById('simpleSearchInput');
+            if (!searchInput) {
+                alert('Search box not found');
+                return;
+            }
+            
+            const address = searchInput.value.trim();
+            
+            if (!address) {
+                alert('Please enter an address');
+                return;
+            }
+            
+            showLoading(true);
+            showResult(`📍 Finding address: "${address}"...`);
+            
+            try {
+                // Geocode the address
+                const geocodeUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1&addressdetails=1`;
+                
+                const response = await fetch(geocodeUrl, {
+                    headers: {
+                        'User-Agent': 'EJV-Search-App',
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Unable to find address');
+                }
+                
+                const results = await response.json();
+                
+                if (results.length === 0) {
+                    showResult(`❌ Address not found: "${address}". Try adding city/state or ZIP code.`);
+                    showLoading(false);
+                    return;
+                }
+                
+                const location = results[0];
+                const lat = parseFloat(location.lat);
+                const lon = parseFloat(location.lon);
+                const displayName = location.display_name;
+                
+                // Clear previous markers
+                clearMarkers();
+                
+                // Center map on the address
+                map.setView([lat, lon], 17);
+                
+                // Add a prominent marker
+                const marker = L.marker([lat, lon], {
+                    icon: L.divIcon({
+                        className: 'custom-div-icon',
+                        html: `<div style="background: #28a745; width: 40px; height: 40px; border-radius: 50%; border: 4px solid white; box-shadow: 0 4px 12px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; font-size: 24px; animation: pulse 2s infinite;">📍</div>`,
+                        iconSize: [40, 40],
+                        iconAnchor: [20, 40]
+                    })
+                }).addTo(map);
+                
+                marker.bindPopup(`
+                    <div style="min-width: 250px; padding: 10px;">
+                        <strong style="color: #28a745; font-size: 15px;">📍 Found Address</strong><br>
+                        <div style="margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 6px; font-size: 13px; color: #333;">
+                            ${displayName}
+                        </div>
+                        <div style="font-size: 11px; color: #666; margin-top: 8px;">
+                            📊 Lat: ${lat.toFixed(6)}, Lon: ${lon.toFixed(6)}
+                        </div>
+                    </div>
+                `).openPopup();
+                
+                markers.push(marker);
+                
+                showResult(`✅ Found: "${displayName}"`);
+                showLoading(false);
+                
+            } catch (error) {
+                console.error('Find address error:', error);
+                showResult(`❌ Error finding address: ${error.message}`);
                 showLoading(false);
             }
         }
