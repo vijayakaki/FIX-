@@ -9672,6 +9672,8 @@ out center;`;
         console.log('About to reassign functions...');
         console.log('searchByZip function:', typeof searchByZip);
         window.searchByZip = searchByZip;
+        window.findAddress = findAddress;
+        window.openGoogleMapsSearch = openGoogleMapsSearch;
         window.initUserDashboard = initUserDashboard;
         window.initCompareModule = initCompareModule;
         window.initOptimizeModule = initOptimizeModule;
@@ -9679,6 +9681,8 @@ out center;`;
         window.initMap = initMap;
         
         console.log('All functions registered - window.searchByZip:', typeof window.searchByZip);
+        console.log('findAddress:', typeof window.findAddress);
+        console.log('openGoogleMapsSearch:', typeof window.openGoogleMapsSearch);
     </script>
 
     <!-- Help Modal -->
