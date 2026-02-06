@@ -6352,16 +6352,27 @@ out center;`;
         
         // Find and display address on map
         async function findAddress() {
+            console.log('=== FIND ADDRESS STARTED ===');
+            
             const searchInput = document.getElementById('simpleSearchInput');
             if (!searchInput) {
+                console.error('Search input not found!');
                 alert('Search box not found');
                 return;
             }
             
             const address = searchInput.value.trim();
+            console.log('Address to find:', address);
             
             if (!address) {
                 alert('Please enter an address');
+                return;
+            }
+            
+            // Check if map is initialized
+            if (!map) {
+                console.error('Map not initialized!');
+                alert('Map not ready. Please try again in a moment.');
                 return;
             }
             
@@ -6369,8 +6380,10 @@ out center;`;
             showResult(`📍 Finding address: "${address}"...`);
             
             try {
-                // Geocode the address
-                const geocodeUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1&addressdetails=1`;
+                // Geocode the address with more parameters for better results
+                const geocodeUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=5&addressdetails=1`;
+                
+                console.log('Geocoding URL:', geocodeUrl);
                 
                 const response = await fetch(geocodeUrl, {
                     headers: {
@@ -6379,40 +6392,49 @@ out center;`;
                     }
                 });
                 
+                console.log('Response status:', response.status);
+                
                 if (!response.ok) {
-                    throw new Error('Unable to find address');
+                    throw new Error(`Unable to find address (Status: ${response.status})`);
                 }
                 
                 const results = await response.json();
+                console.log('Geocoding results:', results.length, 'found');
                 
                 if (results.length === 0) {
-                    showResult(`❌ Address not found: "${address}". Try adding city/state or ZIP code.`);
+                    showResult(`❌ Address not found: "${address}". Try:\n• Adding city/state (e.g., "Huntsville, AL")\n• Adding ZIP code\n• Using a full address\n• Different spelling`);
                     showLoading(false);
                     return;
                 }
                 
+                // Use the first (best) result
                 const location = results[0];
                 const lat = parseFloat(location.lat);
                 const lon = parseFloat(location.lon);
                 const displayName = location.display_name;
                 
+                console.log('Location found:', lat, lon);
+                console.log('Display name:', displayName);
+                
                 // Clear previous markers
                 clearMarkers();
                 
-                // Center map on the address
+                // Center map on the address with zoom
+                console.log('Setting map view...');
                 map.setView([lat, lon], 17);
                 
                 // Add a prominent marker
+                console.log('Adding marker...');
                 const marker = L.marker([lat, lon], {
                     icon: L.divIcon({
                         className: 'custom-div-icon',
-                        html: `<div style="background: #28a745; width: 40px; height: 40px; border-radius: 50%; border: 4px solid white; box-shadow: 0 4px 12px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; font-size: 24px; animation: pulse 2s infinite;">📍</div>`,
+                        html: `<div style="background: #28a745; width: 40px; height: 40px; border-radius: 50%; border: 4px solid white; box-shadow: 0 4px 12px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; font-size: 24px;">📍</div>`,
                         iconSize: [40, 40],
                         iconAnchor: [20, 40]
                     })
                 }).addTo(map);
                 
-                marker.bindPopup(`
+                const popupContent = `
                     <div style="min-width: 250px; padding: 10px;">
                         <strong style="color: #28a745; font-size: 15px;">📍 Found Address</strong><br>
                         <div style="margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 6px; font-size: 13px; color: #333;">
@@ -6422,16 +6444,19 @@ out center;`;
                             📊 Lat: ${lat.toFixed(6)}, Lon: ${lon.toFixed(6)}
                         </div>
                     </div>
-                `).openPopup();
+                `;
                 
+                marker.bindPopup(popupContent).openPopup();
                 markers.push(marker);
                 
+                console.log('✅ Address found successfully');
                 showResult(`✅ Found: "${displayName}"`);
                 showLoading(false);
                 
             } catch (error) {
                 console.error('Find address error:', error);
-                showResult(`❌ Error finding address: ${error.message}`);
+                console.error('Error details:', error.message, error.stack);
+                showResult(`❌ Error: ${error.message}. Please try again.`);
                 showLoading(false);
             }
         }
