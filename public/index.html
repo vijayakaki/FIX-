@@ -2054,36 +2054,40 @@
 
             <!-- Map -->
             <div class="map-container">
-                <!-- Simple Search Panel (Top Left) -->
-                <div style="position: absolute; top: 15px; left: 15px; z-index: 1000; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); width: 350px;">
-                    <h4 style="margin: 0 0 10px 0; color: #667eea; font-size: 16px; font-weight: 700;">🔍 Search Stores</h4>
-                    
-                    <input 
-                        id="simpleSearchInput" 
-                        type="text"
-                        placeholder="Enter store name and location (e.g., Walmart Huntsville)" 
-                        style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; outline: none; margin-bottom: 10px; box-sizing: border-box;"
-                        onkeypress="if(event.key==='Enter') simpleSearch()"
-                        onfocus="this.style.borderColor='#667eea'"
-                        onblur="this.style.borderColor='#ddd'"
-                    />
-                    
-                    <button 
-                        onclick="simpleSearch()" 
-                        style="width: 100%; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 14px; box-shadow: 0 2px 8px rgba(102,126,234,0.3); transition: all 0.3s;"
-                        onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(102,126,234,0.4)'"
-                        onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(102,126,234,0.3)'"
-                    >
-                        🔍 Search
-                    </button>
-                    
-                    <div style="margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 6px; font-size: 11px; color: #555; line-height: 1.5;">
-                        <strong>💡 Examples:</strong><br>
-                        • Walmart Huntsville AL<br>
-                        • Target Birmingham<br>
-                        • Starbucks 35801<br>
-                        • 123 Main Street
+                <!-- Google-Style Search Bar (Top Center) -->
+                <div style="position: absolute; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; width: 550px; max-width: 90%;">
+                    <div style="background: white; border-radius: 50px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); display: flex; align-items: center; padding: 4px 8px 4px 20px; transition: box-shadow 0.3s;">
+                        <span style="font-size: 20px; color: #667eea; margin-right: 10px;">🔍</span>
+                        <input 
+                            id="simpleSearchInput" 
+                            type="text"
+                            placeholder="Search stores by name and location (e.g., Walmart Huntsville)" 
+                            style="flex: 1; border: none; outline: none; font-size: 15px; padding: 12px 8px; background: transparent;"
+                            onkeypress="if(event.key==='Enter') simpleSearch()"
+                        />
+                        <button 
+                            onclick="simpleSearch()" 
+                            style="padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 25px; font-weight: 600; cursor: pointer; font-size: 13px; margin: 0 5px; transition: all 0.3s;"
+                            onmouseover="this.style.background='#5568d3'"
+                            onmouseout="this.style.background='#667eea'"
+                        >
+                            Search
+                        </button>
+                        <button 
+                            onclick="openGoogleMapsSearch()" 
+                            style="padding: 10px 20px; background: #4285f4; color: white; border: none; border-radius: 25px; font-weight: 600; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 6px; transition: all 0.3s;"
+                            onmouseover="this.style.background='#357ae8'"
+                            onmouseout="this.style.background='#4285f4'"
+                            title="Search on Google Maps"
+                        >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
+                                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                            </svg>
+                            Google Maps
+                        </button>
                     </div>
+                    <div style="background: white; margin-top: 8px; border-radius: 12px; padding: 10px 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); font-size: 11px; color: #666; line-height: 1.6;">
+                        <strong style="color: #667eea;">💡 Try:</strong> "Walmart Huntsville AL" • "Target 35801" • "Starbucks Birmingham" • "123 Main St"
                     </div>
                 </div>
                 
@@ -6332,6 +6336,29 @@ out center;`;
                 showResult(`❌ Search failed: ${error.message}. Please try again.`);
                 showLoading(false);
             }
+        }
+        
+        // Open Google Maps search in new tab
+        function openGoogleMapsSearch() {
+            const searchInput = document.getElementById('simpleSearchInput');
+            if (!searchInput) {
+                alert('Search box not found');
+                return;
+            }
+            
+            const query = searchInput.value.trim();
+            
+            if (!query) {
+                alert('Please enter a search term first');
+                return;
+            }
+            
+            // Create Google Maps search URL
+            const googleMapsUrl = `https://www.google.com/maps/search/${encodeURIComponent(query)}`;
+            
+            // Open in new tab
+            window.open(googleMapsUrl, '_blank');
+            showResult(`Opening Google Maps for "${query}"...`);
         }
         
         // Search by ZIP Code
