@@ -2025,8 +2025,8 @@
             <!-- Map -->
             <div class="map-container">
                 <!-- Compact Search Panel (Top Left) -->
-                <div style="position: absolute; top: 15px; left: 15px; z-index: 1000; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); width: 320px;">
-                    <h4 style="margin: 0 0 12px 0; color: #667eea; font-size: 15px; font-weight: 700;">🔍 Find Stores</h4>
+                <div style="position: absolute; top: 15px; left: 15px; z-index: 1000; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); width: 350px;">
+                    <h4 style="margin: 0 0 12px 0; color: #667eea; font-size: 15px; font-weight: 700;">🔍 Search Stores</h4>
                     
                     <!-- Enable Location Button -->
                     <div style="margin-bottom: 12px;">
@@ -2041,56 +2041,33 @@
                         </button>
                     </div>
                     
-                    <!-- Option 1: Search Stores Near Me -->
-                    <div style="margin-bottom: 12px;">
-                        <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #555; font-size: 12px;">🏪 Store Near Me</label>
-                        <div style="display: flex; gap: 6px;">
-                            <select 
-                                id="storeSelect" 
-                                style="flex: 1; padding: 8px 10px; border: 2px solid #ddd; border-radius: 6px; font-size: 13px; outline: none; cursor: pointer;"
-                                onfocus="this.style.borderColor='#667eea'"
-                                onblur="this.style.borderColor='#ddd'"
-                            >
-                                <option value="">Select store...</option>
-                                <option value="walmart">🛒 Walmart</option>
-                                <option value="target">🎯 Target</option>
-                                <option value="costco">🏪 Costco</option>
-                                <option value="kroger">🛍️ Kroger</option>
-                                <option value="whole foods">🥬 Whole Foods</option>
-                                <option value="safeway">🛒 Safeway</option>
-                                <option value="publix">🏬 Publix</option>
-                                <option value="trader joe">🌿 Trader Joe's</option>
-                                <option value="starbucks">☕ Starbucks</option>
-                            </select>
-                            <button 
-                                onclick="searchStoreNearMe()" 
-                                style="padding: 8px 14px; background: #4caf50; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 12px; white-space: nowrap;"
-                            >
-                                Find
-                            </button>
+                    <!-- Unified Search Box -->
+                    <div>
+                        <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #555; font-size: 12px;">🏪 Search for any store or address</label>
+                        <input 
+                            id="unifiedSearchInput" 
+                            type="text"
+                            placeholder="e.g., Walmart, Target, Starbucks, or any address" 
+                            style="width: 100%; padding: 10px 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; outline: none; margin-bottom: 8px; box-sizing: border-box;"
+                            onkeypress="if(event.key==='Enter') performUnifiedSearch()"
+                            onfocus="this.style.borderColor='#667eea'"
+                            onblur="this.style.borderColor='#ddd'"
+                        />
+                        <button 
+                            onclick="performUnifiedSearch()" 
+                            style="width: 100%; padding: 10px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 14px; box-shadow: 0 2px 8px rgba(102,126,234,0.3); transition: all 0.3s;"
+                            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(102,126,234,0.4)'"
+                            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(102,126,234,0.3)'"
+                        >
+                            🔍 Search
+                        </button>
+                        <div style="margin-top: 8px; font-size: 11px; color: #666; line-height: 1.4;">
+                            💡 <strong>Examples:</strong><br>
+                            • "Walmart" (uses your location)<br>
+                            • "Starbucks Huntsville AL"<br>
+                            • "123 Main Street"
                         </div>
                     </div>
-                    
-                    <!-- Option 2: Search by Address -->
-                    <div>
-                        <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #555; font-size: 12px;">🗺️ Search by Address</label>
-                        <div style="display: flex; gap: 6px;">
-                            <input 
-                                id="addressInput" 
-                                type="text"
-                                placeholder="e.g., Walmart Huntsville AL" 
-                                style="flex: 1; padding: 8px 10px; border: 2px solid #ddd; border-radius: 6px; font-size: 13px; outline: none;"
-                                onkeypress="if(event.key==='Enter') searchByAddress()"
-                                onfocus="this.style.borderColor='#667eea'"
-                                onblur="this.style.borderColor='#ddd'"
-                            />
-                            <button 
-                                onclick="searchByAddress()" 
-                                style="padding: 8px 14px; background: #667eea; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 12px; white-space: nowrap;"
-                            >
-                                Go
-                            </button>
-                        </div>
                     </div>
                 </div>
                 
@@ -6174,6 +6151,139 @@ out center;`;
                     }
                 }
             );
+        }
+        
+        // Unified search function - handles both store names and addresses
+        async function performUnifiedSearch() {
+            const searchInput = document.getElementById('unifiedSearchInput');
+            const query = searchInput.value.trim();
+            
+            console.log('Unified search called with:', query);
+            
+            if (!query) {
+                alert('Please enter a store name or address');
+                return;
+            }
+            
+            showLoading(true);
+            showResult(`Searching for "${query}"...`);
+            
+            try {
+                // Check if it's a store name search (single word like "walmart", "target")
+                const isSingleStoreKeyword = chainKeywords.includes(query.toLowerCase());
+                
+                if (isSingleStoreKeyword && !userLocation) {
+                    // Store name without location
+                    showResult('❌ Please click "Enable My Location" first, or add a city name (e.g., "Walmart Huntsville")');
+                    showLoading(false);
+                    return;
+                }
+                
+                // Build search query
+                let searchQuery;
+                if (isSingleStoreKeyword && userLocation) {
+                    // Store name + user location
+                    searchQuery = `${query} near ${userLocation.lat},${userLocation.lon}`;
+                } else {
+                    // Full address or store + location
+                    searchQuery = query;
+                }
+                
+                console.log('→ Searching for:', searchQuery);
+                const geocodeUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=5&addressdetails=1`;
+                console.log('→ URL:', geocodeUrl);
+                
+                // Add timeout
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Search timeout - server is slow')), 10000)
+                );
+                
+                const fetchPromise = fetch(geocodeUrl);
+                const response = await Promise.race([fetchPromise, timeoutPromise]);
+                
+                console.log('→ Response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`API returned status ${response.status}`);
+                }
+                
+                const results = await response.json();
+                console.log('→ Results found:', results.length);
+                
+                if (results.length === 0) {
+                    showResult(`No results found for "${query}". Try adding more details like city name.`);
+                    showLoading(false);
+                    return;
+                }
+                
+                // Clear existing markers
+                clearMarkers();
+                window.storeData = [];
+                
+                // Process results
+                window.storeData = results.slice(0, 5).map((result, idx) => {
+                    const storeLat = parseFloat(result.lat);
+                    const storeLon = parseFloat(result.lon);
+                    const distance = userLocation ? calculateDistance(userLocation.lat, userLocation.lon, storeLat, storeLon) : 0;
+                    
+                    return {
+                        id: `search_${idx}`,
+                        name: result.display_name.split(',')[0],
+                        address: result.display_name,
+                        lat: storeLat,
+                        lon: storeLon,
+                        distance: distance,
+                        category: 'location',
+                        zipCode: result.address?.postcode || currentZip,
+                        ejv: null,
+                        rawScore: null,
+                        breakdown: null
+                    };
+                }).sort((a, b) => a.distance - b.distance);
+                
+                rawStores = [...window.storeData];
+                
+                // Center map on first result
+                map.setView([window.storeData[0].lat, window.storeData[0].lon], 13);
+                
+                // Add markers
+                window.storeData.forEach((store, idx) => {
+                    const marker = L.marker([store.lat, store.lon], {
+                        icon: L.divIcon({
+                            className: 'custom-div-icon',
+                            html: `<div style="background: #667eea; width: 30px; height: 30px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 11px; color: white;">${idx + 1}</div>`,
+                            iconSize: [30, 30],
+                            iconAnchor: [15, 15]
+                        })
+                    }).addTo(map);
+                    
+                    marker.bindPopup(`
+                        <div style="min-width: 200px;">
+                            <strong>${store.name}</strong><br>
+                            <span style="font-size: 11px; color: #666;">${store.address}</span><br>
+                            ${store.distance > 0 ? `<span style="font-size: 10px; color: #999;">${store.distance.toFixed(2)} km away</span><br>` : ''}
+                            <button onclick="calculateChainStoreEJV(${idx})" style="margin-top: 8px; padding: 6px 12px; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px; width: 100%; font-weight: 600;">
+                                Calculate EJV
+                            </button>
+                        </div>
+                    `);
+                    
+                    markers.push(marker);
+                });
+                
+                // Display results
+                if (window.storeData.length > 1) {
+                    displayChainSearchResults(window.storeData, query);
+                }
+                
+                showResult(`✓ Found ${window.storeData.length} location(s) for "${query}"`);
+                showLoading(false);
+                
+            } catch (error) {
+                console.error('Unified search error:', error);
+                showResult(`❌ Search failed: ${error.message}. Please try again.`);
+                showLoading(false);
+            }
         }
         
         // Search by ZIP Code
