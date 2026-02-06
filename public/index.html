@@ -2024,49 +2024,35 @@
 
             <!-- Map -->
             <div class="map-container">
-                <!-- Compact Search Panel (Top Left) -->
+                <!-- Simple Search Panel (Top Left) -->
                 <div style="position: absolute; top: 15px; left: 15px; z-index: 1000; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); width: 350px;">
-                    <h4 style="margin: 0 0 12px 0; color: #667eea; font-size: 15px; font-weight: 700;">🔍 Search Stores</h4>
+                    <h4 style="margin: 0 0 10px 0; color: #667eea; font-size: 16px; font-weight: 700;">🔍 Search Stores</h4>
                     
-                    <!-- Enable Location Button -->
-                    <div style="margin-bottom: 12px;">
-                        <button 
-                            id="enableLocationBtn"
-                            onclick="getUserLocation()" 
-                            style="width: 100%; padding: 10px; background: linear-gradient(135deg, #4caf50 0%, #45a049 100%); color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 13px; box-shadow: 0 2px 8px rgba(76,175,80,0.3); transition: all 0.3s;"
-                            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(76,175,80,0.4)'"
-                            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(76,175,80,0.3)'"
-                        >
-                            📍 Enable My Location
-                        </button>
-                    </div>
+                    <input 
+                        id="simpleSearchInput" 
+                        type="text"
+                        placeholder="Enter store name and location (e.g., Walmart Huntsville)" 
+                        style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; outline: none; margin-bottom: 10px; box-sizing: border-box;"
+                        onkeypress="if(event.key==='Enter') simpleSearch()"
+                        onfocus="this.style.borderColor='#667eea'"
+                        onblur="this.style.borderColor='#ddd'"
+                    />
                     
-                    <!-- Unified Search Box -->
-                    <div>
-                        <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #555; font-size: 12px;">🏪 Search for any store or address</label>
-                        <input 
-                            id="unifiedSearchInput" 
-                            type="text"
-                            placeholder="e.g., Walmart, Target, Starbucks, or any address" 
-                            style="width: 100%; padding: 10px 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; outline: none; margin-bottom: 8px; box-sizing: border-box;"
-                            onkeypress="if(event.key==='Enter') performUnifiedSearch()"
-                            onfocus="this.style.borderColor='#667eea'"
-                            onblur="this.style.borderColor='#ddd'"
-                        />
-                        <button 
-                            onclick="performUnifiedSearch()" 
-                            style="width: 100%; padding: 10px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 14px; box-shadow: 0 2px 8px rgba(102,126,234,0.3); transition: all 0.3s;"
-                            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(102,126,234,0.4)'"
-                            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(102,126,234,0.3)'"
-                        >
-                            🔍 Search
-                        </button>
-                        <div style="margin-top: 8px; font-size: 11px; color: #666; line-height: 1.4;">
-                            💡 <strong>Examples:</strong><br>
-                            • "Walmart" (uses your location)<br>
-                            • "Starbucks Huntsville AL"<br>
-                            • "123 Main Street"
-                        </div>
+                    <button 
+                        onclick="simpleSearch()" 
+                        style="width: 100%; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 14px; box-shadow: 0 2px 8px rgba(102,126,234,0.3); transition: all 0.3s;"
+                        onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(102,126,234,0.4)'"
+                        onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(102,126,234,0.3)'"
+                    >
+                        🔍 Search
+                    </button>
+                    
+                    <div style="margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 6px; font-size: 11px; color: #555; line-height: 1.5;">
+                        <strong>💡 Examples:</strong><br>
+                        • Walmart Huntsville AL<br>
+                        • Target Birmingham<br>
+                        • Starbucks 35801<br>
+                        • 123 Main Street
                     </div>
                     </div>
                 </div>
@@ -6154,10 +6140,11 @@ out center;`;
         }
         
         // Unified search function - handles both store names and addresses
-        window.performUnifiedSearch = async function performUnifiedSearch() {
-            console.log('=== UNIFIED SEARCH STARTED ===');
+        // Simple search function - works with any address
+        window.simpleSearch = async function simpleSearch() {
+            console.log('=== SIMPLE SEARCH STARTED ===');
             
-            const searchInput = document.getElementById('unifiedSearchInput');
+            const searchInput = document.getElementById('simpleSearchInput');
             if (!searchInput) {
                 console.error('Search input not found!');
                 alert('Error: Search box not found. Please refresh the page.');
@@ -6168,7 +6155,7 @@ out center;`;
             console.log('Search query:', query);
             
             if (!query) {
-                alert('Please enter a store name or address');
+                alert('Please enter a store name and location or an address');
                 return;
             }
             
@@ -6184,28 +6171,8 @@ out center;`;
             showResult(`Searching for "${query}"...`);
             
             try {
-                // Check if it's a store name search (single word like "walmart", "target")
-                const isSingleStoreKeyword = chainKeywords.includes(query.toLowerCase());
-                
-                if (isSingleStoreKeyword && !userLocation) {
-                    // Store name without location
-                    showResult('❌ Please click "Enable My Location" first, or add a city name (e.g., "Walmart Huntsville")');
-                    showLoading(false);
-                    return;
-                }
-                
-                // Build search query
-                let searchQuery;
-                if (isSingleStoreKeyword && userLocation) {
-                    // Store name + user location
-                    searchQuery = `${query} near ${userLocation.lat},${userLocation.lon}`;
-                } else {
-                    // Full address or store + location
-                    searchQuery = query;
-                }
-                
-                console.log('→ Searching for:', searchQuery);
-                const geocodeUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=5&addressdetails=1`;
+                console.log('→ Searching for:', query);
+                const geocodeUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1&namedetails=1`;
                 console.log('→ URL:', geocodeUrl);
                 
                 // Add timeout
@@ -6239,7 +6206,7 @@ out center;`;
                 window.storeData = results.slice(0, 5).map((result, idx) => {
                     const storeLat = parseFloat(result.lat);
                     const storeLon = parseFloat(result.lon);
-                    const distance = userLocation ? calculateDistance(userLocation.lat, userLocation.lon, storeLat, storeLon) : 0;
+                    const distance = 0; // No user location, so distance is 0
                     
                     // Extract store name - try to get the actual business name
                     let storeName = result.display_name.split(',')[0];
@@ -6266,7 +6233,7 @@ out center;`;
                         rawScore: null,
                         breakdown: null
                     };
-                }).sort((a, b) => a.distance - b.distance);
+                });
                 
                 rawStores = [...window.storeData];
                 
