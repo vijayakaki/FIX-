@@ -6154,11 +6154,18 @@ out center;`;
         }
         
         // Unified search function - handles both store names and addresses
-        async function performUnifiedSearch() {
-            const searchInput = document.getElementById('unifiedSearchInput');
-            const query = searchInput.value.trim();
+        window.performUnifiedSearch = async function performUnifiedSearch() {
+            console.log('=== UNIFIED SEARCH STARTED ===');
             
-            console.log('Unified search called with:', query);
+            const searchInput = document.getElementById('unifiedSearchInput');
+            if (!searchInput) {
+                console.error('Search input not found!');
+                alert('Error: Search box not found. Please refresh the page.');
+                return;
+            }
+            
+            const query = searchInput.value.trim();
+            console.log('Search query:', query);
             
             if (!query) {
                 alert('Please enter a store name or address');
