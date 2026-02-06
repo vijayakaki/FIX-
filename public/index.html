@@ -6233,6 +6233,8 @@ out center;`;
                     const storeLon = parseFloat(result.lon);
                     const distance = userLocation ? calculateDistance(userLocation.lat, userLocation.lon, storeLat, storeLon) : 0;
                     
+                    console.log(`Result ${idx + 1}: ${result.display_name.split(',')[0]} at [${storeLat}, ${storeLon}]`);
+                    
                     return {
                         id: `search_${idx}`,
                         name: result.display_name.split(',')[0],
@@ -6250,11 +6252,15 @@ out center;`;
                 
                 rawStores = [...window.storeData];
                 
+                console.log('→ Centering map on:', window.storeData[0].lat, window.storeData[0].lon);
+                
                 // Center map on first result
                 map.setView([window.storeData[0].lat, window.storeData[0].lon], 13);
                 
                 // Add markers
                 window.storeData.forEach((store, idx) => {
+                    console.log(`Adding marker ${idx + 1} at [${store.lat}, ${store.lon}]`);
+                    
                     const marker = L.marker([store.lat, store.lon], {
                         icon: L.divIcon({
                             className: 'custom-div-icon',
