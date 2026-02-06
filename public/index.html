@@ -6174,14 +6174,11 @@ out center;`;
             
             // Clear all previous search results first
             console.log('→ Clearing previous markers and data...');
-            markers.forEach(marker => {
-                if (!marker.getPopup()?.getContent().includes('Your Location')) {
-                    map.removeLayer(marker);
-                }
-            });
-            markers = markers.filter(m => m.getPopup()?.getContent().includes('Your Location'));
+            clearMarkers();
             window.storeData = [];
             rawStores = [];
+            allStoresEJV = [];
+            ejvCache = {};
             
             showLoading(true);
             showResult(`Searching for "${query}"...`);
