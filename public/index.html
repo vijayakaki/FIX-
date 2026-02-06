@@ -1991,6 +1991,36 @@
                     <button class="search-btn" onclick="searchByZip()">Search ZIP</button>
                 </div>
 
+                <!-- Store Name Search with Google Maps -->
+                <div class="search-section">
+                    <h3>🏪 Search by Store Name</h3>
+                    <div class="input-group">
+                        <label>Store Name</label>
+                        <input type="text" id="storeNameInput" placeholder="e.g., Walmart, Kroger, Target">
+                    </div>
+                    <div class="input-group">
+                        <label>Location (City, State, or Address)</label>
+                        <input type="text" id="storeLocationInput" placeholder="e.g., Huntsville, AL">
+                    </div>
+                    <div class="input-group">
+                        <label>Search Radius</label>
+                        <select id="storeNameRadius">
+                            <option value="1">1 mile</option>
+                            <option value="2">2 miles</option>
+                            <option value="3">3 miles</option>
+                            <option value="5" selected>5 miles</option>
+                            <option value="10">10 miles</option>
+                        </select>
+                    </div>
+                    <div class="input-group" style="margin-bottom: 10px;">
+                        <label>Google API Key (Optional)</label>
+                        <input type="text" id="googleApiKey" placeholder="Optional - for Google Places API">
+                        <small style="color: #666; font-size: 11px; display: block; margin-top: 3px;">Leave blank to use free OpenStreetMap search, or enter key for Google Places</small>
+                    </div>
+                    <button class="search-btn" onclick="searchByStoreName()" style="margin-bottom: 8px;">🔍 Search Stores</button>
+                    <button class="search-btn" onclick="searchOnGoogleMaps()" style="background: #4285f4;">🗺️ Open in Google Maps</button>
+                </div>
+
                 <!-- Locator Loop -->
                 <div class="dashboard-panel" id="decisionLoop" style="margin: 0 auto; max-width: 340px;">
                     <div class="dashboard-header">
@@ -6172,28 +6202,48 @@ out center;`;
             
             try {
                 console.log('→ Searching for:', query);
-                const geocodeUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1&namedetails=1`;
+                
+                // Build URL with better parameters for finding stores
+                const geocodeUrl = `https://nominatim.openstreetmap.org/search?` +
+                    `format=json` +
+                    `&q=${encodeURIComponent(query)}` +
+                    `&limit=10` +
+                    `&addressdetails=1` +
+                    `&namedetails=1` +
+                    `&extratags=1` +
+                    `&dedupe=0`;
+                
                 console.log('→ URL:', geocodeUrl);
                 
                 // Add timeout
                 const timeoutPromise = new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error('Search timeout - server is slow')), 10000)
+                    setTimeout(() => reject(new Error('Search timeout after 15 seconds')), 15000)
                 );
                 
-                const fetchPromise = fetch(geocodeUrl);
+                const fetchPromise = fetch(geocodeUrl, {
+                    headers: {
+                        'User-Agent': 'EJV-Search-App',
+                        'Accept': 'application/json'
+                    }
+                });
+                
                 const response = await Promise.race([fetchPromise, timeoutPromise]);
                 
                 console.log('→ Response status:', response.status);
                 
                 if (!response.ok) {
-                    throw new Error(`API returned status ${response.status}`);
+                    if (response.status === 429) {
+                        throw new Error('Too many requests. Please wait a moment and try again.');
+                    }
+                    throw new Error(`Search failed (Status ${response.status}). Try a different search term.`);
                 }
                 
                 const results = await response.json();
                 console.log('→ Results found:', results.length);
+                console.log('→ First result sample:', results[0]);
                 
                 if (results.length === 0) {
-                    showResult(`No results found for "${query}". Try adding more details like city name.`);
+                    showResult(`❌ No results found for "${query}". Try:\n• Adding city/state (e.g., "Walmart Huntsville AL")\n• Using a full address\n• Different spelling`);
                     showLoading(false);
                     return;
                 }
