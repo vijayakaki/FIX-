@@ -6352,6 +6352,8 @@ out center;`;
             const addressInput = document.getElementById('addressInput');
             const address = addressInput.value.trim();
             
+            console.log('searchByAddress called with:', address);
+            
             if (!address) {
                 alert('Please enter an address or location');
                 return;
@@ -6364,18 +6366,27 @@ out center;`;
                 // Geocode the address with timeout
                 const geocodeUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=3&addressdetails=1`;
                 console.log('→ Geocoding address:', address);
+                console.log('→ URL:', geocodeUrl);
                 
                 // Add timeout
                 const timeoutPromise = new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error('Search timeout')), 8000)
+                    setTimeout(() => reject(new Error('Search timeout - taking too long')), 10000)
                 );
                 
                 const fetchPromise = fetch(geocodeUrl);
                 const response = await Promise.race([fetchPromise, timeoutPromise]);
+                
+                console.log('→ Response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`API returned status ${response.status}`);
+                }
+                
                 const results = await response.json();
+                console.log('→ Results:', results);
                 
                 if (results.length === 0) {
-                    showResult('Location not found. Please try a different address or search term.');
+                    showResult('Location not found. Try a different search like "Walmart Huntsville AL" or "35801"');
                     showLoading(false);
                     return;
                 }
