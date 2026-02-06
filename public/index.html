@@ -6172,6 +6172,17 @@ out center;`;
                 return;
             }
             
+            // Clear all previous search results first
+            console.log('→ Clearing previous markers and data...');
+            markers.forEach(marker => {
+                if (!marker.getPopup()?.getContent().includes('Your Location')) {
+                    map.removeLayer(marker);
+                }
+            });
+            markers = markers.filter(m => m.getPopup()?.getContent().includes('Your Location'));
+            window.storeData = [];
+            rawStores = [];
+            
             showLoading(true);
             showResult(`Searching for "${query}"...`);
             
@@ -6233,11 +6244,21 @@ out center;`;
                     const storeLon = parseFloat(result.lon);
                     const distance = userLocation ? calculateDistance(userLocation.lat, userLocation.lon, storeLat, storeLon) : 0;
                     
-                    console.log(`Result ${idx + 1}: ${result.display_name.split(',')[0]} at [${storeLat}, ${storeLon}]`);
+                    // Extract store name - try to get the actual business name
+                    let storeName = result.display_name.split(',')[0];
+                    
+                    // Check if result has name/shop/amenity tags (actual store name)
+                    if (result.namedetails && result.namedetails.name) {
+                        storeName = result.namedetails.name;
+                    } else if (result.name) {
+                        storeName = result.name;
+                    }
+                    
+                    console.log(`Result ${idx + 1}: ${storeName} at [${storeLat}, ${storeLon}]`);
                     
                     return {
                         id: `search_${idx}`,
-                        name: result.display_name.split(',')[0],
+                        name: storeName,
                         address: result.display_name,
                         lat: storeLat,
                         lon: storeLon,
