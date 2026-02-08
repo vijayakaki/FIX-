@@ -71,9 +71,9 @@
 
         .module-buttons {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 25px;
-            max-width: 800px;
+            max-width: 1000px;
             width: 100%;
         }
 
@@ -157,6 +157,16 @@
 
         .module-btn.engage .title,
         .module-btn.engage .description {
+            color: white;
+        }
+
+        .module-btn.compete {
+            background: linear-gradient(135deg, #00bcd4 0%, #0097a7 100%);
+            color: white;
+        }
+
+        .module-btn.compete .title,
+        .module-btn.compete .description {
             color: white;
         }
 
@@ -1491,15 +1501,8 @@
         var hoverDebounceTimer = null;
         var currentZip = '10001';
         
-        // Placeholder functions - will be replaced by real implementations
-        window.searchByZip = function() { 
-            alert('searchByZip placeholder called - if you see this, the button works but function not replaced yet'); 
-            console.log('searchByZip placeholder'); 
-        };
-        window.initUserDashboard = function() { console.log('initUserDashboard placeholder'); };
-        window.initCompareModule = function() { console.log('initCompareModule placeholder'); };
-        window.initOptimizeModule = function() { console.log('initOptimizeModule placeholder'); };
-        window.initEngageModule = function() { console.log('initEngageModule placeholder'); };
+        // Early function declarations - will be replaced by actual implementations later
+        window.searchByZip = function() { console.log('searchByZip early declaration'); };
         
         // Show landing page function
         window.showLanding = function() {
@@ -1512,6 +1515,7 @@
             document.getElementById('compareModule').style.display = 'none';
             document.getElementById('optimizeModule').style.display = 'none';
             document.getElementById('engageModule').style.display = 'none';
+            document.getElementById('competeModule').style.display = 'none';
         };
         
         // Define showModule immediately in body
@@ -1530,7 +1534,8 @@
                     locator: document.getElementById('locatorModule'),
                     compare: document.getElementById('compareModule'),
                     optimize: document.getElementById('optimizeModule'),
-                    engage: document.getElementById('engageModule')
+                    engage: document.getElementById('engageModule'),
+                    compete: document.getElementById('competeModule')
                 };
                 
                 // Hide all modules
@@ -1632,6 +1637,11 @@
                     <div class="icon">🤝</div>
                     <div class="title">Engage</div>
                     <div class="description">Community participation</div>
+                </button>
+                <button class="module-btn compete" onclick="showModule('compete')">
+                    <div class="icon">🏆</div>
+                    <div class="title">Compete</div>
+                    <div class="description">Coming soon</div>
                 </button>
             </div>
         </div>
@@ -1928,8 +1938,8 @@
                 <!-- Instructions -->
                 <div style="margin-bottom: 15px; padding: 12px; background: #e8f5e9; border-left: 4px solid #4caf50; border-radius: 5px;">
                     <p style="margin: 0; font-size: 13px; color: #2e7d32; line-height: 1.5;">
-                        <strong>✓ Free Search Available!</strong><br>
-                        Use the search bar on the map to find any address, city, or location. No API key required!
+                        <strong>✓ Smart Address Search!</strong><br>
+                        <span style="font-size: 12px;">Search for a <strong>specific store address</strong> to see only that store with its EJV, or search a <strong>general location</strong> to find nearby stores.</span>
                     </p>
                 </div>
 
@@ -1989,6 +1999,63 @@
                         <small style="color: #666; font-size: 11px;">Enter any business type to search</small>
                     </div>
                     <button class="search-btn" onclick="searchByZip()">Search ZIP</button>
+                    
+                    <!-- Near Me Button -->
+                    <div style="margin-top: 12px; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);">
+                        <div class="input-group" style="margin-bottom: 10px;">
+                            <label style="color: white; font-weight: 600;">Store Type</label>
+                            <select id="nearMeCategory" onchange="handleNearMeCategoryChange()" style="background: white; color: #333; border: 1px solid #ddd; padding: 8px; border-radius: 6px; width: 100%;">
+                                <option value="all">🏪 All Stores</option>
+                                <option value="supermarket" selected>🛒 Grocery / Supermarket</option>
+                                <option value="convenience">🏪 Convenience Store</option>
+                                <option value="restaurant">🍽️ Restaurant</option>
+                                <option value="coffee">☕ Coffee Shop</option>
+                                <option value="pharmacy">💊 Pharmacy</option>
+                                <option value="electronics">📱 Electronics</option>
+                            </select>
+                        </div>
+                        <div class="input-group" id="nearMeRestaurantType" style="display: none; margin-bottom: 10px;">
+                            <label style="color: white; font-weight: 600;">Restaurant Type</label>
+                            <select id="nearMeRestaurantTypeSelect" style="background: white; color: #333; border: 1px solid #ddd; padding: 8px; border-radius: 6px; width: 100%;">
+                                <option value="all">All Restaurants</option>
+                                <option value="american">🍔 American</option>
+                                <option value="mexican">🌮 Mexican</option>
+                                <option value="italian">🍝 Italian</option>
+                                <option value="chinese">🥡 Chinese</option>
+                                <option value="japanese">🍱 Japanese</option>
+                                <option value="indian">🍛 Indian</option>
+                                <option value="thai">🍜 Thai</option>
+                                <option value="vietnamese">🥢 Vietnamese</option>
+                                <option value="pizza">🍕 Pizza</option>
+                                <option value="seafood">🦞 Seafood</option>
+                                <option value="steakhouse">🥩 Steakhouse</option>
+                                <option value="vegetarian">🥗 Vegetarian / Vegan</option>
+                            </select>
+                        </div>
+                        <div class="input-group" style="margin-bottom: 10px;">
+                            <label style="color: white; font-weight: 600;">Search Radius</label>
+                            <select id="nearMeRadius" style="background: white; color: #333; border: 1px solid #ddd; padding: 8px; border-radius: 6px; width: 100%;">
+                                <option value="0.5">0.5 mile</option>
+                                <option value="1">1 mile</option>
+                                <option value="2" selected>2 miles</option>
+                                <option value="3">3 miles</option>
+                                <option value="5">5 miles</option>
+                            </select>
+                        </div>
+                        <button 
+                            class="search-btn" 
+                            onclick="searchNearMe()" 
+                            style="background: white; color: #667eea; font-weight: 700; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;"
+                            onmouseover="this.style.background='#f0f0f0'"
+                            onmouseout="this.style.background='white'"
+                        >
+                            <span style="font-size: 18px;">📍</span>
+                            <span>Find Stores Near Me</span>
+                        </button>
+                        <div style="margin-top: 8px; font-size: 11px; color: white; text-align: center; line-height: 1.5;">
+                            ✨ Uses your location to find nearby stores & calculate EJV 4.1
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Store Name Search with Google Maps -->
@@ -2047,62 +2114,13 @@
                 <!-- Results -->
                 <div class="results">
                     <h4>Search Results</h4>
-                    <div class="result-text" id="resultText">Enter a ZIP code or address to search for stores</div>
+                    <div class="result-text" id="resultText">Enter a ZIP code to search for stores</div>
                     <div class="store-list" id="storeList"></div>
                 </div>
             </div>
 
             <!-- Map -->
             <div class="map-container">
-                <!-- Google-Style Search Bar (Top Center) -->
-                <div style="position: absolute; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; width: 650px; max-width: 90%;">
-                    <div style="background: white; border-radius: 50px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); display: flex; align-items: center; padding: 4px 8px 4px 20px; transition: box-shadow 0.3s;">
-                        <span style="font-size: 20px; color: #667eea; margin-right: 10px;">🔍</span>
-                        <input 
-                            id="simpleSearchInput" 
-                            type="text"
-                            placeholder="Find any address or search stores (e.g., 123 Main St, Huntsville AL)" 
-                            style="flex: 1; border: none; outline: none; font-size: 15px; padding: 12px 8px; background: transparent;"
-                            onkeypress="if(event.key==='Enter') simpleSearch()"
-                        />
-                        <button 
-                            onclick="findAddress()" 
-                            style="padding: 10px 18px; background: #28a745; color: white; border: none; border-radius: 25px; font-weight: 600; cursor: pointer; font-size: 13px; margin: 0 5px; transition: all 0.3s; white-space: nowrap;"
-                            onmouseover="this.style.background='#218838'"
-                            onmouseout="this.style.background='#28a745'"
-                            title="Find and show address on map"
-                        >
-                            📍 Find
-                        </button>
-                        <button 
-                            onclick="simpleSearch()" 
-                            style="padding: 10px 18px; background: #667eea; color: white; border: none; border-radius: 25px; font-weight: 600; cursor: pointer; font-size: 13px; margin: 0 5px; transition: all 0.3s;"
-                            onmouseover="this.style.background='#5568d3'"
-                            onmouseout="this.style.background='#667eea'"
-                            title="Search for stores"
-                        >
-                            🏪 Search
-                        </button>
-                        <button 
-                            onclick="openGoogleMapsSearch()" 
-                            style="padding: 10px 15px; background: #4285f4; color: white; border: none; border-radius: 25px; font-weight: 600; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 6px; transition: all 0.3s;"
-                            onmouseover="this.style.background='#357ae8'"
-                            onmouseout="this.style.background='#4285f4'"
-                            title="Open in Google Maps"
-                        >
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="white">
-                                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-                            </svg>
-                            Maps
-                        </button>
-                    </div>
-                    <div style="background: white; margin-top: 8px; border-radius: 12px; padding: 10px 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); font-size: 11px; color: #666; line-height: 1.6;">
-                        <strong style="color: #28a745;">📍 Find:</strong> Show any address • 
-                        <strong style="color: #667eea;">🏪 Search:</strong> Find stores with EJV • 
-                        <strong style="color: #4285f4;">🗺️ Maps:</strong> Open in Google
-                    </div>
-                </div>
-                
                 <div id="map"></div>
                 
                 <div class="loading-overlay" id="loadingOverlay">
@@ -2118,16 +2136,25 @@
                     
                     <div id="storeInfoHeader" style="background: #f8f9fa; padding: 10px; border-radius: 6px; margin-bottom: 12px; font-size: 12px;">
                         <strong id="storeNameDisplay" style="color: #333;">Hover over a store to see details</strong><br>
-                        <small id="storeLocationDisplay" style="color: #666;">Search for stores using ZIP code or address</small>
+                        <small id="storeLocationDisplay" style="color: #666;">Search for stores using ZIP code in left sidebar</small>
                     </div>
                     
                     <div id="mainMetricsGrid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
+                        <div style="background: linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%); padding: 10px; border-radius: 6px; text-align: center; border: 2px solid #667eea; position: relative;">
+                            <div id="ejvV41Display" style="font-size: 20px; font-weight: 700; color: #667eea;">-</div>
+                            <div style="font-size: 9px; color: #4c51bf; margin-top: 2px; text-transform: uppercase; font-weight: 600;">
+                                EJV 4.1 (6 Components)
+                            </div>
+                            <div style="font-size: 7px; color: #888; margin-top: 2px;">0-100 Scale</div>
+                            <button class="help-btn" onclick="showHelpModal('v4.1')" data-tooltip="EJV 4.1 = (LC+W+DN+EQ+ENV+PROC)/6 | Equal weight formula | Comprehensive data sources" style="position: absolute; top: 5px; right: 5px; z-index: 10;">❓</button>
+                        </div>
                         <div style="background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%); padding: 10px; border-radius: 6px; text-align: center; border: 2px solid #9c27b0; position: relative;">
                             <div id="ejvV2Display" style="font-size: 20px; font-weight: 700; color: #7b1fa2;">-</div>
                             <div style="font-size: 9px; color: #4a148c; margin-top: 2px; text-transform: uppercase; font-weight: 600;">
-                                EJV (W,P,L,A,E)
+                                EJV 4.0 (5 Components)
                             </div>
-                            <button class="help-btn" onclick="showHelpModal('simple')" data-tooltip="EJV = 0.25W + 0.15P + 0.30L + 0.15A + 0.15E | Weighted by economic impact | Company-specific data" style="position: absolute; top: 5px; right: 5px; z-index: 10;">❓</button>
+                            <div style="font-size: 7px; color: #888; margin-top: 2px;">Weighted</div>
+                            <button class="help-btn" onclick="showHelpModal('simple')" data-tooltip="EJV 4.0 = 0.25W + 0.15P + 0.30L + 0.15A + 0.15E | Weighted by economic impact" style="position: absolute; top: 5px; right: 5px; z-index: 10;">❓</button>
                         </div>
                     </div>
                     
@@ -2165,39 +2192,53 @@
                         </div>
                     </div>
                     
-                    <div id="scoreBreakdown" style="background: #f8f9fa; padding: 10px; border-radius: 6px; margin-bottom: 12px;">
-                        <div style="font-size: 11px; font-weight: 600; color: #333; margin-bottom: 8px;">Simplified EJV Components (0-100)</div>
-                        <div style="display: flex; justify-content: space-between; padding: 5px 0; font-size: 10px; border-bottom: 1px solid #e0e0e0;">
-                            <span style="color: #666;" title="Fair Wage - compares wages to living wage">W (Fair Wage)</span>
-                            <span id="wageScore" style="font-weight: 700; color: #667eea;">-</span>
+                    <div id="scoreBreakdown" style="background: linear-gradient(135deg, #f0f4ff 0%, #e8f5e9 100%); padding: 12px; border-radius: 8px; margin-bottom: 12px; border: 2px solid #667eea;">
+                        <div style="font-size: 12px; font-weight: 700; color: #667eea; margin-bottom: 10px; text-align: center;">🌟 EJV 4.1 Components (0-100)</div>
+                        <div style="display: flex; justify-content: space-between; padding: 6px 0; font-size: 10px; border-bottom: 1px solid #ddd;">
+                            <span style="color: #666; font-weight: 600;" title="Local Circulation - money staying local through wages & procurement">🏘️ LC (Local Circulation)</span>
+                            <span id="communityScore" style="font-weight: 700; color: #667eea; font-size: 12px;">-</span>
                         </div>
-                        <div style="display: flex; justify-content: space-between; padding: 5px 0; font-size: 10px; border-bottom: 1px solid #e0e0e0;">
-                            <span style="color: #666;" title="Pay Equity - measures wage equity across demographics">P (Pay Equity)</span>
-                            <span id="hiringScore" style="font-weight: 700; color: #667eea;">-</span>
+                        <div style="display: flex; justify-content: space-between; padding: 6px 0; font-size: 10px; border-bottom: 1px solid #ddd;">
+                            <span style="color: #666; font-weight: 600;" title="Fair Wages - workers earning living wage">💵 W (Fair Wages)</span>
+                            <span id="wageScore" style="font-weight: 700; color: #667eea; font-size: 12px;">-</span>
                         </div>
-                        <div style="display: flex; justify-content: space-between; padding: 5px 0; font-size: 10px; border-bottom: 1px solid #e0e0e0;">
-                            <span style="color: #666;" title="Local Impact - procurement from local suppliers">L (Local Impact)</span>
-                            <span id="communityScore" style="font-weight: 700; color: #667eea;">-</span>
+                        <div style="display: flex; justify-content: space-between; padding: 6px 0; font-size: 10px; border-bottom: 1px solid #ddd;">
+                            <span style="color: #666; font-weight: 600;" title="Community Need - serving high-need areas (poverty, unemployment)">🏥 DN (Community Need)</span>
+                            <span id="affordabilityScore" style="font-weight: 700; color: #667eea; font-size: 12px;">-</span>
                         </div>
-                        <div style="display: flex; justify-content: space-between; padding: 5px 0; font-size: 10px; border-bottom: 1px solid #e0e0e0;">
-                            <span style="color: #666;" title="Affordability - basket price vs living wage">A (Affordability)</span>
-                            <span id="affordabilityScore" style="font-weight: 700; color: #667eea;">-</span>
+                        <div style="display: flex; justify-content: space-between; padding: 6px 0; font-size: 10px; border-bottom: 1px solid #ddd;">
+                            <span style="color: #666; font-weight: 600;" title="Equity & Inclusion - diversity, nondiscrimination, leadership">⚖️ EQ (Equity & Inclusion)</span>
+                            <span id="hiringScore" style="font-weight: 700; color: #667eea; font-size: 12px;">-</span>
                         </div>
-                        <div style="display: flex; justify-content: space-between; padding: 5px 0; font-size: 10px;">
-                            <span style="color: #666;" title="Environmental - sustainability metrics">E (Environmental)</span>
-                            <span id="dashboardParticipationScore" style="font-weight: 700; color: #667eea;">-</span>
+                        <div style="display: flex; justify-content: space-between; padding: 6px 0; font-size: 10px; border-bottom: 1px solid #ddd;">
+                            <span style="color: #666; font-weight: 600;" title="Environmental - renewable energy, recycling, sustainability">🌱 ENV (Environmental)</span>
+                            <span id="dashboardParticipationScore" style="font-weight: 700; color: #667eea; font-size: 12px;">-</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 6px 0; font-size: 10px;">
+                            <span style="color: #666; font-weight: 600;" title="Procurement - ethical & sustainable purchasing">🛒 PROC (Procurement)</span>
+                            <span id="procurementScore" style="font-weight: 700; color: #667eea; font-size: 12px;">-</span>
                         </div>
                     </div>
                     
-                    <div id="formulaDisplay" style="background: #f8f9fa; padding: 10px; border-radius: 6px; margin-bottom: 10px;">
-                        <strong style="color: #667eea; font-size: 10px;">📐 Weighted Formula:</strong>
-                        <div id="formulaText" style="color: #666; margin-top: 5px; font-family: monospace; font-size: 9px;">EJV = 0.25W + 0.15P + 0.30L + 0.15A + 0.15E</div>
-                        <div style="color: #888; margin-top: 3px; font-size: 8px;">W(25%) | P(15%) | L(30%) | A(15%) | E(15%)</div>
+                    <div id="formulaDisplay" style="background: #fffef0; padding: 12px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid #ff9800;">
+                        <strong style="color: #e65100; font-size: 11px;">📐 EJV Formulas:</strong>
+                        
+                        <div style="margin-top: 8px; padding: 8px; background: #f0f4ff; border-radius: 4px; border-left: 3px solid #667eea;">
+                            <div style="font-size: 9px; color: #4c51bf; font-weight: 600; margin-bottom: 3px;">🌟 EJV 4.1 (6-Component Equal Weight):</div>
+                            <div id="formulaText" style="color: #333; margin-top: 3px; font-family: monospace; font-size: 9px; font-weight: 600;">EJV 4.1 = (LC + W + DN + EQ + ENV + PROC) / 6</div>
+                            <div style="color: #888; margin-top: 3px; font-size: 7px; line-height: 1.4;">Each = 16.67% | Scale: 0-100</div>
+                        </div>
+                        
+                        <div style="margin-top: 6px; padding: 8px; background: #f3e5f5; border-radius: 4px; border-left: 3px solid #9c27b0;">
+                            <div style="font-size: 9px; color: #7b1fa2; font-weight: 600; margin-bottom: 3px;">📊 EJV 4.0 (5-Component Weighted):</div>
+                            <div style="color: #333; margin-top: 3px; font-family: monospace; font-size: 9px; font-weight: 600;">EJV 4.0 = 0.25W + 0.15P + 0.30L + 0.15A + 0.15E</div>
+                            <div style="color: #888; margin-top: 3px; font-size: 7px; line-height: 1.4;">W(25%) | P(15%) | L(30%) | A(15%) | E(15%)</div>
+                        </div>
                     </div>
                     
-                    <div id="dataSourcesDisplay" style="background: #f8f9fa; padding: 10px; border-radius: 6px; font-size: 9px;">
-                        <strong style="color: #667eea; font-size: 10px;">📊 Data Sources:</strong>
-                        <ul id="dataSourcesList" style="margin: 5px 0 0 15px; padding: 0; color: #666;"></ul>
+                    <div id="dataSourcesDisplay" style="background: #f0f9ff; padding: 12px; border-radius: 8px; font-size: 9px; border-left: 4px solid #0288d1;">
+                        <strong style="color: #01579b; font-size: 11px;">📊 Data Sources:</strong>
+                        <ul id="dataSourcesList" style="margin: 8px 0 0 15px; padding: 0; color: #666; line-height: 1.6;"></ul>
                     </div>
                 </div>
                 
@@ -2397,59 +2438,85 @@
 
                 <!-- Component Scores Comparison -->
                 <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); margin-bottom: 30px;">
-                    <h3 style="color: #333; font-size: 20px; margin-bottom: 20px; text-align: center;">Component Scores (0-25)</h3>
+                    <h3 style="color: #333; font-size: 20px; margin-bottom: 20px; text-align: center;">EJV 4.1 Component Scores (0-100)</h3>
                     
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
                         
-                        <!-- Wage Score -->
+                        <!-- LC: Local Circulation -->
                         <div style="padding: 20px; background: #f8f9fa; border-radius: 8px;">
-                            <div style="font-size: 14px; color: #666; margin-bottom: 10px; font-weight: 600;">💰 Wage Score</div>
+                            <div style="font-size: 14px; color: #666; margin-bottom: 10px; font-weight: 600;">🔄 LC: Local Circulation</div>
                             <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
                                 <span style="color: #4caf50; font-weight: 600;">Store A:</span>
-                                <span id="wageA" style="font-size: 18px; font-weight: 700; color: #4caf50;">-</span>
+                                <span id="lcA" style="font-size: 18px; font-weight: 700; color: #4caf50;">-</span>
                             </div>
                             <div style="display: flex; justify-content: space-between;">
                                 <span style="color: #f44336; font-weight: 600;">Store B:</span>
-                                <span id="wageB" style="font-size: 18px; font-weight: 700; color: #f44336;">-</span>
+                                <span id="lcB" style="font-size: 18px; font-weight: 700; color: #f44336;">-</span>
                             </div>
                         </div>
 
-                        <!-- Hiring Score -->
+                        <!-- W: Fair Wages -->
                         <div style="padding: 20px; background: #f8f9fa; border-radius: 8px;">
-                            <div style="font-size: 14px; color: #666; margin-bottom: 10px; font-weight: 600;">👥 Hiring Score</div>
+                            <div style="font-size: 14px; color: #666; margin-bottom: 10px; font-weight: 600;">💰 W: Fair Wages</div>
                             <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
                                 <span style="color: #4caf50; font-weight: 600;">Store A:</span>
-                                <span id="hiringA" style="font-size: 18px; font-weight: 700; color: #4caf50;">-</span>
+                                <span id="wA" style="font-size: 18px; font-weight: 700; color: #4caf50;">-</span>
                             </div>
                             <div style="display: flex; justify-content: space-between;">
                                 <span style="color: #f44336; font-weight: 600;">Store B:</span>
-                                <span id="hiringB" style="font-size: 18px; font-weight: 700; color: #f44336;">-</span>
+                                <span id="wB" style="font-size: 18px; font-weight: 700; color: #f44336;">-</span>
                             </div>
                         </div>
 
-                        <!-- Community Score -->
+                        <!-- DN: Community Need -->
                         <div style="padding: 20px; background: #f8f9fa; border-radius: 8px;">
-                            <div style="font-size: 14px; color: #666; margin-bottom: 10px; font-weight: 600;">🏘️ Community Score</div>
+                            <div style="font-size: 14px; color: #666; margin-bottom: 10px; font-weight: 600;">🏘️ DN: Community Need</div>
                             <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
                                 <span style="color: #4caf50; font-weight: 600;">Store A:</span>
-                                <span id="communityA" style="font-size: 18px; font-weight: 700; color: #4caf50;">-</span>
+                                <span id="dnA" style="font-size: 18px; font-weight: 700; color: #4caf50;">-</span>
                             </div>
                             <div style="display: flex; justify-content: space-between;">
                                 <span style="color: #f44336; font-weight: 600;">Store B:</span>
-                                <span id="communityB" style="font-size: 18px; font-weight: 700; color: #f44336;">-</span>
+                                <span id="dnB" style="font-size: 18px; font-weight: 700; color: #f44336;">-</span>
                             </div>
                         </div>
 
-                        <!-- Participation Score -->
+                        <!-- EQ: Equity & Inclusion -->
                         <div style="padding: 20px; background: #f8f9fa; border-radius: 8px;">
-                            <div style="font-size: 14px; color: #666; margin-bottom: 10px; font-weight: 600;">🤝 Participation Score</div>
+                            <div style="font-size: 14px; color: #666; margin-bottom: 10px; font-weight: 600;">⚖️ EQ: Equity & Inclusion</div>
                             <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
                                 <span style="color: #4caf50; font-weight: 600;">Store A:</span>
-                                <span id="participationA" style="font-size: 18px; font-weight: 700; color: #4caf50;">-</span>
+                                <span id="eqA" style="font-size: 18px; font-weight: 700; color: #4caf50;">-</span>
                             </div>
                             <div style="display: flex; justify-content: space-between;">
                                 <span style="color: #f44336; font-weight: 600;">Store B:</span>
-                                <span id="participationB" style="font-size: 18px; font-weight: 700; color: #f44336;">-</span>
+                                <span id="eqB" style="font-size: 18px; font-weight: 700; color: #f44336;">-</span>
+                            </div>
+                        </div>
+
+                        <!-- ENV: Environmental -->
+                        <div style="padding: 20px; background: #f8f9fa; border-radius: 8px;">
+                            <div style="font-size: 14px; color: #666; margin-bottom: 10px; font-weight: 600;">🌱 ENV: Environmental</div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                <span style="color: #4caf50; font-weight: 600;">Store A:</span>
+                                <span id="envA" style="font-size: 18px; font-weight: 700; color: #4caf50;">-</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span style="color: #f44336; font-weight: 600;">Store B:</span>
+                                <span id="envB" style="font-size: 18px; font-weight: 700; color: #f44336;">-</span>
+                            </div>
+                        </div>
+
+                        <!-- PROC: Procurement -->
+                        <div style="padding: 20px; background: #f8f9fa; border-radius: 8px;">
+                            <div style="font-size: 14px; color: #666; margin-bottom: 10px; font-weight: 600;">📦 PROC: Procurement</div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                <span style="color: #4caf50; font-weight: 600;">Store A:</span>
+                                <span id="procA" style="font-size: 18px; font-weight: 700; color: #4caf50;">-</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span style="color: #f44336; font-weight: 600;">Store B:</span>
+                                <span id="procB" style="font-size: 18px; font-weight: 700; color: #f44336;">-</span>
                             </div>
                         </div>
 
@@ -2896,6 +2963,24 @@
         </div>
     </div>
 
+    <!-- Compete Module -->
+    <div id="competeModule" class="module-page">
+        <div class="module-header">
+            <button class="back-btn" onclick="showLanding()">
+                <span>←</span> Back to Home
+            </button>
+            <h2>🏆 Compete</h2>
+            <div></div>
+        </div>
+        <div class="empty-module">
+            <div class="empty-module-content">
+                <div class="icon">🏆</div>
+                <h3>Compete Module</h3>
+                <p>Coming soon...</p>
+            </div>
+        </div>
+    </div>
+
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         // Global variables
@@ -3094,10 +3179,50 @@
                         <div style="font-size: 11px; color: #666; margin: 5px 0;">
                             🌐 ${website ? `<a href="${website}" target="_blank" rel="noopener noreferrer" style="color: #667eea; text-decoration: none;" title="Visit store website">Visit Website</a>` : '<span style="color: #999;" title="Website information not available">Website not available</span>'}
                         </div>
-                        <div style="display: flex; gap: 8px; margin-top: 5px; flex-wrap: wrap;">
-                            <span style="font-size: 10px; background: #667eea; color: white; padding: 3px 8px; border-radius: 3px;">ELVR: $${(store.elvr || 0).toFixed(2)}</span>
-                            <span style="font-size: 10px; background: #dc3545; color: white; padding: 3px 8px; border-radius: 3px;">EVL: $${(store.evl || 0).toFixed(2)}</span>
-                            <span style="font-size: 10px; background: #28a745; color: white; padding: 3px 8px; border-radius: 3px;">${(store.retention_percentage || 0).toFixed(1)}%</span>
+                        
+                        <div style="margin-top: 10px; padding: 10px; background: linear-gradient(135deg, #e8f5e9 0%, #f0f4ff 100%); border-radius: 6px; border: 2px solid #667eea;">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+                                <div style="text-align: center; background: white; padding: 6px; border-radius: 4px; border-left: 3px solid #667eea;">
+                                    <div style="font-size: 9px; color: #666; font-weight: 600; margin-bottom: 2px;">🌟 EJV 4.1</div>
+                                    <div style="font-weight: 700; color: #667eea; font-size: 14px;">${(store.ejv_v2_baseline || 0).toFixed(1)}</div>
+                                    <div style="font-size: 8px; color: #888;">0-100</div>
+                                </div>
+                                <div style="text-align: center; background: white; padding: 6px; border-radius: 4px; border-left: 3px solid #7b1fa2;">
+                                    <div style="font-size: 9px; color: #666; font-weight: 600; margin-bottom: 2px;">📊 EJV 4.0</div>
+                                    <div style="font-weight: 700; color: #7b1fa2; font-size: 14px;">${store.data?.ejv_original?.ejv_percentage ? store.data.ejv_original.ejv_percentage.toFixed(1) : '0.0'}%</div>
+                                    <div style="font-size: 8px; color: #888;">0-100%</div>
+                                </div>
+                            </div>
+                            
+                            <div style="border-top: 1px solid #ddd; padding-top: 6px; margin-top: 6px;">
+                                <div style="font-size: 10px; font-weight: 600; color: #555; margin-bottom: 4px;">EJV 4.1 Components (0-100):</div>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3px; font-size: 10px;">
+                                    <div style="display: flex; justify-content: space-between; padding: 2px;">
+                                        <span style="color: #666;" title="Local Circulation">LC:</span>
+                                        <span style="font-weight: 600; color: #667eea;">${store.data?.components?.LC_local_circulation?.toFixed(1) || '-'}</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; padding: 2px;">
+                                        <span style="color: #666;" title="Fair Wages">W:</span>
+                                        <span style="font-weight: 600; color: #667eea;">${store.data?.components?.W_fair_wages?.toFixed(1) || '-'}</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; padding: 2px;">
+                                        <span style="color: #666;" title="Community Need">DN:</span>
+                                        <span style="font-weight: 600; color: #667eea;">${store.data?.components?.DN_community_need?.toFixed(1) || '-'}</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; padding: 2px;">
+                                        <span style="color: #666;" title="Equity & Inclusion">EQ:</span>
+                                        <span style="font-weight: 600; color: #667eea;">${store.data?.components?.EQ_equity_inclusion?.toFixed(1) || '-'}</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; padding: 2px;">
+                                        <span style="color: #666;" title="Environmental">ENV:</span>
+                                        <span style="font-weight: 600; color: #667eea;">${store.data?.components?.ENV_environmental?.toFixed(1) || '-'}</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; padding: 2px;">
+                                        <span style="color: #666;" title="Procurement">PROC:</span>
+                                        <span style="font-weight: 600; color: #667eea;">${store.data?.components?.PROC_procurement?.toFixed(1) || '-'}</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     `;
                     storeItem.onclick = () => {
@@ -3138,8 +3263,32 @@
                     <div style="font-size: 11px; color: #666; margin-bottom: 5px;">
                         🌐 ${bestWebsite ? `<a href="${bestWebsite}" target="_blank" rel="noopener noreferrer" style="color: #667eea; text-decoration: none; font-weight: 600;" title="Visit ${best.name} website">Visit Website</a>` : '<span style="color: #999;" title="Website information not available">Website not available</span>'}
                     </div>
-                    <div style="font-size: 11px; color: #666;">ELVR: $${(best.elvr || 0).toFixed(2)} | EVL: $${(best.evl || 0).toFixed(2)} | Retention: ${(best.retention_percentage || 0).toFixed(1)}%</div>
-                    <div style="font-size: 10px; color: #28a745; margin-top: 5px;">✓ Highest local value retention</div>
+                    
+                    <div style="margin-top: 10px; padding: 10px; background: white; border-radius: 6px; border: 2px solid #28a745;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+                            <div style="text-align: center; background: #f0f4ff; padding: 6px; border-radius: 4px; border-left: 3px solid #667eea;">
+                                <div style="font-size: 9px; color: #666; font-weight: 600; margin-bottom: 2px;">🌟 EJV 4.1</div>
+                                <div style="font-weight: 700; color: #667eea; font-size: 14px;">${(best.ejv_v2_baseline || 0).toFixed(1)}</div>
+                                <div style="font-size: 8px; color: #888;">0-100</div>
+                            </div>
+                            <div style="text-align: center; background: #f3e5f5; padding: 6px; border-radius: 4px; border-left: 3px solid #7b1fa2;">
+                                <div style="font-size: 9px; color: #666; font-weight: 600; margin-bottom: 2px;">📊 EJV 4.0</div>
+                                <div style="font-weight: 700; color: #7b1fa2; font-size: 14px;">${best.data?.ejv_original?.ejv_percentage ? best.data.ejv_original.ejv_percentage.toFixed(1) : '0.0'}%</div>
+                                <div style="font-size: 8px; color: #888;">0-100%</div>
+                            </div>
+                        </div>
+                        <div style="border-top: 1px solid #ddd; padding-top: 6px;">
+                            <div style="font-size: 10px; font-weight: 600; color: #555; margin-bottom: 4px;">EJV 4.1 Components:</div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3px; font-size: 10px;">
+                                <div style="display: flex; justify-content: space-between;"><span style="color: #666;">LC:</span><span style="font-weight: 600; color: #28a745;">${best.data?.components?.LC_local_circulation?.toFixed(1) || '-'}</span></div>
+                                <div style="display: flex; justify-content: space-between;"><span style="color: #666;">W:</span><span style="font-weight: 600; color: #28a745;">${best.data?.components?.W_fair_wages?.toFixed(1) || '-'}</span></div>
+                                <div style="display: flex; justify-content: space-between;"><span style="color: #666;">DN:</span><span style="font-weight: 600; color: #28a745;">${best.data?.components?.DN_community_need?.toFixed(1) || '-'}</span></div>
+                                <div style="display: flex; justify-content: space-between;"><span style="color: #666;">EQ:</span><span style="font-weight: 600; color: #28a745;">${best.data?.components?.EQ_equity_inclusion?.toFixed(1) || '-'}</span></div>
+                                <div style="display: flex; justify-content: space-between;"><span style="color: #666;">ENV:</span><span style="font-weight: 600; color: #28a745;">${best.data?.components?.ENV_environmental?.toFixed(1) || '-'}</span></div>
+                                <div style="display: flex; justify-content: space-between;"><span style="color: #666;">PROC:</span><span style="font-weight: 600; color: #28a745;">${best.data?.components?.PROC_procurement?.toFixed(1) || '-'}</span></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 
                 <div style="background: #f8d7da; padding: 12px; border-radius: 6px; border-left: 4px solid #dc3545;">
@@ -3151,8 +3300,32 @@
                     <div style="font-size: 11px; color: #666; margin-bottom: 5px;">
                         🌐 ${worstWebsite ? `<a href="${worstWebsite}" target="_blank" rel="noopener noreferrer" style="color: #667eea; text-decoration: none; font-weight: 600;" title="Visit ${worst.name} website">Visit Website</a>` : '<span style="color: #999;" title="Website information not available">Website not available</span>'}
                     </div>
-                    <div style="font-size: 11px; color: #666;">ELVR: $${(worst.elvr || 0).toFixed(2)} | EVL: $${(worst.evl || 0).toFixed(2)} | Retention: ${(worst.retention_percentage || 0).toFixed(1)}%</div>
-                    <div style="font-size: 10px; color: #dc3545; margin-top: 5px;">⚠ Lower local value retention</div>
+                    
+                    <div style="margin-top: 10px; padding: 10px; background: white; border-radius: 6px; border: 2px solid #dc3545;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+                            <div style="text-align: center; background: #f0f4ff; padding: 6px; border-radius: 4px; border-left: 3px solid #667eea;">
+                                <div style="font-size: 9px; color: #666; font-weight: 600; margin-bottom: 2px;">🌟 EJV 4.1</div>
+                                <div style="font-weight: 700; color: #667eea; font-size: 14px;">${(worst.ejv_v2_baseline || 0).toFixed(1)}</div>
+                                <div style="font-size: 8px; color: #888;">0-100</div>
+                            </div>
+                            <div style="text-align: center; background: #f3e5f5; padding: 6px; border-radius: 4px; border-left: 3px solid #7b1fa2;">
+                                <div style="font-size: 9px; color: #666; font-weight: 600; margin-bottom: 2px;">📊 EJV 4.0</div>
+                                <div style="font-weight: 700; color: #7b1fa2; font-size: 14px;">${worst.data?.ejv_original?.ejv_percentage ? worst.data.ejv_original.ejv_percentage.toFixed(1) : '0.0'}%</div>
+                                <div style="font-size: 8px; color: #888;">0-100%</div>
+                            </div>
+                        </div>
+                        <div style="border-top: 1px solid #ddd; padding-top: 6px;">
+                            <div style="font-size: 10px; font-weight: 600; color: #555; margin-bottom: 4px;">EJV 4.1 Components:</div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3px; font-size: 10px;">
+                                <div style="display: flex; justify-content: space-between;"><span style="color: #666;">LC:</span><span style="font-weight: 600; color: #dc3545;">${worst.data?.components?.LC_local_circulation?.toFixed(1) || '-'}</span></div>
+                                <div style="display: flex; justify-content: space-between;"><span style="color: #666;">W:</span><span style="font-weight: 600; color: #dc3545;">${worst.data?.components?.W_fair_wages?.toFixed(1) || '-'}</span></div>
+                                <div style="display: flex; justify-content: space-between;"><span style="color: #666;">DN:</span><span style="font-weight: 600; color: #dc3545;">${worst.data?.components?.DN_community_need?.toFixed(1) || '-'}</span></div>
+                                <div style="display: flex; justify-content: space-between;"><span style="color: #666;">EQ:</span><span style="font-weight: 600; color: #dc3545;">${worst.data?.components?.EQ_equity_inclusion?.toFixed(1) || '-'}</span></div>
+                                <div style="display: flex; justify-content: space-between;"><span style="color: #666;">ENV:</span><span style="font-weight: 600; color: #dc3545;">${worst.data?.components?.ENV_environmental?.toFixed(1) || '-'}</span></div>
+                                <div style="display: flex; justify-content: space-between;"><span style="color: #666;">PROC:</span><span style="font-weight: 600; color: #dc3545;">${worst.data?.components?.PROC_procurement?.toFixed(1) || '-'}</span></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             `;
         }
@@ -3400,8 +3573,131 @@
             }
         }
 
+        // Search Near Me (using geolocation)
+        // Handle Near Me category change to show/hide restaurant type selector
+        function handleNearMeCategoryChange() {
+            const category = document.getElementById('nearMeCategory').value;
+            const restaurantTypeDiv = document.getElementById('nearMeRestaurantType');
+            
+            if (category === 'restaurant') {
+                restaurantTypeDiv.style.display = 'block';
+            } else {
+                restaurantTypeDiv.style.display = 'none';
+            }
+        }
+
+        async function searchNearMe() {
+            console.log('=== NEAR ME SEARCH STARTED (EJV 4.1) ===');
+            
+            // Check if geolocation is supported
+            if (!navigator.geolocation) {
+                alert('❌ Geolocation is not supported by your browser.\n\nPlease use ZIP code search instead.');
+                return;
+            }
+            
+            showLoading(true);
+            showResult('📍 Getting your location...');
+            
+            // Request user's location
+            navigator.geolocation.getCurrentPosition(
+                async (position) => {
+                    try {
+                        const lat = position.coords.latitude;
+                        const lon = position.coords.longitude;
+                        const accuracy = position.coords.accuracy;
+                        
+                        console.log(`Location found: (${lat}, ${lon}) with accuracy ${accuracy}m`);
+                        showResult(`✅ Location found!\n🔍 Finding stores near you...`);
+                        
+                        // Clear previous results
+                        clearMarkers();
+                        window.storeData = [];
+                        rawStores = [];
+                        allStoresEJV = [];
+                        ejvCache = {};
+                        
+                        // Center map on user's location
+                        map.setView([lat, lon], 14);
+                        
+                        // Add user location marker
+                        const userMarker = L.marker([lat, lon], {
+                            icon: L.divIcon({
+                                className: 'custom-div-icon',
+                                html: `<div style="background: #667eea; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 3px 8px rgba(0,0,0,0.3);"></div>`,
+                                iconSize: [20, 20],
+                                iconAnchor: [10, 10]
+                            })
+                        }).addTo(map);
+                        
+                        userMarker.bindPopup(`
+                            <div style="text-align: center; padding: 8px;">
+                                <strong style="color: #667eea;">📍 You are here</strong><br>
+                                <small style="color: #666;">Accuracy: ~${Math.round(accuracy)}m</small>
+                            </div>
+                        `).openPopup();
+                        
+                        markers.push(userMarker);
+                        
+                        // Get category from Near Me dropdown (not ZIP dropdown)
+                        const category = document.getElementById('nearMeCategory').value;
+                        const restaurantType = document.getElementById('nearMeRestaurantTypeSelect')?.value || null;
+                        const radiusMiles = parseFloat(document.getElementById('nearMeRadius').value) || 2;
+                        const radiusMeters = radiusMiles * 1609.34;
+                        
+                        console.log(`Near Me search: category=${category}, restaurantType=${restaurantType}, radius=${radiusMiles}mi`);
+                        
+                        // Search for stores using existing function
+                        await searchStores(lat, lon, radiusMeters, category, '', restaurantType);
+                        
+                        showResult(`✅ Found stores near your location!\n📊 Calculating EJV 4.1 values...`);
+                        showLoading(false);
+                        
+                    } catch (error) {
+                        console.error('Error searching near me:', error);
+                        showResult(`❌ Error finding stores: ${error.message}`);
+                        showLoading(false);
+                    }
+                },
+                (error) => {
+                    console.error('Geolocation error:', error);
+                    
+                    let errorMessage = '';
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            errorMessage = '❌ Location access denied\n\n💡 To enable:\n1. Click the location icon in your browser\'s address bar\n2. Allow location access\n3. Try "Near Me" again\n\nOr use ZIP code search instead.';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            errorMessage = '❌ Location unavailable\n\nYour device cannot determine your location.\nPlease use ZIP code search instead.';
+                            break;
+                        case error.TIMEOUT:
+                            errorMessage = '❌ Location request timed out\n\nPlease try again or use ZIP code search.';
+                            break;
+                        default:
+                            errorMessage = '❌ Error getting location\n\nPlease use ZIP code search instead.';
+                    }
+                    
+                    showResult(errorMessage);
+                    showLoading(false);
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 300000  // Cache for 5 minutes
+                }
+            );
+        }
+
         async function searchByZip() {
             console.log('🔍 searchByZip called');
+            
+            // Clear previous results FIRST to prevent mixing
+            console.log('🧹 Clearing previous search data before ZIP search');
+            clearMarkers();
+            allStoresEJV = [];
+            ejvCache = {};
+            rawStores = [];
+            window.storeData = [];
+            
             try {
                 const zip = document.getElementById('zipInput').value.trim();
                 console.log('ZIP value:', zip);
@@ -3497,6 +3793,14 @@
                 return;
             }
 
+            // Clear previous results FIRST to prevent mixing
+            console.log('🧹 Clearing previous search data before address search');
+            clearMarkers();
+            allStoresEJV = [];
+            ejvCache = {};
+            rawStores = [];
+            window.storeData = [];
+
             showLoading(true);
             showResult(`Finding stores on "${streetAddress}" in ${cityOrZip}...`);
 
@@ -3549,13 +3853,6 @@
                     showLoading(false);
                     return;
                 }
-
-                // Clear previous results
-                clearMarkers();
-                allStoresEJV = [];
-                ejvCache = {};
-                rawStores = [];
-                window.storeData = [];
 
                 showResult(`Found ${storeResults.length} store(s) on "${streetAddress}". Adding to map...`);
 
@@ -3692,6 +3989,14 @@
                 return;
             }
 
+            // Clear previous results FIRST to prevent mixing
+            console.log('🧹 Clearing previous search data before address search');
+            clearMarkers();
+            allStoresEJV = [];
+            ejvCache = {};
+            rawStores = [];
+            window.storeData = [];
+
             showLoading(true);
             showResult('Geocoding address...');
 
@@ -3710,13 +4015,6 @@
                 const lat = parseFloat(geocodeData[0].lat);
                 const lon = parseFloat(geocodeData[0].lon);
                 const displayName = geocodeData[0].display_name;
-
-                // Clear previous markers and data
-                clearMarkers();
-                allStoresEJV = [];
-                ejvCache = {};
-                rawStores = [];
-                window.storeData = [];
 
                 // Center map on the address
                 map.setView([lat, lon], 16);
@@ -3816,6 +4114,14 @@
                 return;
             }
 
+            // Clear previous markers and data FIRST to prevent mixing results
+            console.log('🧹 Clearing previous search data before new store name search');
+            clearMarkers();
+            allStoresEJV = [];
+            ejvCache = {};
+            rawStores = [];
+            window.storeData = [];
+
             // If Google API key is provided, use Google Places API
             if (apiKey) {
                 return searchWithGooglePlaces(storeName, location, radius, apiKey);
@@ -3870,16 +4176,10 @@
                     return;
                 }
 
-                // Clear previous markers and data
-                clearMarkers();
-                allStoresEJV = [];
-                ejvCache = {};
-                rawStores = [];
-                window.storeData = [];
-
                 showResult(`Found ${nearbyStores.length} matching store(s)`);
 
                 // Process each store found
+                const processedStores = [];
                 for (const store of nearbyStores) {
                     const storeLat = parseFloat(store.lat);
                     const storeLon = parseFloat(store.lon);
@@ -3891,47 +4191,27 @@
                     // Determine category based on store type
                     const category = determineStoreCategory(store);
 
-                    // Create store object
+                    // Create store object in Overpass format for consistency with displayStores()
                     const storeObj = {
+                        id: `nominatim_${store.place_id || store.osm_id}`,
                         lat: storeLat,
                         lon: storeLon,
                         tags: {
                             name: name,
                             'addr:full': storeDisplayName,
-                            shop: category
+                            shop: category,
+                            // Add address components if available
+                            'addr:housenumber': store.address?.house_number,
+                            'addr:street': store.address?.road,
+                            'addr:city': store.address?.city || store.address?.town
                         }
                     };
 
-                    rawStores.push(storeObj);
-
-                    // Add marker to map
-                    const marker = L.marker([storeLat, storeLon], {
-                        icon: L.divIcon({
-                            className: 'custom-div-icon',
-                            html: `<div style="background-color: #667eea; width: 25px; height: 25px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 12px;">📍</div>`,
-                            iconSize: [25, 25],
-                            iconAnchor: [12, 12]
-                        })
-                    });
-
-                    marker.bindPopup(`<strong>${name}</strong><br>${storeDisplayName}`);
-                    marker.addTo(map);
-                    markers.push(marker);
-
-                    // Calculate EJV for this store
-                    const distance = calculateDistance(lat, lon, storeLat, storeLon);
-                    window.storeData.push({
-                        name: name,
-                        address: storeDisplayName,
-                        lat: storeLat,
-                        lon: storeLon,
-                        distance: distance,
-                        category: category
-                    });
+                    processedStores.push(storeObj);
                 }
 
-                // Display stores in sidebar
-                displayStoreResults(window.storeData);
+                // Use displayStores() which handles EJV calculation on hover
+                displayStores(processedStores);
 
                 // Fit map to show all markers
                 if (markers.length > 0) {
@@ -3985,16 +4265,10 @@
                     return;
                 }
 
-                // Clear previous markers and data
-                clearMarkers();
-                allStoresEJV = [];
-                ejvCache = {};
-                rawStores = [];
-                window.storeData = [];
-
                 showResult(`Found ${placesData.results.length} matching store(s) using Google Places`);
 
                 // Process each place found
+                const processedStores = [];
                 for (const place of placesData.results) {
                     const storeLat = place.geometry.location.lat;
                     const storeLon = place.geometry.location.lng;
@@ -4004,49 +4278,24 @@
                     // Determine category
                     const category = determineGooglePlaceCategory(place);
 
-                    // Create store object
+                    // Create store object in Overpass format for consistency with displayStores()
                     const storeObj = {
+                        id: `google_${place.place_id}`,
                         lat: storeLat,
                         lon: storeLon,
                         tags: {
                             name: name,
                             'addr:full': address,
-                            shop: category
+                            shop: category,
+                            source: 'Google Places'
                         }
                     };
 
-                    rawStores.push(storeObj);
-
-                    // Add marker to map
-                    const marker = L.marker([storeLat, storeLon], {
-                        icon: L.divIcon({
-                            className: 'custom-div-icon',
-                            html: `<div style="background-color: #4285f4; width: 25px; height: 25px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 12px;">G</div>`,
-                            iconSize: [25, 25],
-                            iconAnchor: [12, 12]
-                        })
-                    });
-
-                    marker.bindPopup(`<strong>${name}</strong><br>${address}<br><small>via Google Places</small>`);
-                    marker.addTo(map);
-                    markers.push(marker);
-
-                    // Calculate distance
-                    const distance = calculateDistance(lat, lon, storeLat, storeLon);
-                    window.storeData.push({
-                        name: name,
-                        address: address,
-                        lat: storeLat,
-                        lon: storeLon,
-                        distance: distance,
-                        category: category,
-                        rating: place.rating || 'N/A',
-                        isOpen: place.opening_hours ? place.opening_hours.open_now : undefined
-                    });
+                    processedStores.push(storeObj);
                 }
 
-                // Display stores in sidebar
-                displayStoreResults(window.storeData);
+                // Use displayStores() which handles EJV calculation on hover
+                displayStores(processedStores);
 
                 // Fit map to show all markers
                 if (markers.length > 0) {
@@ -4149,9 +4398,12 @@
                 'supermarket': '🛒',
                 'pharmacy': '💊',
                 'restaurant': '🍽️',
+                'cafe': '☕',
+                'fast_food': '🍔',
                 'convenience': '🏪',
                 'coffee': '☕',
                 'electronics': '📱',
+                'bank': '🏦',
                 'all': '🏢'
             };
             return icons[category] || '🏪';
@@ -4513,37 +4765,54 @@ out center;`;
                     <div style="font-size: 11px; color: #666; margin-bottom: 6px;">
                         🌐 ${website ? `<a href="${website}" target="_blank" rel="noopener noreferrer" style="color: #667eea; text-decoration: none;" data-tooltip="Visit ${storeName} website">Visit Website</a>` : '<span style="color: #999;" data-tooltip="Website information not available in OpenStreetMap">Website not available</span>'}
                     </div>
-                    <div class="ejv-scores" style="margin: 8px 0; padding: 8px; background: #f8f9fa; border-radius: 4px;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 11px;">
-                            <span style="color: #666;">EJV:</span>
-                            <span id="ejv-v2-${store.id}" style="font-weight: 700; color: #7b1fa2;">...</span>
+                    <div class="ejv-scores" style="margin: 8px 0; padding: 10px; background: linear-gradient(135deg, #f0f4ff 0%, #e8f5e9 100%); border-radius: 6px; border: 2px solid #667eea;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 8px;">
+                            <div style="text-align: center; background: white; padding: 6px; border-radius: 4px; border-left: 3px solid #7b1fa2;">
+                                <div style="font-size: 9px; color: #666; font-weight: 600; margin-bottom: 2px;">📊 EJV 4.0</div>
+                                <div id="ejv-original-${store.id}" style="font-weight: 700; color: #7b1fa2; font-size: 14px;">...</div>
+                                <div style="font-size: 8px; color: #888;">0-100%</div>
+                            </div>
+                            <div style="text-align: center; background: white; padding: 6px; border-radius: 4px; border-left: 3px solid #667eea;">
+                                <div style="font-size: 9px; color: #666; font-weight: 600; margin-bottom: 2px;">🌟 EJV 4.1</div>
+                                <div id="ejv-v2-${store.id}" style="font-weight: 700; color: #667eea; font-size: 14px;">...</div>
+                                <div style="font-size: 8px; color: #888;">0-100</div>
+                            </div>
                         </div>
-                        <div style="border-top: 1px solid #e0e0e0; padding-top: 6px; margin-top: 6px;">
-                            <div style="font-size: 10px; font-weight: 600; color: #555; margin-bottom: 4px;">EJV Components (0-100):</div>
+                        <div style="font-size: 8px; color: #666; margin-bottom: 6px; text-align: center; font-style: italic;">
+                            4.1: (LC+W+DN+EQ+ENV+PROC)/6 | 4.0: 0.25W+0.15P+0.30L+0.15A+0.15E
+                        </div>
+                        <div style="border-top: 1px solid #ddd; padding-top: 6px; margin-top: 6px;">
+                            <div style="font-size: 10px; font-weight: 600; color: #555; margin-bottom: 4px;">EJV 4.1 Components (0-100):</div>
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3px; font-size: 10px;">
                                 <div style="display: flex; justify-content: space-between;">
-                                    <span style="color: #666;" title="Fair Wage">W:</span>
-                                    <span id="wage-${store.id}" style="font-weight: 600; color: #667eea;">-</span>
-                                </div>
-                                <div style="display: flex; justify-content: space-between;">
-                                    <span style="color: #666;" title="Pay Equity">P:</span>
-                                    <span id="hiring-${store.id}" style="font-weight: 600; color: #667eea;">-</span>
-                                </div>
-                                <div style="display: flex; justify-content: space-between;">
-                                    <span style="color: #666;" title="Local Impact">L:</span>
+                                    <span style="color: #666;" title="Local Circulation">LC:</span>
                                     <span id="community-${store.id}" style="font-weight: 600; color: #667eea;">-</span>
                                 </div>
                                 <div style="display: flex; justify-content: space-between;">
-                                    <span style="color: #666;" title="Affordability">A:</span>
+                                    <span style="color: #666;" title="Fair Wages">W:</span>
+                                    <span id="wage-${store.id}" style="font-weight: 600; color: #667eea;">-</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span style="color: #666;" title="Community Need">DN:</span>
                                     <span id="affordability-${store.id}" style="font-weight: 600; color: #667eea;">-</span>
                                 </div>
                                 <div style="display: flex; justify-content: space-between;">
-                                    <span style="color: #666;" title="Environmental">E:</span>
+                                    <span style="color: #666;" title="Equity & Inclusion">EQ:</span>
+                                    <span id="hiring-${store.id}" style="font-weight: 600; color: #667eea;">-</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span style="color: #666;" title="Environmental">ENV:</span>
                                     <span id="participation-${store.id}" style="font-weight: 600; color: #667eea;">-</span>
                                 </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span style="color: #666;" title="Procurement">PROC:</span>
+                                    <span id="procurement-${store.id}" style="font-weight: 600; color: #667eea;">-</span>
                                 </div>
                             </div>
                         </div>
+                    </div>
+                    <div style="margin: 8px 0; padding: 6px; background: #fffef0; border-radius: 4px; font-size: 9px; color: #666;">
+                        <strong>Data:</strong> Census ACS, BLS, MIT Living Wage, HUD, EPA, EEOC, USDA
                     </div>
                     <div class="ejv-actions" style="display: flex; gap: 6px; margin-top: 8px;">
                         <button onclick="showWhyModal('${store.id}', '${storeName.replace(/'/g, "\\'")}')" style="flex: 1; padding: 4px 8px; background: #667eea; color: white; border: none; border-radius: 4px; font-size: 10px; cursor: pointer; font-weight: 600;" data-tooltip="See detailed calculation methodology and data sources">Why?</button>
@@ -4560,42 +4829,64 @@ out center;`;
                     
                     clearTimeout(hoverDebounceTimer);
                     hoverDebounceTimer = setTimeout(async () => {
-                        console.log(`Hovering on ${storeName}, loading EJV data`);
+                        console.log(`Hovering on ${storeName}, loading EJV 4.1 data`);
                         const ejvData = await calculateEJV(store.id, storeName, true);
                         if (ejvData && ejvData.data) {
-                            // Update scores in the list item
+                            console.log('EJV 4.1 Data received:', ejvData.data);
+                            const apiData = ejvData.data;
+                            
+                            // Update both EJV 4.1 and original EJV scores
                             const v2Element = document.getElementById(`ejv-v2-${store.id}`);
-                            const v41Element = document.getElementById(`ejv-v41-${store.id}`);
-                            if (v2Element && ejvData.data.ejv_simplified?.ejv_percentage) {
-                                v2Element.textContent = ejvData.data.ejv_simplified.ejv_percentage.toFixed(1) + '%';
+                            const originalElement = document.getElementById(`ejv-original-${store.id}`);
+                            
+                            if (v2Element && apiData.ejv_score !== undefined) {
+                                v2Element.textContent = apiData.ejv_score.toFixed(2);
+                            }
+                            
+                            if (originalElement) {
+                                if (apiData.ejv_original?.ejv_percentage !== undefined) {
+                                    originalElement.textContent = apiData.ejv_original.ejv_percentage.toFixed(2) + '%';
+                                } else if (apiData.ejv_original?.ejv_score !== undefined) {
+                                    originalElement.textContent = (apiData.ejv_original.ejv_score * 100).toFixed(2) + '%';
+                                }
                             }
 
+                            const wageElement = document.getElementById(`wage-${store.id}`);
                             const hiringElement = document.getElementById(`hiring-${store.id}`);
                             const communityElement = document.getElementById(`community-${store.id}`);
-                            const participationElement = document.getElementById(`participation-${store.id}`);
-                            
-                            // Display simplified EJV components (W, P, L, A, E)
                             const affordabilityElement = document.getElementById(`affordability-${store.id}`);
-                            if (wageElement && ejvData.data.ejv_simplified?.components?.W_fair_wage !== undefined) {
-                                wageElement.textContent = (ejvData.data.ejv_simplified.components.W_fair_wage * 100).toFixed(1);
+                            const participationElement = document.getElementById(`participation-${store.id}`);
+                            const procurementElement = document.getElementById(`procurement-${store.id}`);
+                            
+                            // Display EJV 4.1 components (LC, W, DN, EQ, ENV, PROC) - already 0-100 scale
+                            const components = apiData.components || {};
+                            
+                            // Map EJV 4.1 components to display elements
+                            // LC -> Community, W -> Wage, DN -> Affordability, EQ -> Hiring, ENV -> Participation, PROC -> Procurement
+                            if (communityElement && components.LC_local_circulation !== undefined) {
+                                communityElement.textContent = components.LC_local_circulation.toFixed(2);
                             }
-                            if (hiringElement && ejvData.data.ejv_simplified?.components?.P_pay_equity !== undefined) {
-                                hiringElement.textContent = (ejvData.data.ejv_simplified.components.P_pay_equity * 100).toFixed(1);
+                            if (wageElement && components.W_fair_wages !== undefined) {
+                                wageElement.textContent = components.W_fair_wages.toFixed(2);
                             }
-                            if (communityElement && ejvData.data.ejv_simplified?.components?.L_local_impact !== undefined) {
-                                communityElement.textContent = (ejvData.data.ejv_simplified.components.L_local_impact * 100).toFixed(1);
+                            if (affordabilityElement && components.DN_community_need !== undefined) {
+                                affordabilityElement.textContent = components.DN_community_need.toFixed(2);
                             }
-                            if (affordabilityElement && ejvData.data.ejv_simplified?.components?.A_affordability !== undefined) {
-                                affordabilityElement.textContent = (ejvData.data.ejv_simplified.components.A_affordability * 100).toFixed(1);
+                            if (hiringElement && components.EQ_equity_inclusion !== undefined) {
+                                hiringElement.textContent = components.EQ_equity_inclusion.toFixed(2);
                             }
-                            if (participationElement && ejvData.data.ejv_simplified?.components?.E_environmental !== undefined) {
-                                participationElement.textContent = (ejvData.data.ejv_simplified.components.E_environmental * 100).toFixed(1);
+                            if (participationElement && components.ENV_environmental !== undefined) {
+                                participationElement.textContent = components.ENV_environmental.toFixed(2);
+                            }
+                            if (procurementElement && components.PROC_procurement !== undefined) {
+                                procurementElement.textContent = components.PROC_procurement.toFixed(2);
                             }
                             
                             // Show impact circle on map
                             const marker = markers.find(m => m.storeId === store.id);
                             if (marker) {
-                                showImpactCircle(marker.getLatLng(), ejvData.elvr || 0);
+                                const elvr = ejvData.data.economic_impact?.elvr || ejvData.data.elvr || 0;
+                                showImpactCircle(marker.getLatLng(), elvr);
                             }
                         }
                     }, 50); // 50ms debounce - instant for cached data
@@ -4615,6 +4906,98 @@ out center;`;
                     marker.openPopup();
                 };
                 storeListDiv.appendChild(storeItem);
+                
+                // Auto-load EJV values immediately for this store
+                (async () => {
+                    try {
+                        console.log(`🔄 Auto-loading EJV for ${storeName} (ID: ${store.id})`);
+                        const ejvData = await calculateEJV(store.id, storeName, false);
+                        console.log(`📊 Auto-load result for ${storeName}:`, ejvData);
+                        
+                        if (!ejvData) {
+                            console.error(`❌ No ejvData returned for ${storeName}`);
+                            return;
+                        }
+                        
+                        if (!ejvData.data) {
+                            console.error(`❌ No ejvData.data property for ${storeName}`, ejvData);
+                            return;
+                        }
+                        
+                        // Access the API response data directly
+                        const apiData = ejvData.data;
+                        console.log(`✅ API data for ${storeName}:`, apiData);
+                        
+                        // Update both EJV 4.1 and original EJV scores
+                        const v2Element = document.getElementById(`ejv-v2-${store.id}`);
+                        const originalElement = document.getElementById(`ejv-original-${store.id}`);
+                        
+                        console.log(`🔍 Element check - v2: ${v2Element ? 'Found' : 'NOT FOUND'}, original: ${originalElement ? 'Found' : 'NOT FOUND'}`);
+                        console.log(`🔍 Score values - ejv_score: ${apiData.ejv_score}, original: ${apiData.ejv_original?.ejv_percentage}`);
+                        
+                        if (v2Element && apiData.ejv_score !== undefined) {
+                            v2Element.textContent = apiData.ejv_score.toFixed(2);
+                            console.log(`✓ Set EJV 4.1 score for ${storeName}: ${apiData.ejv_score.toFixed(2)}`);
+                        } else {
+                            console.error(`❌ Could not set EJV 4.1: element=${!!v2Element}, score=${apiData.ejv_score}`);
+                        }
+                        
+                        if (originalElement) {
+                            if (apiData.ejv_original?.ejv_percentage !== undefined) {
+                                originalElement.textContent = apiData.ejv_original.ejv_percentage.toFixed(2) + '%';
+                                console.log(`✓ Set EJV original for ${storeName}: ${apiData.ejv_original.ejv_percentage.toFixed(2)}%`);
+                            } else if (apiData.ejv_original?.ejv_score !== undefined) {
+                                originalElement.textContent = (apiData.ejv_original.ejv_score * 100).toFixed(2) + '%';
+                                console.log(`✓ Set EJV original from score for ${storeName}: ${(apiData.ejv_original.ejv_score * 100).toFixed(2)}%`);
+                            } else {
+                                console.error(`❌ No EJV original score data available`);
+                            }
+                        } else {
+                            console.error(`❌ Original element not found`);
+                        }
+                        
+                        // Update components
+                        const components = apiData.components || {};
+                        console.log(`🔧 Components data:`, components);
+                        
+                        const communityElement = document.getElementById(`community-${store.id}`);
+                        const wageElement = document.getElementById(`wage-${store.id}`);
+                        const affordabilityElement = document.getElementById(`affordability-${store.id}`);
+                        const hiringElement = document.getElementById(`hiring-${store.id}`);
+                        const participationElement = document.getElementById(`participation-${store.id}`);
+                        const procurementElement = document.getElementById(`procurement-${store.id}`);
+                        
+                        console.log(`🔍 Component elements - LC: ${!!communityElement}, W: ${!!wageElement}, DN: ${!!affordabilityElement}, EQ: ${!!hiringElement}, ENV: ${!!participationElement}, PROC: ${!!procurementElement}`);
+                        
+                        if (communityElement && components.LC_local_circulation !== undefined) {
+                            communityElement.textContent = components.LC_local_circulation.toFixed(2);
+                            console.log(`✓ LC: ${components.LC_local_circulation.toFixed(2)}`);
+                        }
+                        if (wageElement && components.W_fair_wages !== undefined) {
+                            wageElement.textContent = components.W_fair_wages.toFixed(2);
+                            console.log(`✓ W: ${components.W_fair_wages.toFixed(2)}`);
+                        }
+                        if (affordabilityElement && components.DN_community_need !== undefined) {
+                            affordabilityElement.textContent = components.DN_community_need.toFixed(2);
+                            console.log(`✓ DN: ${components.DN_community_need.toFixed(2)}`);
+                        }
+                        if (hiringElement && components.EQ_equity_inclusion !== undefined) {
+                            hiringElement.textContent = components.EQ_equity_inclusion.toFixed(2);
+                            console.log(`✓ EQ: ${components.EQ_equity_inclusion.toFixed(2)}`);
+                        }
+                        if (participationElement && components.ENV_environmental !== undefined) {
+                            participationElement.textContent = components.ENV_environmental.toFixed(2);
+                            console.log(`✓ ENV: ${components.ENV_environmental.toFixed(2)}`);
+                        }
+                        if (procurementElement && components.PROC_procurement !== undefined) {
+                            procurementElement.textContent = components.PROC_procurement.toFixed(2);
+                            console.log(`✓ PROC: ${components.PROC_procurement.toFixed(2)}`);
+                        }
+                    } catch (error) {
+                        console.error(`❌ Error auto-loading EJV for ${storeName}:`, error);
+                        console.error(`Error stack:`, error.stack);
+                    }
+                })();
             });
 
             // Fit map to show all markers
@@ -4627,59 +5010,99 @@ out center;`;
 
         // LOCATOR UI Pattern action buttons
         async function showWhyModal(storeId, storeName) {
-            const ejvData = await calculateEJV(storeId, storeName, false);
-            if (!ejvData || !ejvData.data) return;
-            
-            const data = ejvData.data;
-            const lc = data.local_capture_components || {};
-            
-            const modalContent = `
-                <div style="padding: 20px;">
-                    <h3 style="color: #667eea; margin-bottom: 15px;">📊 ${storeName} - Local Capture Breakdown</h3>
-                    
-                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-                        <div style="font-size: 18px; font-weight: 700; color: #1976d2; margin-bottom: 5px;">
-                            ELVR: $${(data.elvr || 0).toFixed(2)}
+            try {
+                console.log(`Loading Why modal for ${storeName} (ID: ${storeId})`);
+                const ejvData = await calculateEJV(storeId, storeName, false);
+                console.log('Why modal EJV data:', ejvData);
+                
+                if (!ejvData || !ejvData.data) {
+                    console.error('Failed to load EJV data for modal');
+                    alert('Unable to load EJV data. Please try again.');
+                    return;
+                }
+                
+                const data = ejvData.data;
+                console.log('Modal data structure:', data);
+                
+                const components = data.components || {};
+                const componentDetails = data.component_details || {};
+                const economicImpact = data.economic_impact || {};
+                
+                const modalContent = `
+                    <div style="padding: 20px; max-width: 600px;">
+                        <h3 style="color: #667eea; margin-bottom: 15px;">📊 ${storeName} - EJV 4.1 Breakdown</h3>
+                        
+                        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 15px; border-radius: 8px; margin-bottom: 15px; color: white;">
+                            <div style="font-size: 24px; font-weight: 700; margin-bottom: 5px;">
+                                ${data.ejv_score ? data.ejv_score.toFixed(2) : '0.00'} / 100
+                            </div>
+                            <div style="font-size: 12px; opacity: 0.9;">Economic Justice Value Score (EJV 4.1)</div>
+                            <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.3);">
+                                <div style="font-size: 14px; font-weight: 600;">ELVR: $${(economicImpact.elvr || 0).toFixed(2)}</div>
+                                <div style="font-size: 11px; opacity: 0.9;">Estimated Local Value Retained (per $100 spent)</div>
+                            </div>
                         </div>
-                        <div style="font-size: 12px; color: #666;">Estimated Local Value Retained (per $100 spent)</div>
+                        
+                        <div style="background: linear-gradient(135deg, #7b1fa2 0%, #512da8 100%); padding: 15px; border-radius: 8px; margin-bottom: 15px; color: white;">
+                            <div style="font-size: 20px; font-weight: 700; margin-bottom: 5px;">
+                                ${data.ejv_original?.ejv_percentage ? data.ejv_original.ejv_percentage.toFixed(2) : '0.00'}%
+                            </div>
+                            <div style="font-size: 12px; opacity: 0.9;">EJV 4.0 Score (5-Component Weighted)</div>
+                        </div>
+                        
+                        <h4 style="margin: 15px 0 10px; color: #333;">EJV 4.1 Components (Equal Weight 16.67% each):</h4>
+                        <div style="font-size: 12px; line-height: 1.8;">
+                            <div style="display: flex; justify-content: space-between; padding: 8px; background: #f0f4ff; border-radius: 4px; margin-bottom: 5px;">
+                                <span>🏘️ LC (Local Circulation):</span>
+                                <strong style="color: #667eea;">${(components.LC_local_circulation || 0).toFixed(2)}</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 8px; background: #fff; border-radius: 4px; margin-bottom: 5px;">
+                                <span>💵 W (Fair Wages):</span>
+                                <strong style="color: #667eea;">${(components.W_fair_wages || 0).toFixed(2)}</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 8px; background: #f0f4ff; border-radius: 4px; margin-bottom: 5px;">
+                                <span>🏥 DN (Community Need):</span>
+                                <strong style="color: #667eea;">${(components.DN_community_need || 0).toFixed(2)}</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 8px; background: #fff; border-radius: 4px; margin-bottom: 5px;">
+                                <span>⚖️ EQ (Equity & Inclusion):</span>
+                                <strong style="color: #667eea;">${(components.EQ_equity_inclusion || 0).toFixed(2)}</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 8px; background: #f0f4ff; border-radius: 4px; margin-bottom: 5px;">
+                                <span>🌱 ENV (Environmental):</span>
+                                <strong style="color: #667eea;">${(components.ENV_environmental || 0).toFixed(2)}</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 8px; background: #fff; border-radius: 4px;">
+                                <span>🛒 PROC (Procurement):</span>
+                                <strong style="color: #667eea;">${(components.PROC_procurement || 0).toFixed(2)}</strong>
+                            </div>
+                        </div>
+                        
+                        <div style="font-size: 11px; color: #666; margin-top: 10px; padding: 8px; background: #fffef0; border-radius: 4px;">
+                            <strong>Formula:</strong> ${data.formula || 'EJV 4.1 = (LC + W + DN + EQ + ENV + PROC) / 6'}
+                        </div>
+                        
+                        <h4 style="margin: 15px 0 10px; color: #333;">Data Sources:</h4>
+                        <div style="font-size: 11px; color: #666; line-height: 1.6; background: #f8f9fa; padding: 10px; border-radius: 4px;">
+                            <strong>📊 Primary Data:</strong><br>
+                            • Census ACS (Income, Poverty, Demographics)<br>
+                            • BLS (Unemployment, Wages, Labor Market)<br>
+                            • MIT Living Wage Calculator<br>
+                            • HUD (Housing Need Areas)<br>
+                            • EPA EJScreen (Environmental Justice)<br>
+                            • EEOC (Equity Data), USDA (Food Deserts)<br>
+                            • Supply Chain Research
+                        </div>
+                        
+                        <button onclick="closeModal()" style="width: 100%; margin-top: 15px; padding: 10px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Close</button>
                     </div>
-                    
-                    <h4 style="margin: 15px 0 10px; color: #333;">5-Flow Decomposition:</h4>
-                    <div style="font-size: 12px; line-height: 2;">
-                        <div style="display: flex; justify-content: space-between; padding: 8px; background: #f0f4ff; border-radius: 4px; margin-bottom: 5px;">
-                            <span>💼 Wages (35%):</span>
-                            <strong style="color: #1976d2;">$${((lc.wages || 0) * 100).toFixed(2)}</strong>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; padding: 8px; background: #fff; border-radius: 4px; margin-bottom: 5px;">
-                            <span>🏪 Suppliers (25%):</span>
-                            <strong style="color: #1976d2;">$${((lc.suppliers || 0) * 100).toFixed(2)}</strong>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; padding: 8px; background: #f0f4ff; border-radius: 4px; margin-bottom: 5px;">
-                            <span>🏛️ Taxes (15%):</span>
-                            <strong style="color: #1976d2;">$${((lc.taxes || 0) * 100).toFixed(2)}</strong>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; padding: 8px; background: #fff; border-radius: 4px; margin-bottom: 5px;">
-                            <span>💰 Financing (15%):</span>
-                            <strong style="color: #1976d2;">$${((lc.financing || 0) * 100).toFixed(2)}</strong>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; padding: 8px; background: #f0f4ff; border-radius: 4px;">
-                            <span>👥 Ownership (10%):</span>
-                            <strong style="color: #1976d2;">$${((lc.ownership || 0) * 100).toFixed(2)}</strong>
-                        </div>
-                    </div>
-                    
-                    <h4 style="margin: 15px 0 10px; color: #333;">Data Provenance:</h4>
-                    <div style="font-size: 11px; color: #666; line-height: 1.6; background: #fffef0; padding: 10px; border-radius: 4px;">
-                        <strong>EJV v2 Baseline:</strong> Census/ACS, BLS, TIGER (government open data)<br>
-                        <strong>EJV v4.1 Flows:</strong> Business profiles, local supplier networks, ownership structure<br>
-                        <strong>Verification:</strong> OpenStreetMap + local data sources
-                    </div>
-                    
-                    <button onclick="closeModal()" style="width: 100%; margin-top: 15px; padding: 10px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Close</button>
-                </div>
-            `;
-            
-            showModal(modalContent);
+                `;
+                
+                showModal(modalContent);
+            } catch (error) {
+                console.error('Error showing Why modal:', error);
+                alert('Error loading EJV details: ' + error.message);
+            }
         }
         
         function compareStore(storeId) {
@@ -4708,33 +5131,64 @@ out center;`;
             if (modal) modal.remove();
         }
 
-        async function calculateEJV(storeId, storeName, showDashboard = false) {
+        async function calculateEJV(storeId, storeName, showDashboard = false, zipCode = null) {
+            // Use provided zipCode or fall back to currentZip
+            const useZip = zipCode || currentZip;
+            
             // Check cache first for instant response
             if (ejvCache[storeId]) {
-                console.log(`Using cached EJV for ${storeName}`);
+                console.log(`✅ Using cached EJV for ${storeName}`);
+                console.log(`📦 Cached data structure:`, ejvCache[storeId]);
+                console.log(`📦 Cached data.data:`, ejvCache[storeId].data);
+                console.log(`📦 Cached ejv_score:`, ejvCache[storeId].data?.ejv_score);
                 if (showDashboard) {
                     updateRightDashboard(ejvCache[storeId].data, storeName);
                 }
                 return ejvCache[storeId];
             }
             
-            console.log(`Calculating EJV for store ${storeId} (${storeName})`);
+            console.log(`Calculating EJV 4.1 for store ${storeId} (${storeName}) with ZIP: ${useZip}`);
             try {
-                // Call backend API for Simplified EJV (5 components: W, P, L, A, E + ELVR/EVL)
-                const apiUrl = `/api/ejv/simple/${storeId}?zip=${currentZip}&location=${encodeURIComponent(storeName)}&name=${encodeURIComponent(storeName)}`;  
-                console.log('Calling Simplified EJV API:', apiUrl);
-                const response = await fetch(apiUrl);
+                // Call backend API for EJV 4.1 (6 components: LC, W, DN, EQ, ENV, PROC)
+                const apiUrl = `/api/ejv-v4.1/${storeId}`;  
+                console.log('Calling EJV 4.1 API:', apiUrl);
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        zip: useZip,
+                        location: storeName,
+                        name: storeName,
+                        purchase: 100.0
+                    })
+                });
                 
-                console.log('API Response status:', response.status);
+                console.log('🔍 API Response status:', response.status);
+                console.log('🔍 Response OK?:', response.ok);
                 
                 // Get real data from API
                 let ejvData;
                 if (response.ok) {
-                    ejvData = await response.json();
-                    console.log('✓ Using REAL Simplified EJV calculation from backend API');
-                    console.log('Simplified EJV Response:', ejvData);
+                    try {
+                        const apiResponse = await response.json();
+                        console.log('✓ Using REAL EJV 4.1 calculation from backend API');
+                        console.log('📦 EJV 4.1 Raw API Response:', JSON.stringify(apiResponse, null, 2));
+                        
+                        // The API now returns data at the root level, not nested
+                        ejvData = apiResponse;
+                        console.log('✅ ejvData assigned:', ejvData);
+                    } catch (parseError) {
+                        console.error('❌ Error parsing API response:', parseError);
+                        const responseText = await response.text();
+                        console.error('Raw response text:', responseText);
+                        return null;
+                    }
                 } else {
-                    console.warn('API call failed, using fallback mock data');
+                    const errorText = await response.text();
+                    console.error(`❌ API call failed with status ${response.status}:`, errorText);
+                    console.warn('⚠️ Using fallback mock data');
                     // Create deterministic seed from store ID for consistent fallback
                     const storeIdNum = typeof storeId === 'number' ? storeId : parseInt(storeId.toString().replace(/\D/g, '')) || 1;
                     const seed = (storeIdNum * 9301 + 49297) % 233280;
@@ -4743,75 +5197,95 @@ out center;`;
                     const r3 = ((seed * 3.7) % 233280) / 233280;
                     const r4 = ((seed * 5.1) % 233280) / 233280;
                     const r5 = ((seed * 7.2) % 233280) / 233280;
+                    const r6 = ((seed * 8.9) % 233280) / 233280;
                     
-                    // Create fallback data with EJV score matching retention percentage
-                    const fallbackEjvScore = 0.55 + (r1 * 0.20);  // 0.55-0.75 (55-75%)
-                    const fallbackEjvPct = fallbackEjvScore * 100;  // 55-75%
+                    // Create fallback data with EJV 4.1 score (0-100 scale)
+                    const fallbackEjvScore = 55 + (r1 * 20);  // 55-75
                     const purchaseAmt = 100.0;
-                    const fallbackElvr = purchaseAmt * fallbackEjvScore;
+                    const fallbackElvr = purchaseAmt * (fallbackEjvScore / 100);
                     const fallbackEvl = purchaseAmt - fallbackElvr;
                     
                     ejvData = {
                         ejv_score: fallbackEjvScore,
-                        ejv_percentage: fallbackEjvPct,
+                        ejv_percentage: fallbackEjvScore,
+                        ejv_version: "EJV 4.1 (6-Component Equal Weight)",
                         components: {
-                            W_fair_wage: 0.75 + (r2 * 0.20),
-                            P_pay_equity: 0.70 + (r3 * 0.25),
-                            L_local_impact: 0.40 + (r4 * 0.30),
-                            A_affordability: 0.80 + (r5 * 0.15),
-                            E_environmental: 0.50 + (r1 * 0.30)
+                            LC_local_circulation: 50 + (r1 * 30),
+                            W_fair_wages: 60 + (r2 * 30),
+                            DN_community_need: 40 + (r3 * 40),
+                            EQ_equity_inclusion: 55 + (r4 * 30),
+                            ENV_environmental: 45 + (r5 * 35),
+                            PROC_procurement: 50 + (r6 * 30)
                         },
                         economic_impact: {
                             elvr: fallbackElvr,
                             evl: fallbackEvl,
-                            retention_percent: fallbackEjvPct
+                            retention_percent: fallbackEjvScore
                         },
-                        formula: "EJV = (W + P + L + A + E) / 5",
+                        formula: "EJV 4.1 = (LC + W + DN + EQ + ENV + PROC) / 6",
                         data_sources: [
-                            "BLS OEWS (Wages)",
+                            "Census ACS (Income, Poverty, Demographics)",
+                            "BLS (Unemployment, Wages, Labor Market)",
                             "MIT Living Wage Calculator",
-                            "Census ACS (Demographics)",
+                            "HUD (Housing Need Areas)",
+                            "EPA EJScreen (Environmental Justice)",
                             "EEOC (Equity Data)",
-                            "EPA (Environmental)",
-                            "Industry Research (Procurement)"
+                            "USDA (Food Deserts)",
+                            "Supply Chain Research"
                         ],
                         local_context: {
                             unemployment_rate: 5.0,
                             median_income: 50000
+                        },
+                        ejv_original: {
+                            ejv_score: 0.55,
+                            ejv_percentage: 55.0
                         }
                     };
+                    console.log('⚠️ Using fallback data:', ejvData);
                 }
                 
-                // Structure data for dashboard
+                console.log('🔧 Pre-structure ejvData:', ejvData);
+                console.log('🔧 ejvData.ejv_score:', ejvData.ejv_score);
+                console.log('🔧 ejvData.components:', ejvData.components);
+                console.log('🔧 ejvData.economic_impact:', ejvData.economic_impact);
+                
+                // Structure data for dashboard - preserve API response structure
                 const data = {
-                    ejv_version: "Simplified 5-Component",
+                    ejv_version: ejvData.ejv_version || "EJV 4.1 (6-Component Equal Weight)",
+                    ejv_score: ejvData.ejv_score,  // Direct access to EJV 4.1 score (0-100)
+                    ejv_percentage: ejvData.ejv_percentage || ejvData.ejv_score,
+                    components: ejvData.components,  // Direct access to components
+                    component_details: ejvData.component_details,
+                    ejv_original: ejvData.ejv_original,  // Direct access to original EJV
                     elvr: ejvData.economic_impact?.elvr || 0,
                     evl: ejvData.economic_impact?.evl || 0,
-                    retention_percentage: ejvData.economic_impact?.retention_percent || 0,
-                    ejv_simplified: ejvData,
-                    ejv_v2_baseline: ejvData,  // Backward compatibility
-                    formula: ejvData.formula || "EJV = (W + P + L + A + E) / 5",
+                    retention_percentage: ejvData.economic_impact?.retention_percent || ejvData.ejv_score || 0,
+                    economic_impact: ejvData.economic_impact,
+                    formula: ejvData.formula || "EJV 4.1 = (LC + W + DN + EQ + ENV + PROC) / 6",
                     data_sources: ejvData.data_sources || [],
+                    local_context: ejvData.local_context,
                     zip_analysis: {
                         unemployment_rate: ejvData.local_context?.unemployment_rate || 5.0,
                         median_income: ejvData.local_context?.median_income || 50000
-                    },
-
+                    }
                 };
 
-                console.log('Combined EJV Data:', data);
+                console.log('📊 Structured EJV Data for display:', data);
+                console.log('📊 data.ejv_score:', data.ejv_score);
+                console.log('📊 data.components:', data.components);
 
                 if (data.error) {
-                    console.error('EJV Error:', data.error);
+                    console.error('❌ EJV Error:', data.error);
                     return null;
                 }
 
-                // Extract values from simplified EJV structure
+                // Extract values from API response
                 const elvr = data.elvr || 0;
                 const evl = data.evl || 0;
-                const ejvV2Baseline = data.ejv_simplified?.ejv_percentage || data.ejv_simplified?.ejv_score * 100 || 0;
+                const ejvV2Baseline = data.ejv_score || 0;  // EJV 4.1 score (0-100)
 
-                console.log(`Simplified EJV - Score: ${ejvV2Baseline}%, ELVR: $${elvr}, EVL: $${evl}, Retention: ${data.retention_percentage}%`);
+                console.log(`💰 EJV 4.1 Final Values - Score: ${ejvV2Baseline}, ELVR: $${elvr}, EVL: $${evl}, Retention: ${data.retention_percentage}%`);
 
                 // Store in global array for compare/optimize modes
                 // Get address from rawStores with fallback to cached data
@@ -4920,7 +5394,9 @@ out center;`;
 
                 return result;
             } catch (error) {
-                console.error('Error calculating EJV:', error);
+                console.error('❌ Error in calculateEJV function:', error);
+                console.error('❌ Error stack:', error.stack);
+                console.error('❌ Store ID:', storeId, 'Name:', storeName);
                 return null;
             }
         }
@@ -5039,11 +5515,11 @@ out center;`;
             document.getElementById('storeNameDisplay').textContent = storeName;
             document.getElementById('storeLocationDisplay').textContent = data.location || data.zip_code || 'Unknown';
             
-            // Extract values from simplified EJV structure with explicit logging
-            const elvr = data.elvr || 0;
-            const evl = data.evl || 0;
-            const retentionPct = data.retention_percentage || 0;
-            const ejvV2Baseline = data.ejv_simplified?.ejv_percentage || (data.ejv_simplified?.ejv_score * 100) || 0;
+            // Extract values from EJV 4.1 structure with explicit logging
+            const elvr = data.economic_impact?.elvr || data.elvr || 0;
+            const evl = data.economic_impact?.evl || data.evl || 0;
+            const retentionPct = data.economic_impact?.retention_percent || data.retention_percentage || 0;
+            const ejvV2Baseline = data.ejv_percentage || data.ejv_score || 0;
             const wealthRetained = elvr;  // ELVR
             const wealthLeakage = evl;    // EVL
             
@@ -5124,18 +5600,27 @@ out center;`;
             const v2Display = document.getElementById('ejvV2Display');
             const v41Display = document.getElementById('ejvV41Display');
             
+            // Set EJV 4.1 score (0-100)
+            if (v41Display) {
+                const v41Value = ejvV2Baseline > 0 ? ejvV2Baseline.toFixed(1) : '-';
+                v41Display.textContent = v41Value;
+                v41Display.parentElement.style.background = impactBg;
+                v41Display.parentElement.style.borderColor = impactBorder;
+                v41Display.style.color = impactColor;
+                console.log('Set ejvV41Display to:', v41Value);
+            } else {
+                console.error('ERROR: ejvV41Display element not found!');
+            }
+            
+            // Set original EJV score (0-100%)
             if (v2Display) {
-                const v2Value = ejvV2Baseline > 0 ? ejvV2Baseline.toFixed(2) : '-';
+                const originalScore = data.ejv_original?.ejv_percentage || (data.ejv_original?.ejv_score * 100) || 0;
+                const v2Value = originalScore > 0 ? originalScore.toFixed(1) + '%' : '-';
                 v2Display.textContent = v2Value;
-                v2Display.parentElement.style.background = impactBg;
-                v2Display.parentElement.style.borderColor = impactBorder;
-                v2Display.style.color = impactColor;
-                console.log('Set ejvV2Display to:', v2Value, '(ejvV2Baseline was:', ejvV2Baseline, ')');
+                console.log('Set ejvV2Display to:', v2Value, '(original EJV score)');
             } else {
                 console.error('ERROR: ejvV2Display element not found!');
             }
-            
-
             
             console.log('Display values set - check screen');
             
@@ -5193,46 +5678,61 @@ out center;`;
                 console.error('ERROR: wealthLeakage element not found!');
             }
 
-            // Simplified EJV Components (W, P, L, A, E) - 0-100 scale
-            const components = data.ejv_simplified?.components || {};
+            // EJV 4.1 Components (LC, W, DN, EQ, ENV, PROC) - 0-100 scale
+            const components = data.components || {};
             
-            const W_fair_wage = (components.W_fair_wage || 0) * 100;
-            const P_pay_equity = (components.P_pay_equity || 0) * 100;
-            const L_local_impact = (components.L_local_impact || 0) * 100;
-            const A_affordability = (components.A_affordability || 0) * 100;
-            const E_environmental = (components.E_environmental || 0) * 100;
+            const LC_local_circulation = components.LC_local_circulation || 0;
+            const W_fair_wages = components.W_fair_wages || 0;
+            const DN_community_need = components.DN_community_need || 0;
+            const EQ_equity_inclusion = components.EQ_equity_inclusion || 0;
+            const ENV_environmental = components.ENV_environmental || 0;
+            const PROC_procurement = components.PROC_procurement || 0;
             
-            console.log('Simplified EJV Components:', { W_fair_wage, P_pay_equity, L_local_impact, A_affordability, E_environmental });
+            console.log('EJV 4.1 Components:', { LC_local_circulation, W_fair_wages, DN_community_need, EQ_equity_inclusion, ENV_environmental, PROC_procurement });
             
             const wageScoreElem = document.getElementById('wageScore');
             const hiringScoreElem = document.getElementById('hiringScore');
             const communityScoreElem = document.getElementById('communityScore');
             const affordabilityScoreElem = document.getElementById('affordabilityScore');
             const participationScoreElem = document.getElementById('dashboardParticipationScore');
+            const procurementScoreElem = document.getElementById('procurementScore');
             
-            if (wageScoreElem) {
-                wageScoreElem.textContent = W_fair_wage.toFixed(1);
-                console.log('Set W (Fair Wage) to:', W_fair_wage.toFixed(1));
-            }
-            
-            if (hiringScoreElem) {
-                hiringScoreElem.textContent = P_pay_equity.toFixed(1);
-                console.log('Set P (Pay Equity) to:', P_pay_equity.toFixed(1));
-            }
+            // Map EJV 4.1 components to dashboard elements
+            // LC -> Community (showing local circulation)
+            // W -> Wage (fair wages)
+            // DN -> Affordability (showing community need)
+            // EQ -> Hiring (equity & inclusion)
+            // ENV -> Participation (environmental)
+            // PROC -> Add new element or show in tooltip
             
             if (communityScoreElem) {
-                communityScoreElem.textContent = L_local_impact.toFixed(1);
-                console.log('Set L (Local Impact) to:', L_local_impact.toFixed(1));
+                communityScoreElem.textContent = LC_local_circulation.toFixed(1);
+                console.log('Set LC (Local Circulation) to:', LC_local_circulation.toFixed(1));
+            }
+            
+            if (wageScoreElem) {
+                wageScoreElem.textContent = W_fair_wages.toFixed(1);
+                console.log('Set W (Fair Wages) to:', W_fair_wages.toFixed(1));
             }
             
             if (affordabilityScoreElem) {
-                affordabilityScoreElem.textContent = A_affordability.toFixed(1);
-                console.log('Set A (Affordability) to:', A_affordability.toFixed(1));
+                affordabilityScoreElem.textContent = DN_community_need.toFixed(1);
+                console.log('Set DN (Community Need) to:', DN_community_need.toFixed(1));
+            }
+            
+            if (hiringScoreElem) {
+                hiringScoreElem.textContent = EQ_equity_inclusion.toFixed(1);
+                console.log('Set EQ (Equity & Inclusion) to:', EQ_equity_inclusion.toFixed(1));
             }
             
             if (participationScoreElem) {
-                participationScoreElem.textContent = E_environmental.toFixed(1);
-                console.log('Set E (Environmental) to:', E_environmental.toFixed(1));
+                participationScoreElem.textContent = ENV_environmental.toFixed(1);
+                console.log('Set ENV (Environmental) to:', ENV_environmental.toFixed(1));
+            }
+            
+            if (procurementScoreElem) {
+                procurementScoreElem.textContent = PROC_procurement.toFixed(1);
+                console.log('Set PROC (Procurement) to:', PROC_procurement.toFixed(1));
             }
 
             // EJV Local Capture Flows (per $100 spent)
@@ -5255,16 +5755,16 @@ out center;`;
                 flowTaxesElem.textContent = taxValue;
             }
 
-            // Formula display
+            // Formula display - EJV 4.1
             const formulaText = document.getElementById('formulaText');
-            const formula = data.formula || data.ejv_simplified?.formula || "EJV = 0.25W + 0.15P + 0.30L + 0.15A + 0.15E";
+            const formula = data.formula || "EJV 4.1 = (LC + W + DN + EQ + ENV + PROC) / 6";
             if (formulaText) {
                 formulaText.textContent = formula;
             }
 
             // Data sources with clear references
             const dataSourcesList = document.getElementById('dataSourcesList');
-            const dataSources = data.data_sources || data.ejv_simplified?.data_sources || [];
+            const dataSources = data.data_sources || [];
             
             let sourcesHTML = '';
             
@@ -5274,30 +5774,48 @@ out center;`;
             if (hasRealData) {
                 sourcesHTML = `
                     <li style="background: #e8f5e9; padding: 8px; border-radius: 4px; margin-bottom: 8px; border-left: 3px solid #4caf50;">
-                        <strong style="color: #1b5e20;">✓ LIVE DATA + COMPANY-SPECIFIC</strong><br>
-                        <span style="font-size: 9px; color: #666;">Real-time + Company multipliers from SEC 10-K, ESG reports, union contracts</span>
+                        <strong style="color: #1b5e20;">✓ DUAL EJV SYSTEM - LIVE DATA</strong><br>
+                        <span style="font-size: 9px; color: #666;">Showing both EJV 4.1 (6-component) and EJV 4.0 (5-component) for comparison</span>
                     </li>
                 `;
                 
-                // Add primary sources
-                sourcesHTML += `<li style="margin-top: 6px;"><strong>📊 Primary Sources:</strong>
+                // Add primary sources for EJV 4.1
+                sourcesHTML += `<li style="margin-top: 6px;"><strong>📊 Data Sources (Both Versions):</strong>
                     <ul style="margin-left: 15px; font-size: 8px; color: #666; margin-top: 3px;">
-                        <li>BLS OEWS (Wages), Census ACS (Demographics)</li>
-                        <li>MIT Living Wage, EPA EJSCREEN, EEOC</li>
-                        <li>SEC 10-K Filings, Company ESG Reports 2024</li>
+                        <li>Census ACS (Income, Poverty, Demographics)</li>
+                        <li>BLS (Unemployment, Wages, Labor Market)</li>
+                        <li>MIT Living Wage Calculator</li>
+                        <li>HUD (Housing Need Areas) - 4.1 only</li>
+                        <li>EPA EJScreen (Environmental Justice)</li>
+                        <li>EEOC (Equity Data), USDA (Food Deserts)</li>
                     </ul>
                 </li>`;
                 
-                // Add component details
-                const components = data.ejv_simplified?.component_details;
-                if (components) {
-                    sourcesHTML += `<li style="margin-top: 8px;"><strong>🔍 Component Details:</strong>
+                // Add component details for EJV 4.1
+                const componentDetails = data.component_details;
+                if (componentDetails) {
+                    sourcesHTML += `<li style="margin-top: 8px;"><strong>🔍 EJV 4.1 Components (Equal Weight):</strong>
                         <ul style="margin-left: 15px; font-size: 8px; color: #666; margin-top: 3px;">
-                            <li><strong>W (25%)</strong>: ${components.fair_wage?.source || 'BLS OEWS'}</li>
-                            <li><strong>P (15%)</strong>: ${components.pay_equity?.source || 'EEOC + ESG'}</li>
-                            <li><strong>L (30%)</strong>: ${components.local_impact?.source || 'Census LODES'}</li>
-                            <li><strong>A (15%)</strong>: ${components.affordability?.source || 'BLS CPI'}</li>
-                            <li><strong>E (15%)</strong>: ${components.environmental?.source || 'EPA + CDP'}</li>
+                            <li><strong>LC (16.7%)</strong>: ${componentDetails.local_circulation?.source || 'Census LODES + Supply Chain'}</li>
+                            <li><strong>W (16.7%)</strong>: ${componentDetails.fair_wages?.source || 'BLS OEWS + MIT Living Wage'}</li>
+                            <li><strong>DN (16.7%)</strong>: ${componentDetails.community_need?.source || 'Census ACS + BLS + HUD'}</li>
+                            <li><strong>EQ (16.7%)</strong>: ${componentDetails.equity_inclusion?.source || 'EEOC + Diversity Data'}</li>
+                            <li><strong>ENV (16.7%)</strong>: ${componentDetails.environmental?.source || 'EPA + Sustainability Metrics'}</li>
+                            <li><strong>PROC (16.7%)</strong>: ${componentDetails.procurement?.source || 'Supply Chain Research'}</li>
+                        </ul>
+                    </li>`;
+                }
+                
+                // Add original EJV components info
+                const originalComponents = data.ejv_original?.component_details;
+                if (originalComponents) {
+                    sourcesHTML += `<li style="margin-top: 8px;"><strong>🔍 EJV Original (Weighted):</strong>
+                        <ul style="margin-left: 15px; font-size: 8px; color: #666; margin-top: 3px;">
+                            <li><strong>W (25%)</strong>: Fair Wage</li>
+                            <li><strong>P (15%)</strong>: Pay Equity</li>
+                            <li><strong>L (30%)</strong>: Local Impact</li>
+                            <li><strong>A (15%)</strong>: Affordability</li>
+                            <li><strong>E (15%)</strong>: Environmental</li>
                         </ul>
                     </li>`;
                 }
@@ -5305,10 +5823,10 @@ out center;`;
                 sourcesHTML = `
                     <li style="background: #fff3e0; padding: 8px; border-radius: 4px; margin-bottom: 8px; border-left: 3px solid #ff9800;">
                         <strong style="color: #e65100;">⚠️ DEMO MODE</strong><br>
-                        <span style="font-size: 9px; color: #666;">Showing simulated data. Connect to API for real values.</span>
+                        <span style="font-size: 9px; color: #666;">Showing simulated EJV 4.1 data. Connect to API for real values.</span>
                     </li>
-                    <li><strong>Wage Data:</strong> BLS OEWS (simulated)</li>
-                    <li><strong>Demographics:</strong> Census ACS (simulated)</li>
+                    <li><strong>EJV Version:</strong> 4.1 (6-Component Equal Weight)</li>
+                    <li><strong>Components:</strong> LC, W, DN, EQ, ENV, PROC (simulated)</li>
                 `;
             }
             
@@ -5326,12 +5844,17 @@ out center;`;
         }
 
         function clearMarkers() {
+            console.log('Clearing', markers.length, 'markers...');
             if (window.graphicsLayer) {
                 window.graphicsLayer.removeAll();
             }
             markers.forEach(marker => {
                 if (map && map.hasLayer(marker)) {
-                    map.removeLayer(marker);
+                    try {
+                        map.removeLayer(marker);
+                    } catch (e) {
+                        console.warn('Error removing marker:', e);
+                    }
                 }
             });
             markers = [];
@@ -5341,8 +5864,20 @@ out center;`;
             if (storeListDiv) {
                 storeListDiv.innerHTML = '';
             }
-            // Note: ejvCache is intentionally NOT cleared - keeps data for stores
-            // users might return to, even after new searches
+            // Clear ejvCache to prevent old data from showing
+            ejvCache = {};
+            console.log('Markers and cache cleared');
+        }
+        
+        // Complete data reset function
+        function resetAllSearchData() {
+            console.log('=== COMPLETE DATA RESET ===');
+            clearMarkers();
+            window.storeData = [];
+            rawStores = [];
+            allStoresEJV = [];
+            ejvCache = {};
+            console.log('All search data reset');
         }
 
         // ==========================================
@@ -5637,7 +6172,7 @@ out center;`;
             }
 
             try {
-                const ejvResult = await calculateEJV(store.name, store.zipCode);
+                const ejvResult = await calculateEJV(store.id, store.name, false, store.zipCode);
                 
                 if (ejvResult) {
                     // Update store data
@@ -6350,9 +6885,10 @@ out center;`;
             }
         }
         
-        // Find and display address on map
+        // Find and display address on map with stores and EJV
         async function findAddress() {
-            console.log('=== FIND ADDRESS STARTED ===');
+            console.log('=== FIND ADDRESS WITH STORES STARTED ===');
+            console.log('Clearing all previous data...');
             
             const searchInput = document.getElementById('simpleSearchInput');
             if (!searchInput) {
@@ -6361,12 +6897,25 @@ out center;`;
                 return;
             }
             
-            const address = searchInput.value.trim();
-            console.log('Address to find:', address);
+            const originalAddress = searchInput.value.trim();
+            console.log('Original address:', originalAddress);
             
-            if (!address) {
-                alert('Please enter an address');
+            if (!originalAddress) {
+                alert('Please enter an address or location');
                 return;
+            }
+            
+            // Clean address: Remove suite/unit/apt numbers that Nominatim can't handle
+            // Pattern matches: suite a, unit 123, apt 5, #123, etc.
+            let address = originalAddress.replace(/\b(suite|unit|apt|apartment|#)\s*[a-z0-9\-]+\b/gi, '').trim();
+            // Clean up multiple spaces and commas
+            address = address.replace(/\s+/g, ' ').replace(/,\s*,/g, ',').replace(/,\s*$/, '');
+            
+            if (address !== originalAddress) {
+                console.log(`Address cleaned: "${originalAddress}" → "${address}"`);
+                showResult(`📍 Searching for: "${originalAddress}" (cleaned: "${address}")`);
+            } else {
+                console.log('Address to find:', address);
             }
             
             // Check if map is initialized
@@ -6376,33 +6925,127 @@ out center;`;
                 return;
             }
             
+            // CRITICAL: Clear ALL previous data immediately
+            console.log('Clearing markers and data structures...');
+            clearMarkers();
+            window.storeData = [];
+            rawStores = [];
+            allStoresEJV = [];
+            ejvCache = {};
+            
+            // Clear the store list display
+            const storeList = document.getElementById('storeList');
+            if (storeList) {
+                storeList.innerHTML = '<p style="color: #666; font-size: 12px; padding: 10px;">Loading...</p>';
+            }
+            
             showLoading(true);
-            showResult(`📍 Finding address: "${address}"...`);
+            showResult(`📍 Searching for: "${address}"...`);
             
             try {
-                // Geocode the address with more parameters for better results
-                const geocodeUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=5&addressdetails=1`;
+                // Step 1: Try multiple geocoding strategies for better address recognition
+                let results = [];
+                let lastError = null;
                 
-                console.log('Geocoding URL:', geocodeUrl);
+                // Strategy 1: Direct search with address details (with timeout)
+                console.log('Strategy 1: Direct address search...');
+                const url1 = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=5&addressdetails=1&extratags=1`;
                 
-                const response = await fetch(geocodeUrl, {
-                    headers: {
-                        'User-Agent': 'EJV-Search-App',
-                        'Accept': 'application/json'
+                try {
+                    const timeout1 = new Promise((_, reject) => 
+                        setTimeout(() => reject(new Error('Geocoding timeout')), 10000)
+                    );
+                    
+                    const fetch1 = fetch(url1, {
+                        headers: {
+                            'User-Agent': 'FIX-EJV-App/1.0',
+                            'Accept': 'application/json'
+                        }
+                    });
+                    
+                    const response1 = await Promise.race([fetch1, timeout1]);
+                    
+                    if (response1.ok) {
+                        results = await response1.json();
+                        console.log('Strategy 1 results:', results.length);
                     }
-                });
-                
-                console.log('Response status:', response.status);
-                
-                if (!response.ok) {
-                    throw new Error(`Unable to find address (Status: ${response.status})`);
+                } catch (e) {
+                    console.warn('Strategy 1 failed:', e.message);
+                    lastError = e;
                 }
                 
-                const results = await response.json();
-                console.log('Geocoding results:', results.length, 'found');
+                // Strategy 2: If no results, try with structured search
+                if (results.length === 0 && address.includes(',')) {
+                    console.log('Strategy 2: Structured search...');
+                    try {
+                        const parts = address.split(',').map(p => p.trim());
+                        let structuredUrl = 'https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=5';
+                        
+                        if (parts.length >= 1) structuredUrl += `&street=${encodeURIComponent(parts[0])}`;
+                        if (parts.length >= 2) structuredUrl += `&city=${encodeURIComponent(parts[1])}`;
+                        if (parts.length >= 3) structuredUrl += `&state=${encodeURIComponent(parts[2])}`;
+                        
+                        const timeout2 = new Promise((_, reject) => 
+                            setTimeout(() => reject(new Error('Geocoding timeout')), 10000)
+                        );
+                        
+                        const fetch2 = fetch(structuredUrl, {
+                            headers: {
+                                'User-Agent': 'FIX-EJV-App/1.0',
+                                'Accept': 'application/json'
+                            }
+                        });
+                        
+                        const response2 = await Promise.race([fetch2, timeout2]);
+                        
+                        if (response2.ok) {
+                            results = await response2.json();
+                            console.log('Strategy 2 results:', results.length);
+                        }
+                    } catch (e) {
+                        console.warn('Strategy 2 failed:', e.message);
+                        lastError = e;
+                    }
+                }
+                
+                // Strategy 3: If still no results, try as a place name
+                if (results.length === 0) {
+                    console.log('Strategy 3: Place name search...');
+                    try {
+                        const url3 = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=5`;
+                        
+                        const timeout3 = new Promise((_, reject) => 
+                            setTimeout(() => reject(new Error('Geocoding timeout')), 10000)
+                        );
+                        
+                        const fetch3 = fetch(url3, {
+                            headers: {
+                                'User-Agent': 'FIX-EJV-App/1.0',
+                                'Accept': 'application/json'
+                            }
+                        });
+                        
+                        const response3 = await Promise.race([fetch3, timeout3]);
+                        
+                        if (response3.ok) {
+                            results = await response3.json();
+                            console.log('Strategy 3 results:', results.length);
+                        }
+                    } catch (e) {
+                        console.warn('Strategy 3 failed:', e.message);
+                        lastError = e;
+                    }
+                }
+                
+                console.log('Total geocoding results:', results.length, 'found');
+                console.log('Total geocoding results:', results.length, 'found');
                 
                 if (results.length === 0) {
-                    showResult(`❌ Address not found: "${address}". Try:\n• Adding city/state (e.g., "Huntsville, AL")\n• Adding ZIP code\n• Using a full address\n• Different spelling`);
+                    const errorMsg = lastError && lastError.message.includes('timeout') 
+                        ? `⏱️ Search timed out for: "${address}"\n\n💡 Try:\n• Waiting a moment and searching again\n• Using a simpler search (just city name or ZIP)\n• Using ZIP code search in left sidebar\n• Checking your internet connection`
+                        : `❌ Location not found: "${address}"\n\n💡 Try these formats:\n• Store name: "Walmart"\n• City: "Boston" or "New York"\n• ZIP code: "10001"\n• Full address: "123 Main St, New York, NY"\n• Avoid special characters`;
+                    
+                    showResult(errorMsg);
                     showLoading(false);
                     return;
                 }
@@ -6412,51 +7055,366 @@ out center;`;
                 const lat = parseFloat(location.lat);
                 const lon = parseFloat(location.lon);
                 const displayName = location.display_name;
+                const locationType = location.type;
+                const locationClass = location.class;
                 
                 console.log('Location found:', lat, lon);
                 console.log('Display name:', displayName);
+                console.log('Type:', locationType, 'Class:', locationClass);
                 
-                // Clear previous markers
+                // Double-check: Clear previous markers and data again
+                console.log('Final data clear before new search...');
                 clearMarkers();
+                window.storeData = [];
+                rawStores = [];
+                allStoresEJV = [];
+                ejvCache = {};
                 
-                // Center map on the address with zoom
-                console.log('Setting map view...');
+                // Clear sidebar
+                const storeListElement = document.getElementById('storeList');
+                if (storeListElement) {
+                    storeListElement.innerHTML = '';
+                }
+                
+                // Center map on the address
                 map.setView([lat, lon], 17);
                 
-                // Add a prominent marker
-                console.log('Adding marker...');
-                const marker = L.marker([lat, lon], {
-                    icon: L.divIcon({
-                        className: 'custom-div-icon',
-                        html: `<div style="background: #28a745; width: 40px; height: 40px; border-radius: 50%; border: 4px solid white; box-shadow: 0 4px 12px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; font-size: 24px;">📍</div>`,
-                        iconSize: [40, 40],
-                        iconAnchor: [20, 40]
-                    })
-                }).addTo(map);
+                // Check if the search result itself is a store/business
+                const isStore = locationClass === 'shop' || 
+                               locationClass === 'amenity' || 
+                               location.extratags?.shop || 
+                               location.extratags?.amenity ||
+                               (location.name && location.address && (location.address.shop || location.address.amenity));
                 
-                const popupContent = `
-                    <div style="min-width: 250px; padding: 10px;">
-                        <strong style="color: #28a745; font-size: 15px;">📍 Found Address</strong><br>
-                        <div style="margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 6px; font-size: 13px; color: #333;">
-                            ${displayName}
+                console.log('Is this a store?', isStore);
+                
+                if (isStore) {
+                    // User searched for a specific store - show ONLY that store
+                    const storeName = location.name || displayName.split(',')[0];
+                    showResult(`🏪 Searched: "${originalAddress}"\n✓ Found: ${storeName}\n⏳ Calculating EJV...`);
+                    const storeCategory = location.extratags?.shop || location.extratags?.amenity || locationType || 'all';
+                    
+                    window.storeData = [{
+                        id: 'searched_store',
+                        name: storeName,
+                        address: displayName,
+                        lat: lat,
+                        lon: lon,
+                        distance: 0,
+                        category: storeCategory,
+                        zipCode: location.address?.postcode || '10001',
+                        ejv: null,
+                        rawScore: null,
+                        breakdown: null
+                    }];
+                    
+                    rawStores = [...window.storeData];
+                    
+                    // Add marker for this specific store
+                    const icon = getCategoryIcon(storeCategory);
+                    const marker = L.marker([lat, lon], {
+                        icon: L.divIcon({
+                            className: 'custom-div-icon',
+                            html: `<div style="background: #4caf50; width: 40px; height: 40px; border-radius: 50%; border: 4px solid white; box-shadow: 0 4px 12px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; font-size: 24px;">${icon}</div>`,
+                            iconSize: [40, 40],
+                            iconAnchor: [20, 40]
+                        })
+                    });
+                    
+                    marker.bindPopup(`
+                        <div style="min-width: 240px; padding: 12px;">
+                            <strong style="color: #4caf50; font-size: 16px;">🏪 ${storeName}</strong><br>
+                            <div style="margin: 10px 0; padding: 10px; background: #e8f5e9; border-radius: 6px; font-size: 12px; color: #2e7d32; line-height: 1.5;">
+                                ${displayName}
+                            </div>
+                            <div id="ejvQuickDisplay" style="margin-top: 10px; padding: 8px; background: #f8f9fa; border-radius: 4px; font-size: 12px; color: #666; text-align: center;">
+                                ⏳ Calculating EJV...
+                            </div>
                         </div>
-                        <div style="font-size: 11px; color: #666; margin-top: 8px;">
-                            📊 Lat: ${lat.toFixed(6)}, Lon: ${lon.toFixed(6)}
-                        </div>
-                    </div>
+                    `).openPopup();
+                    
+                    marker.addTo(map);
+                    markers.push(marker);
+                    
+                    // Display in sidebar
+                    displayQuickFindResults(window.storeData);
+                    
+                    // Calculate EJV for this store
+                    showResult(`🏪 Analyzing "${storeName}"...`);
+                    await calculateSingleStoreEJV(0);
+                    
+                    // Update popup with EJV
+                    const store = window.storeData[0];
+                    if (store.ejv) {
+                        marker.setPopupContent(`
+                            <div style="min-width: 240px; padding: 12px;">
+                                <strong style="color: #4caf50; font-size: 16px;">🏪 ${storeName}</strong><br>
+                                <div style="margin: 10px 0; padding: 10px; background: #e8f5e9; border-radius: 6px; font-size: 12px; color: #2e7d32; line-height: 1.5;">
+                                    ${displayName}
+                                </div>
+                                <div style="margin-top: 10px; padding: 10px; background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%); border-radius: 6px; text-align: center; border: 2px solid #9c27b0;">
+                                    <div style="font-size: 24px; font-weight: 700; color: #7b1fa2;">${store.ejv.toFixed(2)}</div>
+                                    <div style="font-size: 10px; color: #4a148c; margin-top: 2px;">ECONOMIC JUSTICE VALUE</div>
+                                </div>
+                            </div>
+                        `);
+                    }
+                    
+                    displayQuickFindResults(window.storeData);
+                    showResult(`✅ "${originalAddress}"\n✅ Found: ${storeName}\n✅ EJV: ${store.ejv ? store.ejv.toFixed(2) : 'N/A'}`);
+                    showLoading(false);
+                    return;
+                }
+                
+                // Not a specific store - search for stores nearby
+                // Show user's original search for clarity
+                const searchedFor = originalAddress;
+                const foundLocation = displayName.split(',').slice(0, 3).join(','); // First 3 parts
+                showResult(`📍 Searched: "${searchedFor}"
+✓ Found: ${foundLocation}
+🔍 Searching for stores within 500m...`);
+                
+                const radius = 500; // 500 meters
+                const overpassQuery = `
+                    [out:json][timeout:25];
+                    (
+                        node["shop"](around:${radius},${lat},${lon});
+                        way["shop"](around:${radius},${lat},${lon});
+                        node["amenity"~"restaurant|cafe|fast_food|pharmacy|bank|supermarket|convenience"](around:${radius},${lat},${lon});
+                        way["amenity"~"restaurant|cafe|fast_food|pharmacy|bank|supermarket|convenience"](around:${radius},${lat},${lon});
+                    );
+                    out center 100;
                 `;
                 
-                marker.bindPopup(popupContent).openPopup();
-                markers.push(marker);
+                console.log('Searching for stores with Overpass...');
+                showResult(`🔍 Searching for stores near "${displayName.split(',')[0]}"...`);
                 
-                console.log('✅ Address found successfully');
-                showResult(`✅ Found: "${displayName}"`);
+                // Add timeout to Overpass request (30 seconds)
+                const overpassTimeout = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Store search timed out after 30 seconds')), 30000)
+                );
+                
+                const overpassFetch = fetch('https://overpass-api.de/api/interpreter', {
+                    method: 'POST',
+                    body: overpassQuery,
+                    headers: {
+                        'Content-Type': 'text/plain'
+                    }
+                });
+                
+                let overpassResponse;
+                let stores = [];
+                
+                try {
+                    overpassResponse = await Promise.race([overpassFetch, overpassTimeout]);
+                    
+                    if (!overpassResponse.ok) {
+                        console.warn('Overpass API returned non-OK status:', overpassResponse.status);
+                        stores = [];
+                    } else {
+                        try {
+                            const storeData = await overpassResponse.json();
+                            stores = storeData.elements || [];
+                        } catch (jsonError) {
+                            console.warn('Overpass JSON parse error:', jsonError.message);
+                            stores = [];
+                        }
+                    }
+                } catch (timeoutError) {
+                    console.warn('Overpass request failed or timed out:', timeoutError.message);
+                    stores = [];
+                }
+                
+                console.log(`Found ${stores.length} stores nearby`);
+                
+                if (stores.length === 0) {
+                    // No stores found - just show the address marker with helpful message
+                    console.log('No stores found nearby, showing location only');
+                    
+                    const marker = L.marker([lat, lon], {
+                        icon: L.divIcon({
+                            className: 'custom-div-icon',
+                            html: `<div style="background: #2196f3; width: 40px; height: 40px; border-radius: 50%; border: 4px solid white; box-shadow: 0 4px 12px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; font-size: 24px;">📍</div>`,
+                            iconSize: [40, 40],
+                            iconAnchor: [20, 40]
+                        })
+                    }).addTo(map);
+                    
+                    marker.bindPopup(`
+                        <div style="min-width: 280px; padding: 12px;">
+                            <strong style="color: #2196f3; font-size: 16px;">📍 ${originalAddress}</strong><br>
+                            <div style="margin: 8px 0 12px 0; font-size: 11px; color: #666; font-style: italic;">
+                                ${displayName.split(',').slice(0, 2).join(',')}
+                            </div>
+                            <div style="margin-top: 12px; padding: 10px; background: #fff3e0; border-radius: 4px; font-size: 12px; color: #e65100; line-height: 1.5;">
+                                <strong>ℹ️ No stores found within 500m</strong><br>
+                                <div style="margin-top: 6px; font-size: 11px;">
+                                This might be a residential area.<br><br>
+                                Try:<br>
+                                • ZIP Code search (left sidebar)<br>
+                                • Search for a specific store name<br>
+                                • Try a nearby shopping area
+                                </div>
+                            </div>
+                        </div>
+                    `).openPopup();
+                    markers.push(marker);
+                    
+                    showResult(`✓ Searched: "${originalAddress}"
+✓ Found location (no stores within 500m)
+💡 Try: ZIP code search or specific store name`);
+                    showLoading(false);
+                    return;
+                }
+                
+                // Step 3: Process stores and add to window.storeData
+                console.log(`Processing ${stores.length} stores from Overpass...`);
+                
+                window.storeData = stores.map((store, idx) => {
+                    const storeLat = store.lat || store.center?.lat;
+                    const storeLon = store.lon || store.center?.lon;
+                    const distance = calculateDistance(lat, lon, storeLat, storeLon);
+                    
+                    const category = store.tags?.shop || store.tags?.amenity || 'all';
+                    const name = store.tags?.name || store.tags?.shop || store.tags?.amenity || 'Store';
+                    
+                    // Build store address from tags if available
+                    let storeAddress = '';
+                    if (store.tags) {
+                        const addrParts = [
+                            store.tags['addr:housenumber'],
+                            store.tags['addr:street'],
+                            store.tags['addr:city'],
+                            store.tags['addr:state'],
+                            store.tags['addr:postcode']
+                        ].filter(Boolean);
+                        
+                        if (addrParts.length > 0) {
+                            storeAddress = addrParts.join(', ');
+                        }
+                    }
+                    
+                    // Fallback: use nearby location (city, state) if no specific address
+                    if (!storeAddress) {
+                        const locationParts = displayName.split(',');
+                        // Use city and state from the search location
+                        if (locationParts.length >= 3) {
+                            storeAddress = locationParts.slice(-3, -1).map(s => s.trim()).join(', ');
+                        } else {
+                            storeAddress = locationParts.slice(0, 2).join(', ');
+                        }
+                    }
+                    
+                    console.log(`  ${idx + 1}. ${name} [${category}] - ${distance.toFixed(0)}m away - ${storeAddress}`);
+                    
+                    return {
+                        id: `addr_store_${idx}`,
+                        name: name,
+                        address: storeAddress,
+                        lat: storeLat,
+                        lon: storeLon,
+                        distance: distance,
+                        category: category,
+                        zipCode: location.address?.postcode || store.tags?.['addr:postcode'] || '10001',
+                        ejv: null,
+                        rawScore: null,
+                        breakdown: null
+                    };
+                }).filter(s => s.lat && s.lon).sort((a, b) => a.distance - b.distance).slice(0, 15); // Sort by distance, limit to 15 closest
+                
+                rawStores = [...window.storeData];
+                
+                console.log(`Processed ${window.storeData.length} stores (sorted by distance, limited to 15 closest)`);
+                
+                // Step 4: Add markers for stores
+                window.storeData.forEach((store, idx) => {
+                    const icon = getCategoryIcon(store.category);
+                    
+                    const marker = L.marker([store.lat, store.lon], {
+                        icon: L.divIcon({
+                            className: 'custom-div-icon',
+                            html: `<div style="background: #667eea; width: 32px; height: 32px; border-radius: 50%; border: 3px solid white; box-shadow: 0 3px 8px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; font-size: 14px;">${icon}</div>`,
+                            iconSize: [32, 32],
+                            iconAnchor: [16, 16]
+                        })
+                    });
+                    
+                    marker.bindPopup(`
+                        <div style="min-width: 220px;">
+                            <strong style="font-size: 14px;">${store.name}</strong><br>
+                            <span style="font-size: 11px; color: #666;">${store.address}</span><br>
+                            <span style="font-size: 10px; color: #999;">📏 ${(store.distance / 1000).toFixed(2)} km away</span><br>
+                            <button onclick="calculateSingleStoreEJV(${idx})" style="margin-top: 8px; padding: 8px 14px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; width: 100%; font-weight: 600;">
+                                Calculate EJV
+                            </button>
+                        </div>
+                    `);
+                    
+                    marker.addTo(map);
+                    markers.push(marker);
+                });
+                
+                // Step 5: Display in sidebar
+                displayQuickFindResults(window.storeData);
+                
+                // Fit bounds to show all stores
+                if (markers.length > 1) {
+                    const group = L.featureGroup(markers);
+                    map.fitBounds(group.getBounds().pad(0.1));
+                }
+                
+                showResult(`✓ Searched: "${originalAddress}"\n✓ Found ${window.storeData.length} store(s) nearby\n🔄 Calculating EJV values...`);
+                
+                // Step 6: Calculate EJV for stores (top 8 for performance)
+                const storesToCalculate = Math.min(8, window.storeData.length);
+                console.log(`Calculating EJV for ${storesToCalculate} stores...`);
+                
+                for (let i = 0; i < storesToCalculate; i++) {
+                    showResult(`🔄 Calculating EJV ${i + 1}/${storesToCalculate} for ${window.storeData[i].name}...`);
+                    await calculateSingleStoreEJV(i);
+                    
+                    // Update the results display after each calculation
+                    displayQuickFindResults(window.storeData);
+                    
+                    // Small delay to prevent API rate limiting
+                    if (i < storesToCalculate - 1) {
+                        await new Promise(resolve => setTimeout(resolve, 400));
+                    }
+                }
+                
+                console.log('EJV calculation complete!');
+                
+                // Final update of results
+                displayQuickFindResults(window.storeData);
+                
+                const calculatedCount = window.storeData.filter(s => s.ejv !== null).length;
+                showResult(`✅ "${originalAddress}"\n✅ Found ${window.storeData.length} store(s), calculated EJV for ${calculatedCount}`);
                 showLoading(false);
                 
             } catch (error) {
                 console.error('Find address error:', error);
                 console.error('Error details:', error.message, error.stack);
-                showResult(`❌ Error: ${error.message}. Please try again.`);
+                
+                // Clear any partial results
+                clearMarkers();
+                window.storeData = [];
+                rawStores = [];
+                allStoresEJV = [];
+                ejvCache = {};
+                
+                const storeListElement = document.getElementById('storeList');
+                if (storeListElement) {
+                    storeListElement.innerHTML = '<p style="color: #999; font-size: 12px; padding: 10px;">Search failed</p>';
+                }
+                
+                // Provide specific error messages based on error type
+                if (error.message.includes('timeout') || error.message.includes('timed out')) {
+                    showResult(`⏱️ Search timed out\n\n💡 Solutions:\n• Wait 10 seconds and try again\n• Use ZIP code search (left sidebar)\n• Try a simpler search term\n• Check your spelling`);
+                } else if (error.message.includes('unavailable') || error.message.includes('service')) {
+                    showResult(`⚠️ Search service temporarily unavailable\n\n💡 Alternative:\n• Use ZIP code search in left sidebar\n• Try Google Maps button above\n• Wait a moment and try again`);
+                } else {
+                    showResult(`❌ Error: ${error.message}\n\n💡 Tips:\n• Check your spelling\n• Try: "Boston", "10001", or "Walmart"\n• Use ZIP code search (left sidebar)\n• Simplify your search term`);
+                }
                 showLoading(false);
             }
         }
@@ -7377,8 +8335,48 @@ out center;`;
                     return;
                 }
 
-                // Display results
+                // Display results - Check if any results are stores
                 autocomplete.innerHTML = '';
+                
+                // First check if we can find stores at this location
+                const storesAtLocation = await searchStoresAtLocation(results[0]);
+                
+                if (storesAtLocation && storesAtLocation.length > 0) {
+                    // Show header for stores found
+                    const headerDiv = document.createElement('div');
+                    headerDiv.style.cssText = 'padding: 10px 20px; background: #e8f5e9; font-weight: 600; font-size: 12px; color: #2e7d32; border-bottom: 2px solid #4caf50;';
+                    headerDiv.textContent = `🏪 ${storesAtLocation.length} Store(s) Found at This Location:`;
+                    autocomplete.appendChild(headerDiv);
+                    
+                    // Display stores
+                    storesAtLocation.slice(0, 5).forEach((store, index) => {
+                        const resultDiv = document.createElement('div');
+                        resultDiv.className = 'map-search-result';
+                        resultDiv.style.background = '#f8fff9';
+                        
+                        const icon = getCategoryIcon(store.category || 'all');
+                        
+                        resultDiv.innerHTML = `
+                            <span class="map-search-result-icon" style="font-size: 18px;">${icon}</span>
+                            <div class="map-search-result-content">
+                                <div class="map-search-result-name" style="color: #2e7d32;">${store.name}</div>
+                                <div class="map-search-result-address">${store.address}</div>
+                                <div style="font-size: 10px; color: #4caf50; margin-top: 2px;">📊 Click to view with EJV</div>
+                            </div>
+                        `;
+
+                        resultDiv.onclick = () => selectStoreResult(store, storesAtLocation);
+                        autocomplete.appendChild(resultDiv);
+                    });
+                    
+                    // Add divider
+                    const divider = document.createElement('div');
+                    divider.style.cssText = 'padding: 8px 20px; background: #f5f5f5; font-size: 11px; color: #666; font-weight: 600;';
+                    divider.textContent = '📍 Other Locations:';
+                    autocomplete.appendChild(divider);
+                }
+                
+                // Display location results
                 results.forEach((result, index) => {
                     const resultDiv = document.createElement('div');
                     resultDiv.className = 'map-search-result';
@@ -7405,6 +8403,114 @@ out center;`;
                 console.error('Search error:', error);
                 autocomplete.innerHTML = '<div class="map-search-no-results">Search error. Please try again.</div>';
             }
+        }
+        
+        // New function to search for stores at a specific location
+        async function searchStoresAtLocation(location) {
+            try {
+                const lat = parseFloat(location.lat);
+                const lon = parseFloat(location.lon);
+                const radius = 100; // 100 meters radius
+                
+                // Query overpass for stores near this location
+                const overpassQuery = `
+                    [out:json][timeout:10];
+                    (
+                        node["shop"](around:${radius},${lat},${lon});
+                        way["shop"](around:${radius},${lat},${lon});
+                        node["amenity"~"restaurant|cafe|fast_food|pharmacy"](around:${radius},${lat},${lon});
+                        way["amenity"~"restaurant|cafe|fast_food|pharmacy"](around:${radius},${lat},${lon});
+                    );
+                    out center;
+                `;
+                
+                const response = await fetch('https://overpass-api.de/api/interpreter', {
+                    method: 'POST',
+                    body: overpassQuery
+                });
+                
+                const data = await response.json();
+                const elements = data.elements || [];
+                
+                if (elements.length === 0) return [];
+                
+                // Process stores
+                return elements.map((el, idx) => {
+                    const storeLat = el.lat || el.center?.lat;
+                    const storeLon = el.lon || el.center?.lon;
+                    
+                    return {
+                        id: `search_${idx}`,
+                        name: el.tags?.name || el.tags?.shop || el.tags?.amenity || 'Store',
+                        address: location.display_name,
+                        lat: storeLat,
+                        lon: storeLon,
+                        distance: 0,
+                        category: el.tags?.shop || el.tags?.amenity || 'all',
+                        zipCode: location.address?.postcode || '10001',
+                        ejv: null,
+                        rawScore: null,
+                        breakdown: null
+                    };
+                }).filter(s => s.lat && s.lon);
+                
+            } catch (error) {
+                console.error('Store search error:', error);
+                return [];
+            }
+        }
+        
+        // New function to select a store from search results
+        async function selectStoreResult(store, allStores) {
+            hideMapSearchAutocomplete();
+            document.getElementById('mapSearchInput').value = store.name;
+            
+            // Clear previous markers and data
+            clearMarkers();
+            allStoresEJV = [];
+            ejvCache = {};
+            rawStores = [];
+            window.storeData = allStores || [store];
+            
+            // Center map on store location
+            map.setView([store.lat, store.lon], 17);
+            
+            showLoading(true);
+            showResult(`Found ${window.storeData.length} store(s). Calculating EJV values...`);
+            
+            // Add markers for all stores
+            window.storeData.forEach((s, idx) => {
+                const marker = L.marker([s.lat, s.lon], {
+                    icon: L.divIcon({
+                        className: 'custom-div-icon',
+                        html: `<div style="background: #667eea; width: 32px; height: 32px; border-radius: 50%; border: 3px solid white; box-shadow: 0 3px 8px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; font-size: 14px;">${getCategoryIcon(s.category)}</div>`,
+                        iconSize: [32, 32],
+                        iconAnchor: [16, 16]
+                    })
+                });
+                
+                marker.bindPopup(`
+                    <div style="min-width: 220px;">
+                        <strong style="font-size: 14px;">${s.name}</strong><br>
+                        <span style="font-size: 11px; color: #666;">${s.address}</span><br>
+                        <button onclick="calculateSingleStoreEJV(${idx})" style="margin-top: 8px; padding: 8px 14px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; width: 100%; font-weight: 600;">
+                            Calculate EJV
+                        </button>
+                    </div>
+                `);
+                
+                marker.addTo(map);
+                markers.push(marker);
+            });
+            
+            // Calculate EJV for all stores
+            for (let i = 0; i < window.storeData.length; i++) {
+                await calculateSingleStoreEJV(i);
+            }
+            
+            displayQuickFindResults(window.storeData);
+            showLoading(false);
+            showResult(`✅ Found ${window.storeData.length} store(s) with EJV values!`);
         }
 
         function getSearchResultIcon(result) {
@@ -7441,52 +8547,98 @@ out center;`;
 
             // Center map on location
             map.setView([lat, lon], 16);
+            
+            showLoading(true);
+            showResult(`Searching for stores at ${name}...`);
+            
+            // Try to find stores at this location
+            const storesNearby = await searchStoresAtLocation(result);
+            
+            if (storesNearby && storesNearby.length > 0) {
+                // Found stores - display them with EJV
+                window.storeData = storesNearby;
+                
+                showResult(`Found ${storesNearby.length} store(s). Calculating EJV values...`);
+                
+                // Add markers for all stores
+                window.storeData.forEach((store, idx) => {
+                    const marker = L.marker([store.lat, store.lon], {
+                        icon: L.divIcon({
+                            className: 'custom-div-icon',
+                            html: `<div style="background: #667eea; width: 32px; height: 32px; border-radius: 50%; border: 3px solid white; box-shadow: 0 3px 8px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; font-size: 14px;">${getCategoryIcon(store.category)}</div>`,
+                            iconSize: [32, 32],
+                            iconAnchor: [16, 16]
+                        })
+                    });
+                    
+                    marker.bindPopup(`
+                        <div style="min-width: 220px;">
+                            <strong style="font-size: 14px;">${store.name}</strong><br>
+                            <span style="font-size: 11px; color: #666;">${store.address}</span><br>
+                            <button onclick="calculateSingleStoreEJV(${idx})" style="margin-top: 8px; padding: 8px 14px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; width: 100%; font-weight: 600;">
+                                Calculate EJV
+                            </button>
+                        </div>
+                    `);
+                    
+                    marker.addTo(map);
+                    markers.push(marker);
+                });
+                
+                // Calculate EJV for all stores
+                for (let i = 0; i < window.storeData.length; i++) {
+                    await calculateSingleStoreEJV(i);
+                }
+                
+                displayQuickFindResults(window.storeData);
+                showLoading(false);
+                showResult(`✅ Found ${window.storeData.length} store(s) with EJV values!`);
+                
+            } else {
+                // No stores found - show location marker only
+                const marker = L.marker([lat, lon], {
+                    icon: L.divIcon({
+                        className: 'custom-div-icon',
+                        html: `<div style="background-color: #28a745; width: 32px; height: 32px; border-radius: 50%; border: 3px solid white; box-shadow: 0 3px 8px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; font-size: 16px;">📍</div>`,
+                        iconSize: [32, 32],
+                        iconAnchor: [16, 16]
+                    })
+                });
 
-            // Add a marker for the selected location only
-            const marker = L.marker([lat, lon], {
-                icon: L.divIcon({
-                    className: 'custom-div-icon',
-                    html: `<div style="background-color: #28a745; width: 32px; height: 32px; border-radius: 50%; border: 3px solid white; box-shadow: 0 3px 8px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; font-size: 16px;">📍</div>`,
-                    iconSize: [32, 32],
-                    iconAnchor: [16, 16]
-                })
-            });
+                // Create popup with EJV calculation option
+                const popupContent = `
+                    <div style="min-width: 220px;">
+                        <strong style="font-size: 14px;">${name}</strong><br>
+                        <span style="font-size: 11px; color: #666;">${displayName}</span><br>
+                        <button onclick="calculateSingleStoreEJV(0)" style="margin-top: 8px; padding: 8px 14px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; width: 100%; font-weight: 600;">
+                            Calculate EJV
+                        </button>
+                    </div>
+                `;
 
-            // Create popup with EJV calculation option
-            const popupContent = `
-                <div style="min-width: 220px;">
-                    <strong style="font-size: 14px;">${name}</strong><br>
-                    <span style="font-size: 11px; color: #666;">${displayName}</span><br>
-                    <button onclick="calculateSingleStoreEJV(0)" style="margin-top: 8px; padding: 8px 14px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; width: 100%; font-weight: 600;">
-                        Calculate EJV
-                    </button>
-                </div>
-            `;
+                marker.bindPopup(popupContent).openPopup();
+                marker.addTo(map);
+                markers.push(marker);
 
-            marker.bindPopup(popupContent).openPopup();
-            marker.addTo(map);
-            markers.push(marker);
+                // Add to storeData for EJV calculation
+                const storeInfo = {
+                    name: name,
+                    address: displayName,
+                    lat: lat,
+                    lon: lon,
+                    distance: 0,
+                    category: 'all',
+                    zipCode: result.address?.postcode || '10001',
+                    ejv: null,
+                    rawScore: null,
+                    breakdown: null
+                };
 
-            // Add to storeData for EJV calculation
-            const storeInfo = {
-                name: name,
-                address: displayName,
-                lat: lat,
-                lon: lon,
-                distance: 0,
-                category: 'all',
-                zipCode: result.address?.postcode || '10001',
-                ejv: null,
-                rawScore: null,
-                breakdown: null
-            };
-
-            window.storeData.push(storeInfo);
-
-            // Display the single location in results
-            displayQuickFindResults(window.storeData);
-
-            showResult(`✓ Location found: ${name}`);
+                window.storeData.push(storeInfo);
+                displayQuickFindResults(window.storeData);
+                showLoading(false);
+                showResult(`✓ Location found: ${name}. No stores detected at this exact address.`);
+            }
         }
 
         async function performDirectSearch(query) {
@@ -8731,35 +9883,32 @@ out center;`;
                     console.warn('⚠️ No EJV data returned, using fallback values');
                 }
                 
-                // Extract scores with multiple fallback paths
-                const ejvV2 = ejvData?.data?.ejv_v2_baseline?.EJV || ejvData?.data?.ejv_v2?.EJV || 0;
-                const ejvV41 = ejvData?.data?.elvr || ejvData?.data?.ejv_v4_1 || 0;
-                let wageScore = ejvData?.data?.ejv_v2_baseline?.wage_score || ejvData?.data?.wage_score || 0;
-                let hiringScore = ejvData?.data?.ejv_v2_baseline?.hiring_score || ejvData?.data?.hiring_score || 0;
-                let communityScore = ejvData?.data?.ejv_v2_baseline?.community_score || ejvData?.data?.community_score || 0;
-                let participationScore = ejvData?.data?.ejv_v2_baseline?.participation_score || ejvData?.data?.participation_score || ejvData?.data?.paf || 0;
+                // Extract EJV scores and 6 components from EJV 4.1 response
+                const ejvV40 = ejvData?.data?.ejv_original?.ejv_percentage || ejvData?.data?.ejv_original?.ejv_score * 100 || 0;
+                const ejvV41 = ejvData?.data?.ejv_score || 0;
                 
-                // If all scores are 0, generate reasonable mock values based on EJV
-                if (wageScore === 0 && hiringScore === 0 && communityScore === 0 && participationScore === 0) {
-                    if (ejvV2 > 0 || ejvV41 > 0) {
-                        const baseValue = ejvV2 || ejvV41 || 70;
-                        wageScore = baseValue * (0.9 + Math.random() * 0.2);
-                        hiringScore = baseValue * (0.85 + Math.random() * 0.25);
-                        communityScore = baseValue * (0.95 + Math.random() * 0.15);
-                        participationScore = baseValue * (0.88 + Math.random() * 0.22);
-                        console.log('📊 Generated component scores from base EJV:', { wageScore, hiringScore, communityScore, participationScore });
-                    }
-                }
+                // Extract 6 component scores (0-100 scale)
+                const components = ejvData?.data?.components || {};
+                const lc = components.LC_local_circulation || 0;
+                const w = components.W_fair_wages || 0;
+                const dn = components.DN_community_need || 0;
+                const eq = components.EQ_equity_inclusion || 0;
+                const env = components.ENV_environmental || 0;
+                const proc = components.PROC_procurement || 0;
+                
+                console.log('📊 Extracted components:', { lc, w, dn, eq, env, proc });
                 
                 const storeData = {
                     name: storeName,
                     address: storeAddress,
-                    ejvV2: ejvV2,
+                    ejvV40: ejvV40,
                     ejvV41: ejvV41,
-                    wageScore: wageScore,
-                    hiringScore: hiringScore,
-                    communityScore: communityScore,
-                    participationScore: participationScore,
+                    lc: lc,
+                    w: w,
+                    dn: dn,
+                    eq: eq,
+                    env: env,
+                    proc: proc,
                     distance: store.distance || 0
                 };
                 
@@ -8781,12 +9930,14 @@ out center;`;
                 return {
                     name: fallbackName,
                     address: fallbackAddress || 'Address not available',
-                    ejvV2: 0,
+                    ejvV40: 0,
                     ejvV41: 0,
-                    wageScore: 0,
-                    hiringScore: 0,
-                    communityScore: 0,
-                    participationScore: 0,
+                    lc: 0,
+                    w: 0,
+                    dn: 0,
+                    eq: 0,
+                    env: 0,
+                    proc: 0,
                     distance: store.distance || 0
                 };
             }
@@ -8811,12 +9962,14 @@ out center;`;
             return {
                 name: storeName,
                 address: 'From purchase history',
-                ejvV2: purchase.ejvScore || 0,
+                ejvV40: purchase.ejvScore || 0,
                 ejvV41: purchase.ejvScore || 0,
-                wageScore: 0,
-                hiringScore: 0,
-                communityScore: 0,
-                participationScore: 0,
+                lc: 0,
+                w: 0,
+                dn: 0,
+                eq: 0,
+                env: 0,
+                proc: 0,
                 distance: purchase.distance || 0
             };
         }
@@ -8845,12 +9998,12 @@ out center;`;
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 13px;">
                     <div>
-                        <div style="color: #666;">EJV v2:</div>
-                        <div style="font-weight: 700; color: ${color}; font-size: 16px;">${(data.ejvV2 || 0).toFixed(1)}</div>
+                        <div style="color: #666;">EJV 4.0:</div>
+                        <div style="font-weight: 700; color: ${color}; font-size: 16px;">${(data.ejvV40 || 0).toFixed(2)}%</div>
                     </div>
                     <div>
-                        <div style="color: #666;">EJV v4.1:</div>
-                        <div style="font-weight: 700; color: ${color}; font-size: 16px;">$${(data.ejvV41 || 0).toFixed(2)}</div>
+                        <div style="color: #666;">EJV 4.1:</div>
+                        <div style="font-weight: 700; color: ${color}; font-size: 16px;">${(data.ejvV41 || 0).toFixed(2)}</div>
                     </div>
                     <div>
                         <div style="color: #666;">Distance:</div>
@@ -8858,12 +10011,14 @@ out center;`;
                     </div>
                 </div>
                 <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e0e0e0; font-size: 12px;">
-                    <div style="font-weight: 600; margin-bottom: 8px; color: #555;">Component Scores:</div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                        <div><span style="color: #666;">Wage:</span> <strong>${(data.wageScore || 0).toFixed(1)}</strong></div>
-                        <div><span style="color: #666;">Hiring:</span> <strong>${(data.hiringScore || 0).toFixed(1)}</strong></div>
-                        <div><span style="color: #666;">Community:</span> <strong>${(data.communityScore || 0).toFixed(1)}</strong></div>
-                        <div><span style="color: #666;">Participation:</span> <strong>${(data.participationScore || 0).toFixed(1)}</strong></div>
+                    <div style="font-weight: 600; margin-bottom: 8px; color: #555;">EJV 4.1 Components (0-100):</div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+                        <div><span style="color: #666;">LC:</span> <strong>${(data.lc || 0).toFixed(2)}</strong></div>
+                        <div><span style="color: #666;">W:</span> <strong>${(data.w || 0).toFixed(2)}</strong></div>
+                        <div><span style="color: #666;">DN:</span> <strong>${(data.dn || 0).toFixed(2)}</strong></div>
+                        <div><span style="color: #666;">EQ:</span> <strong>${(data.eq || 0).toFixed(2)}</strong></div>
+                        <div><span style="color: #666;">ENV:</span> <strong>${(data.env || 0).toFixed(2)}</strong></div>
+                        <div><span style="color: #666;">PROC:</span> <strong>${(data.proc || 0).toFixed(2)}</strong></div>
                     </div>
                 </div>
                 ${ejvNote}
@@ -8879,18 +10034,20 @@ out center;`;
             }
 
             // Calculate differences
-            const ejvV2Diff = storeAData.ejvV2 - storeBData.ejvV2;
-            const ejvV2DiffPercent = storeBData.ejvV2 > 0 ? ((ejvV2Diff / storeBData.ejvV2) * 100) : 0;
+            const ejvV40Diff = storeAData.ejvV40 - storeBData.ejvV40;
+            const ejvV40DiffPercent = storeBData.ejvV40 > 0 ? ((ejvV40Diff / storeBData.ejvV40) * 100) : 0;
             
             const ejvV41Diff = storeAData.ejvV41 - storeBData.ejvV41;
             const ejvV41DiffPercent = storeBData.ejvV41 > 0 ? ((ejvV41Diff / storeBData.ejvV41) * 100) : 0;
             
             const distanceDiff = storeAData.distance - storeBData.distance;
             
-            const wageDiff = storeAData.wageScore - storeBData.wageScore;
-            const hiringDiff = storeAData.hiringScore - storeBData.hiringScore;
-            const communityDiff = storeAData.communityScore - storeBData.communityScore;
-            const participationDiff = storeAData.participationScore - storeBData.participationScore;
+            const lcDiff = storeAData.lc - storeBData.lc;
+            const wDiff = storeAData.w - storeBData.w;
+            const dnDiff = storeAData.dn - storeBData.dn;
+            const eqDiff = storeAData.eq - storeBData.eq;
+            const envDiff = storeAData.env - storeBData.env;
+            const procDiff = storeAData.proc - storeBData.proc;
 
             // Determine winner (using EJV v4.1 as primary metric)
             const winner = storeAData.ejvV41 >= storeBData.ejvV41 ? 'A' : 'B';
@@ -8912,19 +10069,19 @@ out center;`;
             const tableBody = document.getElementById('comparisonTableBody');
             tableBody.innerHTML = `
                 <tr style="border-bottom: 1px solid #e0e0e0;">
-                    <td style="padding: 15px; color: #555;">EJV v2 (Baseline)</td>
-                    <td style="padding: 15px; text-align: center; font-weight: 700; color: #4caf50;">${storeAData.ejvV2.toFixed(1)}</td>
-                    <td style="padding: 15px; text-align: center; font-weight: 700; color: #f44336;">${storeBData.ejvV2.toFixed(1)}</td>
-                    <td style="padding: 15px; text-align: center; font-weight: 700; color: ${ejvV2Diff >= 0 ? '#4caf50' : '#f44336'};">
-                        ${ejvV2Diff >= 0 ? '+' : ''}${ejvV2Diff.toFixed(1)} (${ejvV2DiffPercent >= 0 ? '+' : ''}${ejvV2DiffPercent.toFixed(0)}%)
+                    <td style="padding: 15px; color: #555;">EJV 4.0 (5-Component Weighted)</td>
+                    <td style="padding: 15px; text-align: center; font-weight: 700; color: #4caf50;">${storeAData.ejvV40.toFixed(2)}%</td>
+                    <td style="padding: 15px; text-align: center; font-weight: 700; color: #f44336;">${storeBData.ejvV40.toFixed(2)}%</td>
+                    <td style="padding: 15px; text-align: center; font-weight: 700; color: ${ejvV40Diff >= 0 ? '#4caf50' : '#f44336'};">
+                        ${ejvV40Diff >= 0 ? '+' : ''}${ejvV40Diff.toFixed(2)}% (${ejvV40DiffPercent >= 0 ? '+' : ''}${ejvV40DiffPercent.toFixed(0)}%)
                     </td>
                 </tr>
                 <tr style="border-bottom: 1px solid #e0e0e0;">
-                    <td style="padding: 15px; color: #555;">EJV v4.1 (ELVR)</td>
-                    <td style="padding: 15px; text-align: center; font-weight: 700; color: #4caf50;">$${storeAData.ejvV41.toFixed(2)}</td>
-                    <td style="padding: 15px; text-align: center; font-weight: 700; color: #f44336;">$${storeBData.ejvV41.toFixed(2)}</td>
+                    <td style="padding: 15px; color: #555;">EJV 4.1 (6-Component Equal Weight)</td>
+                    <td style="padding: 15px; text-align: center; font-weight: 700; color: #4caf50;">${storeAData.ejvV41.toFixed(2)}</td>
+                    <td style="padding: 15px; text-align: center; font-weight: 700; color: #f44336;">${storeBData.ejvV41.toFixed(2)}</td>
                     <td style="padding: 15px; text-align: center; font-weight: 700; color: ${ejvV41Diff >= 0 ? '#4caf50' : '#f44336'};">
-                        ${ejvV41Diff >= 0 ? '+' : ''}$${ejvV41Diff.toFixed(2)} (${ejvV41DiffPercent >= 0 ? '+' : ''}${ejvV41DiffPercent.toFixed(0)}%)
+                        ${ejvV41Diff >= 0 ? '+' : ''}${ejvV41Diff.toFixed(2)} (${ejvV41DiffPercent >= 0 ? '+' : ''}${ejvV41DiffPercent.toFixed(0)}%)
                     </td>
                 </tr>
                 <tr style="border-bottom: 1px solid #e0e0e0;">
@@ -8938,17 +10095,23 @@ out center;`;
             `;
 
             // Update component scores
-            document.getElementById('wageA').textContent = storeAData.wageScore.toFixed(1);
-            document.getElementById('wageB').textContent = storeBData.wageScore.toFixed(1);
+            document.getElementById('lcA').textContent = storeAData.lc.toFixed(2);
+            document.getElementById('lcB').textContent = storeBData.lc.toFixed(2);
             
-            document.getElementById('hiringA').textContent = storeAData.hiringScore.toFixed(1);
-            document.getElementById('hiringB').textContent = storeBData.hiringScore.toFixed(1);
+            document.getElementById('wA').textContent = storeAData.w.toFixed(2);
+            document.getElementById('wB').textContent = storeBData.w.toFixed(2);
             
-            document.getElementById('communityA').textContent = storeAData.communityScore.toFixed(1);
-            document.getElementById('communityB').textContent = storeBData.communityScore.toFixed(1);
+            document.getElementById('dnA').textContent = storeAData.dn.toFixed(2);
+            document.getElementById('dnB').textContent = storeBData.dn.toFixed(2);
             
-            document.getElementById('participationA').textContent = storeAData.participationScore.toFixed(1);
-            document.getElementById('participationB').textContent = storeBData.participationScore.toFixed(1);
+            document.getElementById('eqA').textContent = storeAData.eq.toFixed(2);
+            document.getElementById('eqB').textContent = storeBData.eq.toFixed(2);
+            
+            document.getElementById('envA').textContent = storeAData.env.toFixed(2);
+            document.getElementById('envB').textContent = storeBData.env.toFixed(2);
+            
+            document.getElementById('procA').textContent = storeAData.proc.toFixed(2);
+            document.getElementById('procB').textContent = storeBData.proc.toFixed(2);
 
             // Generate recommendation
             const storeAName = storeAData?.name || 'Store A';
@@ -8974,10 +10137,12 @@ out center;`;
 
             // Component analysis
             const strongComponents = [];
-            if (wageDiff > 5) strongComponents.push('wage equity');
-            if (hiringDiff > 5) strongComponents.push('hiring practices');
-            if (communityDiff > 5) strongComponents.push('community investment');
-            if (participationDiff > 5) strongComponents.push('civic participation');
+            if (lcDiff > 10) strongComponents.push('local circulation');
+            if (wDiff > 10) strongComponents.push('fair wages');
+            if (dnDiff > 10) strongComponents.push('community need support');
+            if (eqDiff > 10) strongComponents.push('equity & inclusion');
+            if (envDiff > 10) strongComponents.push('environmental responsibility');
+            if (procDiff > 10) strongComponents.push('local procurement');
 
             if (strongComponents.length > 0 && winner === 'A') {
                 recommendation += `<br><br><strong>Key strengths:</strong> ${winnerName} excels particularly in ${strongComponents.join(', ')}.`;
