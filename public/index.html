@@ -3958,7 +3958,7 @@
                 // Calculate EJV for top 3 stores
                 for (let i = 0; i < Math.min(3, window.storeData.length); i++) {
                     await calculateSingleStoreEJV(i);
-                    await new Promise(resolve => setTimeout(resolve, 500));
+                    await new Promise(resolve => setTimeout(resolve, 100));
                 }
 
             } catch (error) {
@@ -6130,7 +6130,7 @@ out center;`;
                     await calculateEJV(storeId, store.name, false);
                     
                     // Small delay to avoid overwhelming the API
-                    await new Promise(resolve => setTimeout(resolve, 300));
+                    await new Promise(resolve => setTimeout(resolve, 50));
                     
                 } catch (error) {
                     console.error(`Error calculating EJV for ${store.name}:`, error);
