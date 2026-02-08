@@ -327,7 +327,33 @@ def get_company_data(store_name):
             print(f"[DEBUG] ✓ Found partial match: '{company_key}' in '{store_name_lower}'")
             return COMPANY_DATA[company_key]
     
-    print(f"[DEBUG] ✗ No match found for '{store_name_lower}'. Available companies: {list(COMPANY_DATA.keys())[:5]}...")
+    # Try removing common suffixes and try again
+    # Remove: Supercenter, Marketplace, Store, Grocery, Supermarket, Market, etc.
+    common_suffixes = [
+        ' supercenter', ' marketplace', ' store', ' grocery', ' supermarket', 
+        ' market', ' shop', ' food', ' center', ' retail', ' location',
+        ' #', ' no.', ' branch'
+    ]
+    
+    cleaned_name = store_name_lower
+    for suffix in common_suffixes:
+        if suffix in cleaned_name:
+            cleaned_name = cleaned_name.split(suffix)[0].strip()
+    
+    # If we cleaned the name, try matching again
+    if cleaned_name != store_name_lower:
+        print(f"[DEBUG] Trying cleaned name: '{cleaned_name}'")
+        if cleaned_name in COMPANY_DATA:
+            print(f"[DEBUG] ✓ Found match after cleaning: '{cleaned_name}'")
+            return COMPANY_DATA[cleaned_name]
+        
+        # Try partial match on cleaned name
+        for company_key in COMPANY_DATA.keys():
+            if company_key in cleaned_name or cleaned_name in company_key:
+                print(f"[DEBUG] ✓ Found partial match after cleaning: '{company_key}' ~ '{cleaned_name}'")
+                return COMPANY_DATA[company_key]
+    
+    print(f"[DEBUG] ✗ No match found for '{store_name_lower}'. Available companies: {list(COMPANY_DATA.keys())[:10]}...")
     return None
 
 
