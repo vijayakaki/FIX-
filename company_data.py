@@ -309,20 +309,25 @@ def get_company_data(store_name):
         dict: Company data or None
     """
     if not store_name:
+        print("[DEBUG] get_company_data: No store_name provided")
         return None
     
     # Normalize store name for matching
     store_name_lower = store_name.lower().strip()
+    print(f"[DEBUG] get_company_data: Looking for '{store_name}' (normalized: '{store_name_lower}')")
     
     # Direct match
     if store_name_lower in COMPANY_DATA:
+        print(f"[DEBUG] ✓ Found direct match for '{store_name_lower}'")
         return COMPANY_DATA[store_name_lower]
     
     # Partial match (e.g., "Walmart Supercenter" matches "walmart")
     for company_key in COMPANY_DATA.keys():
         if company_key in store_name_lower:
+            print(f"[DEBUG] ✓ Found partial match: '{company_key}' in '{store_name_lower}'")
             return COMPANY_DATA[company_key]
     
+    print(f"[DEBUG] ✗ No match found for '{store_name_lower}'. Available companies: {list(COMPANY_DATA.keys())[:5]}...")
     return None
 
 
