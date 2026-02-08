@@ -4555,7 +4555,7 @@ out center;`;
                 setTimeout(async () => {
                     const storesToCalculate = filteredStores.slice(0, Math.min(filteredStores.length, 20)); // Limit to 20 stores
                     for (const store of storesToCalculate) {
-                        const storeName = store.tags?.name || store.tags?.shop || store.tags?.amenity || 'Unnamed Store';
+                        const storeName = store.tags?.brand || store.tags?.name || store.tags?.shop || store.tags?.amenity || 'Unnamed Store';
                         
                         // Extract and store address/website data with the store
                         const addrParts = [
@@ -4641,7 +4641,7 @@ out center;`;
                     return;
                 }
 
-                const storeName = store.tags?.name || store.tags?.shop || store.tags?.amenity || 'Unnamed Store';
+                const storeName = store.tags?.brand || store.tags?.name || store.tags?.shop || store.tags?.amenity || 'Unnamed Store';
                 let shopType = store.tags?.shop || store.tags?.amenity || 'default';
                 const cuisineType = store.tags?.cuisine || null;
                 
@@ -7276,7 +7276,7 @@ out center;`;
                     const distance = calculateDistance(lat, lon, storeLat, storeLon);
                     
                     const category = store.tags?.shop || store.tags?.amenity || 'all';
-                    const name = store.tags?.name || store.tags?.shop || store.tags?.amenity || 'Store';
+                    const name = store.tags?.brand || store.tags?.name || store.tags?.shop || store.tags?.amenity || 'Store';
                     
                     // Build store address from tags if available
                     let storeAddress = '';
@@ -9723,7 +9723,7 @@ out center;`;
                 window.lastSearchResults.slice(0, 20).forEach((store, idx) => {
                     const option = document.createElement('option');
                     option.value = 'search_' + idx;
-                    const storeName = store.name || store.tags?.name || store.tags?.shop || 'Store #' + (idx + 1);
+                    const storeName = store.tags?.brand || store.name || store.tags?.name || store.tags?.shop || 'Store #' + (idx + 1);
                     option.textContent = storeName;
                     searchGroup.appendChild(option);
                 });
@@ -9859,7 +9859,7 @@ out center;`;
             
             try {
                 // Get store name from various possible locations
-                const storeName = store.name || store.tags?.name || store.tags?.shop || store.tags?.amenity || 'Unnamed Store';
+                const storeName = store.tags?.brand || store.name || store.tags?.name || store.tags?.shop || store.tags?.amenity || 'Unnamed Store';
                 
                 // Get store address from various possible locations
                 let storeAddress = store.address;
@@ -9917,7 +9917,7 @@ out center;`;
             } catch (error) {
                 console.error('❌ Error in loadStoreData:', error);
                 // Return fallback data with proper name extraction
-                const fallbackName = store.name || store.tags?.name || store.tags?.shop || 'Unknown Store';
+                const fallbackName = store.tags?.brand || store.name || store.tags?.name || store.tags?.shop || 'Unknown Store';
                 let fallbackAddress = store.address;
                 if (!fallbackAddress && store.tags) {
                     const addrParts = [
