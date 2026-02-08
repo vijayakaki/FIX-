@@ -2140,14 +2140,6 @@
                     </div>
                     
                     <div id="mainMetricsGrid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
-                        <div style="background: linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%); padding: 10px; border-radius: 6px; text-align: center; border: 2px solid #667eea; position: relative;">
-                            <div id="ejvV41Display" style="font-size: 20px; font-weight: 700; color: #667eea;">-</div>
-                            <div style="font-size: 9px; color: #4c51bf; margin-top: 2px; text-transform: uppercase; font-weight: 600;">
-                                EJV 4.1 (6 Components)
-                            </div>
-                            <div style="font-size: 7px; color: #888; margin-top: 2px;">0-100 Scale</div>
-                            <button class="help-btn" onclick="showHelpModal('v4.1')" data-tooltip="EJV 4.1 = (LC+W+DN+EQ+ENV+PROC)/6 | Equal weight formula | Comprehensive data sources" style="position: absolute; top: 5px; right: 5px; z-index: 10;">❓</button>
-                        </div>
                         <div style="background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%); padding: 10px; border-radius: 6px; text-align: center; border: 2px solid #9c27b0; position: relative;">
                             <div id="ejvV2Display" style="font-size: 20px; font-weight: 700; color: #7b1fa2;">-</div>
                             <div style="font-size: 9px; color: #4a148c; margin-top: 2px; text-transform: uppercase; font-weight: 600;">
@@ -2155,6 +2147,14 @@
                             </div>
                             <div style="font-size: 7px; color: #888; margin-top: 2px;">Weighted</div>
                             <button class="help-btn" onclick="showHelpModal('simple')" data-tooltip="EJV 4.0 = 0.25W + 0.15P + 0.30L + 0.15A + 0.15E | Weighted by economic impact" style="position: absolute; top: 5px; right: 5px; z-index: 10;">❓</button>
+                        </div>
+                        <div style="background: linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%); padding: 10px; border-radius: 6px; text-align: center; border: 2px solid #667eea; position: relative;">
+                            <div id="ejvV41Display" style="font-size: 20px; font-weight: 700; color: #667eea;">-</div>
+                            <div style="font-size: 9px; color: #4c51bf; margin-top: 2px; text-transform: uppercase; font-weight: 600;">
+                                EJV 4.1 (6 Components)
+                            </div>
+                            <div style="font-size: 7px; color: #888; margin-top: 2px;">0-100 Scale</div>
+                            <button class="help-btn" onclick="showHelpModal('v4.1')" data-tooltip="EJV 4.1 = (LC+W+DN+EQ+ENV+PROC)/6 | Equal weight formula | Comprehensive data sources" style="position: absolute; top: 5px; right: 5px; z-index: 10;">❓</button>
                         </div>
                     </div>
                     
@@ -5602,7 +5602,7 @@ out center;`;
             
             // Set EJV 4.1 score (0-100)
             if (v41Display) {
-                const v41Value = ejvV2Baseline > 0 ? ejvV2Baseline.toFixed(1) : '-';
+                const v41Value = ejvV2Baseline > 0 ? ejvV2Baseline.toFixed(2) : '-';
                 v41Display.textContent = v41Value;
                 v41Display.parentElement.style.background = impactBg;
                 v41Display.parentElement.style.borderColor = impactBorder;
@@ -5615,7 +5615,7 @@ out center;`;
             // Set original EJV score (0-100%)
             if (v2Display) {
                 const originalScore = data.ejv_original?.ejv_percentage || (data.ejv_original?.ejv_score * 100) || 0;
-                const v2Value = originalScore > 0 ? originalScore.toFixed(1) + '%' : '-';
+                const v2Value = originalScore > 0 ? originalScore.toFixed(2) + '%' : '-';
                 v2Display.textContent = v2Value;
                 console.log('Set ejvV2Display to:', v2Value, '(original EJV score)');
             } else {
@@ -5663,7 +5663,7 @@ out center;`;
             const wealthLeakageElem = document.getElementById('wealthLeakage');
             
             if (wealthRetainedElem) {
-                const retainedDisplay = (elvr > 0 || evl > 0) ? retainedPercent.toFixed(1) + '%' : '-';
+                const retainedDisplay = (elvr > 0 || evl > 0) ? retainedPercent.toFixed(2) + '%' : '-';
                 wealthRetainedElem.textContent = retainedDisplay;
                 console.log('Successfully updated wealthRetained element to:', retainedDisplay);
             } else {
@@ -5671,7 +5671,7 @@ out center;`;
             }
             
             if (wealthLeakageElem) {
-                const leakageDisplay = (elvr > 0 || evl > 0) ? leakagePercent.toFixed(1) + '%' : '-';
+                const leakageDisplay = (elvr > 0 || evl > 0) ? leakagePercent.toFixed(2) + '%' : '-';
                 wealthLeakageElem.textContent = leakageDisplay;
                 console.log('Successfully updated wealthLeakage element to:', leakageDisplay);
             } else {
@@ -5706,33 +5706,33 @@ out center;`;
             // PROC -> Add new element or show in tooltip
             
             if (communityScoreElem) {
-                communityScoreElem.textContent = LC_local_circulation.toFixed(1);
-                console.log('Set LC (Local Circulation) to:', LC_local_circulation.toFixed(1));
+                communityScoreElem.textContent = LC_local_circulation.toFixed(2);
+                console.log('Set LC (Local Circulation) to:', LC_local_circulation.toFixed(2));
             }
             
             if (wageScoreElem) {
-                wageScoreElem.textContent = W_fair_wages.toFixed(1);
-                console.log('Set W (Fair Wages) to:', W_fair_wages.toFixed(1));
+                wageScoreElem.textContent = W_fair_wages.toFixed(2);
+                console.log('Set W (Fair Wages) to:', W_fair_wages.toFixed(2));
             }
             
             if (affordabilityScoreElem) {
-                affordabilityScoreElem.textContent = DN_community_need.toFixed(1);
-                console.log('Set DN (Community Need) to:', DN_community_need.toFixed(1));
+                affordabilityScoreElem.textContent = DN_community_need.toFixed(2);
+                console.log('Set DN (Community Need) to:', DN_community_need.toFixed(2));
             }
             
             if (hiringScoreElem) {
-                hiringScoreElem.textContent = EQ_equity_inclusion.toFixed(1);
-                console.log('Set EQ (Equity & Inclusion) to:', EQ_equity_inclusion.toFixed(1));
+                hiringScoreElem.textContent = EQ_equity_inclusion.toFixed(2);
+                console.log('Set EQ (Equity & Inclusion) to:', EQ_equity_inclusion.toFixed(2));
             }
             
             if (participationScoreElem) {
-                participationScoreElem.textContent = ENV_environmental.toFixed(1);
-                console.log('Set ENV (Environmental) to:', ENV_environmental.toFixed(1));
+                participationScoreElem.textContent = ENV_environmental.toFixed(2);
+                console.log('Set ENV (Environmental) to:', ENV_environmental.toFixed(2));
             }
             
             if (procurementScoreElem) {
-                procurementScoreElem.textContent = PROC_procurement.toFixed(1);
-                console.log('Set PROC (Procurement) to:', PROC_procurement.toFixed(1));
+                procurementScoreElem.textContent = PROC_procurement.toFixed(2);
+                console.log('Set PROC (Procurement) to:', PROC_procurement.toFixed(2));
             }
 
             // EJV Local Capture Flows (per $100 spent)
