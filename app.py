@@ -357,6 +357,15 @@ def get_payroll_data(store_id, store_type=None, store_name=None, location=None, 
     if not store_type:
         store_type = get_store_type_from_id(store_id)
     
+    # Get industry info for later use
+    industry_info = INDUSTRY_CODES.get(store_type, INDUSTRY_CODES.get("supermarket"))
+    
+    # Get business size multipliers based on store name
+    size_multipliers = get_business_size_multiplier(store_name or "")
+    
+    # No artificial store variation - EJV based on actual business characteristics
+    store_variation = 1.0
+    
     # Check for company-specific data first
     company_data = get_company_data(store_name)
     
@@ -365,14 +374,7 @@ def get_payroll_data(store_id, store_type=None, store_name=None, location=None, 
         avg_wage = company_data["avg_hourly_wage"]
         print(f"[OK] Using company-specific wage for {store_name}: ${avg_wage}/hr")
     else:
-        # Get business size multipliers based on store name
-        size_multipliers = get_business_size_multiplier(store_name or "")
-        
-        # No artificial store variation - EJV based on actual business characteristics
-        store_variation = 1.0
-        
         # Get real-time wage data from BLS
-        industry_info = INDUSTRY_CODES.get(store_type, INDUSTRY_CODES.get("supermarket"))
         real_wage = get_bls_wage_data(industry_info["soc_code"])
         
         # If BLS fails, use industry standards
@@ -984,8 +986,8 @@ def calculate_ejv(store_id, store_name=None, location=None, zip_code="10001", st
                 "source": equity_data["source"]
             },
             "local_impact": {
-                "local_hiring_percent": round(local_hiring_pct, 1),
-                "local_procurement_percent": local_procurement_pct,
+                "local_hiring_percent": round(local_hiring_ratio * 100, 1),
+                "local_procurement_percent": local_procurement_ratio * 100,
                 "combined_score": round(L, 3),
                 "source": "Census LODES + Supply Chain Research"
             },

@@ -385,14 +385,17 @@ def get_payroll_data(store_id, store_type=None, store_name=None, location=None, 
     4. Business size analysis for local vs chain differentiation
     5. Store-specific variation based on individual characteristics
     """
-    # Check for company-specific data first
-    company_data = get_company_data(store_name)
-    
     if not store_type:
         store_type = get_store_type_from_id(store_id)
     
+    # Get industry info for later use
+    industry_info = INDUSTRY_CODES.get(store_type, INDUSTRY_CODES.get("supermarket"))
+    
     # Get business size multipliers based on store name
     size_multipliers = get_business_size_multiplier(store_name or "")
+    
+    # Check for company-specific data first
+    company_data = get_company_data(store_name)
     
     if company_data:
         # Use company-specific wage data
@@ -400,7 +403,6 @@ def get_payroll_data(store_id, store_type=None, store_name=None, location=None, 
         print(f"[OK] Using company-specific wage data for {store_name}: ${avg_wage}/hr")
     else:
         # Get real-time wage data from BLS
-        industry_info = INDUSTRY_CODES.get(store_type, INDUSTRY_CODES.get("supermarket"))
         real_wage = get_bls_wage_data(industry_info["soc_code"])
         
         # If BLS fails, use industry standards
