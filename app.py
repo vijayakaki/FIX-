@@ -9,6 +9,7 @@ from flask import Flask, jsonify, request, send_file
 from flask_cors import CORS
 from werkzeug.security import check_password_hash
 import database
+from company_data import get_company_data, has_company_data
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for frontend access
@@ -356,36 +357,44 @@ def get_payroll_data(store_id, store_type=None, store_name=None, location=None, 
     if not store_type:
         store_type = get_store_type_from_id(store_id)
     
-    # Get business size multipliers based on store name
-    size_multipliers = get_business_size_multiplier(store_name or "")
+    # Check for company-specific data first
+    company_data = get_company_data(store_name)
     
-    # No artificial store variation - EJV based on actual business characteristics
-    store_variation = 1.0
-    
-    # Get real-time wage data from BLS
-    industry_info = INDUSTRY_CODES.get(store_type, INDUSTRY_CODES.get("supermarket"))
-    real_wage = get_bls_wage_data(industry_info["soc_code"])
-    
-    # If BLS fails, use industry standards
-    if real_wage is None:
-        standards = WAGE_STANDARDS.get(store_type, WAGE_STANDARDS["default"])
-        # Use midpoint of wage range
-        base_wage = (standards["min"] + standards["max"]) / 2
-        
-        # Adjust for current date (annual 3% increase)
-        year_offset = datetime.now().year - 2024
-        inflation_multiplier = 1.03 ** year_offset
-        avg_wage = round(base_wage * inflation_multiplier * store_variation, 2)
+    if company_data:
+        # Use company-specific wage data
+        avg_wage = company_data["avg_hourly_wage"]
+        print(f"[OK] Using company-specific wage for {store_name}: ${avg_wage}/hr")
     else:
-        # Use real BLS wage data with store-specific variation
-        avg_wage = round(real_wage * store_variation, 2)
-    
-    # Apply company-specific wage multiplier
-    company_wage_multiplier = size_multipliers.get('wage_multiplier', 1.0)
-    avg_wage = round(avg_wage * company_wage_multiplier, 2)
-    
-    if company_wage_multiplier != 1.0:
-        print(f"[OK] Company wage adjustment: {company_wage_multiplier}x → ${avg_wage}/hr")
+        # Get business size multipliers based on store name
+        size_multipliers = get_business_size_multiplier(store_name or "")
+        
+        # No artificial store variation - EJV based on actual business characteristics
+        store_variation = 1.0
+        
+        # Get real-time wage data from BLS
+        industry_info = INDUSTRY_CODES.get(store_type, INDUSTRY_CODES.get("supermarket"))
+        real_wage = get_bls_wage_data(industry_info["soc_code"])
+        
+        # If BLS fails, use industry standards
+        if real_wage is None:
+            standards = WAGE_STANDARDS.get(store_type, WAGE_STANDARDS["default"])
+            # Use midpoint of wage range
+            base_wage = (standards["min"] + standards["max"]) / 2
+            
+            # Adjust for current date (annual 3% increase)
+            year_offset = datetime.now().year - 2024
+            inflation_multiplier = 1.03 ** year_offset
+            avg_wage = round(base_wage * inflation_multiplier * store_variation, 2)
+        else:
+            # Use real BLS wage data with store-specific variation
+            avg_wage = round(real_wage * store_variation, 2)
+        
+        # Apply company-specific wage multiplier
+        company_wage_multiplier = size_multipliers.get('wage_multiplier', 1.0)
+        avg_wage = round(avg_wage * company_wage_multiplier, 2)
+        
+        if company_wage_multiplier != 1.0:
+            print(f"[OK] Company wage adjustment: {company_wage_multiplier}x → ${avg_wage}/hr")
     
     # Get industry-standard employee count
     real_employee_count = None
@@ -670,51 +679,60 @@ def get_environmental_data(store_id, store_name=None, store_type="supermarket"):
     Get environmental sustainability metrics
     Sources: EPA EJSCREEN, CDP Database, Company Reports
     """
-    # Default values based on industry research
-    # Source: EPA Green Power Partnership, retail industry averages
+    # Check for company-specific data first
+    company_data = get_company_data(store_name)
     
-    business_multipliers = get_business_size_multiplier(store_name or "")
-    
-    # Industry baseline for renewable energy adoption
-    renewable_baseline = {
-        "supermarket": 15.0,  # Large chains: 15% average
-        "grocery": 15.0,
-        "warehouse_club": 25.0,  # Walmart/Costco ~20-30%
-        "convenience": 5.0,
-        "department_store": 20.0,
-        "local_small_business": 10.0
-    }
-    
-    # Recycling program baseline
-    recycling_baseline = {
-        "supermarket": 40.0,
-        "grocery": 40.0,
-        "warehouse_club": 50.0,
-        "convenience": 20.0,
-        "department_store": 45.0,
-        "local_small_business": 30.0
-    }
-    
-    renewable_pct = renewable_baseline.get(store_type, 10.0)
-    recycling_pct = recycling_baseline.get(store_type, 30.0)
-    
-    # Apply company-specific environmental multiplier
-    env_multiplier = business_multipliers.get('environmental_multiplier', 1.0)
-    renewable_pct *= env_multiplier
-    recycling_pct *= env_multiplier
-    
-    # Local businesses often have better recycling but less renewable energy investment
-    if business_multipliers['type'] == 'local' and env_multiplier == 1.0:
-        renewable_pct *= 0.7  # Less capital for solar/renewable
-        recycling_pct *= 1.3  # Better local waste management
-    
-    company_name = business_multipliers.get('company_name')
-    data_sources = business_multipliers.get('data_sources', ['EPA + Industry Reports'])
-    
-    if company_name:
-        print(f"[OK] Environmental ({company_name.title()}): Renewable={renewable_pct:.1f}%, Recycling={recycling_pct:.1f}% (multiplier: {env_multiplier}x)")
+    if company_data:
+        # Use company-specific environmental data
+        renewable_pct = company_data["renewable_energy_pct"]
+        recycling_pct = company_data["recycling_pct"]
+        print(f"[OK] Using company-specific environmental data for {store_name}: Renewable={renewable_pct:.1f}%, Recycling={recycling_pct:.1f}%")
     else:
-        print(f"[OK] Environmental: Renewable={renewable_pct:.1f}%, Recycling={recycling_pct:.1f}%")
+        # Default values based on industry research
+        # Source: EPA Green Power Partnership, retail industry averages
+        
+        business_multipliers = get_business_size_multiplier(store_name or "")
+        
+        # Industry baseline for renewable energy adoption
+        renewable_baseline = {
+            "supermarket": 15.0,  # Large chains: 15% average
+            "grocery": 15.0,
+            "warehouse_club": 25.0,  # Walmart/Costco ~20-30%
+            "convenience": 5.0,
+            "department_store": 20.0,
+            "local_small_business": 10.0
+        }
+        
+        # Recycling program baseline
+        recycling_baseline = {
+            "supermarket": 40.0,
+            "grocery": 40.0,
+            "warehouse_club": 50.0,
+            "convenience": 20.0,
+            "department_store": 45.0,
+            "local_small_business": 30.0
+        }
+        
+        renewable_pct = renewable_baseline.get(store_type, 10.0)
+        recycling_pct = recycling_baseline.get(store_type, 30.0)
+        
+        # Apply company-specific environmental multiplier
+        env_multiplier = business_multipliers.get('environmental_multiplier', 1.0)
+        renewable_pct *= env_multiplier
+        recycling_pct *= env_multiplier
+        
+        # Local businesses often have better recycling but less renewable energy investment
+        if business_multipliers['type'] == 'local' and env_multiplier == 1.0:
+            renewable_pct *= 0.7  # Less capital for solar/renewable
+            recycling_pct *= 1.3  # Better local waste management
+        
+        company_name = business_multipliers.get('company_name')
+        data_sources = business_multipliers.get('data_sources', ['EPA + Industry Reports'])
+        
+        if company_name:
+            print(f"[OK] Environmental ({company_name.title()}): Renewable={renewable_pct:.1f}%, Recycling={recycling_pct:.1f}% (multiplier: {env_multiplier}x)")
+        else:
+            print(f"[OK] Environmental: Renewable={renewable_pct:.1f}%, Recycling={recycling_pct:.1f}%")
     
     return {
         "renewable_energy_percent": round(min(100, renewable_pct), 1),
@@ -731,43 +749,56 @@ def get_equity_data(store_id, store_name=None, store_type="supermarket"):
     Get pay equity and diversity metrics
     Sources: EEOC Reports, SEC Filings, Company ESG Reports
     """
-    business_multipliers = get_business_size_multiplier(store_name or "")
+    # Check for company-specific data first
+    company_data = get_company_data(store_name)
     
-    # Industry baseline for equitable practices
-    # Based on EEOC data and company ESG reports
-    equity_baseline = {
-        "supermarket": 55.0,  # Moderate equity practices
-        "grocery": 55.0,
-        "warehouse_club": 60.0,  # Better for large chains with formal programs
-        "convenience": 45.0,
-        "department_store": 58.0,
-        "local_small_business": 65.0,  # Often more equitable, less hierarchy
-        "worker_cooperative": 95.0  # Highest equity by design
-    }
-    
-    equitable_practices_pct = equity_baseline.get(store_type, 50.0)
-    
-    # Apply company-specific equity multiplier
-    equity_multiplier = business_multipliers.get('equity_multiplier', 1.0)
-    equitable_practices_pct *= equity_multiplier
-    
-    # Local businesses tend to have better equity (less wage disparity)
-    if business_multipliers['type'] == 'local' and equity_multiplier == 1.0:
-        equitable_practices_pct *= 1.15  # +15% equity bonus if no company-specific data
-    
-    company_name = business_multipliers.get('company_name')
-    data_sources = business_multipliers.get('data_sources', ['EEOC + Company ESG Reports'])
-    
-    if company_name:
-        print(f"[OK] Equity ({company_name.title()}): {equitable_practices_pct:.1f}% (multiplier: {equity_multiplier}x)")
+    if company_data:
+        # Use company-specific equity score
+        equitable_practices_pct = company_data["equity_score"]
+        print(f"[OK] Using company-specific equity data for {store_name}: {equitable_practices_pct:.1f}%")
+        return {
+            "equitable_practices_percent": round(equitable_practices_pct, 1),
+            "source": "Company ESG Reports + EEOC Data",
+            "metrics_included": ["pay_equity", "diversity", "promotion_equity"]
+        }
     else:
-        print(f"[OK] Equity: {equitable_practices_pct:.1f}% equitable practices score")
-    
-    return {
-        "equitable_practices_percent": round(min(100, equitable_practices_pct), 1),
-        "source": ", ".join(data_sources[:2]) if company_name else "EEOC + Company ESG Reports",
-        "metrics_included": ["pay_equity", "diversity", "promotion_equity"]
-    }
+        business_multipliers = get_business_size_multiplier(store_name or "")
+        
+        # Industry baseline for equitable practices
+        # Based on EEOC data and company ESG reports
+        equity_baseline = {
+            "supermarket": 55.0,  # Moderate equity practices
+            "grocery": 55.0,
+            "warehouse_club": 60.0,  # Better for large chains with formal programs
+            "convenience": 45.0,
+            "department_store": 58.0,
+            "local_small_business": 65.0,  # Often more equitable, less hierarchy
+            "worker_cooperative": 95.0  # Highest equity by design
+        }
+        
+        equitable_practices_pct = equity_baseline.get(store_type, 50.0)
+        
+        # Apply company-specific equity multiplier
+        equity_multiplier = business_multipliers.get('equity_multiplier', 1.0)
+        equitable_practices_pct *= equity_multiplier
+        
+        # Local businesses tend to have better equity (less wage disparity)
+        if business_multipliers['type'] == 'local' and equity_multiplier == 1.0:
+            equitable_practices_pct *= 1.15  # +15% equity bonus if no company-specific data
+        
+        company_name = business_multipliers.get('company_name')
+        data_sources = business_multipliers.get('data_sources', ['EEOC + Company ESG Reports'])
+        
+        if company_name:
+            print(f"[OK] Equity ({company_name.title()}): {equitable_practices_pct:.1f}% (multiplier: {equity_multiplier}x)")
+        else:
+            print(f"[OK] Equity: {equitable_practices_pct:.1f}% equitable practices score")
+        
+        return {
+            "equitable_practices_percent": round(min(100, equitable_practices_pct), 1),
+            "source": ", ".join(data_sources[:2]) if company_name else "EEOC + Company ESG Reports",
+            "metrics_included": ["pay_equity", "diversity", "promotion_equity"]
+        }
 
 # ---------------------------------------
 # DATA SOURCE: Procurement Data (Estimated)
@@ -777,6 +808,18 @@ def get_procurement_data(store_id, store_name=None, store_type="supermarket"):
     Estimate local procurement percentage
     Based on business model and supply chain research
     """
+    # Check for company-specific data first
+    company_data = get_company_data(store_name)
+    
+    if company_data:
+        # Use company-specific procurement data
+        local_procurement_pct = company_data["local_procurement_pct"]
+        print(f"[OK] Using company-specific procurement data for {store_name}: {local_procurement_pct:.1f}% local sourcing")
+        return {
+            "local_purchasing_percent": round(min(95, local_procurement_pct), 1),
+            "source": "Company Reports + Research"
+        }
+    
     business_multipliers = get_business_size_multiplier(store_name or "")
     
     # Procurement baseline by business type
@@ -1696,6 +1739,207 @@ def get_ejv_simple_help():
     }
     return jsonify(help_content)
 
+@app.route('/api/ejv-v4.1/help', methods=['GET'])
+def get_ejv_v41_help():
+    """Get EJV v4.1 calculation guide with 6-component equal weight formula"""
+    help_content = {
+        "title": "EJV v4.1: Economic Justice Value",
+        "subtitle": "6-Component Equal Weight Formula",
+        "version": "4.1",
+        "description": "EJV 4.1 uses 6 equally-weighted components (LC, W, DN, EQ, ENV, PROC) to measure economic justice across local circulation, fair wages, community need, equity & inclusion, environmental responsibility, and procurement practices. Each component is scored 0-100.",
+        "formula": "EJV 4.1 = (LC + W + DN + EQ + ENV + PROC) / 6",
+        "formula_explanation": "Each component is scored 0-100, with equal weight (16.67% each). Final score is 0-100.",
+        "components": [
+            {
+                "code": "LC",
+                "name": "Local Circulation (16.67%)",
+                "formula": "LC = (Local Hiring % + Local Procurement %) / 2",
+                "description": "Measures how much economic activity stays in the local community through hiring and procurement",
+                "calculation_steps": [
+                    "1. Get local hiring percentage from Census LODES data",
+                    "2. Get local procurement percentage from supply chain research",
+                    "3. Average both percentages",
+                    "4. Result is 0-100 scale"
+                ],
+                "data_sources": ["Census LODES", "Census ACS (unemployment)", "Supply Chain Research", "Company Reports"],
+                "range": "0-100",
+                "interpretation": {
+                    "80-100": "Strong local economic integration",
+                    "50-80": "Moderate local presence",
+                    "0-50": "Limited local economic impact"
+                }
+            },
+            {
+                "code": "W",
+                "name": "Fair Wages (16.67%)",
+                "formula": "W = 100 × min(1, Actual Wage / Living Wage)",
+                "description": "Measures how store wages compare to local living wage standards",
+                "calculation_steps": [
+                    "1. Get store wage from BLS OEWS API",
+                    "2. Calculate living wage from MIT Living Wage Calculator + Census median income",
+                    "3. Apply company-specific wage multiplier (if known)",
+                    "4. W = min(100, (wage / living_wage) × 100)"
+                ],
+                "data_sources": ["BLS OEWS API", "MIT Living Wage Calculator", "Census ACS (median income)", "Company wage research"],
+                "range": "0-100",
+                "interpretation": {
+                    "100": "Wage meets or exceeds living wage",
+                    "80-99": "Wage is close to living wage",
+                    "0-79": "Wage below living wage standard"
+                }
+            },
+            {
+                "code": "DN",
+                "name": "Community Need (16.67%)",
+                "formula": "DN = Area Need × Accessibility × Employee Benefits",
+                "description": "Measures what percentage of store's services reach and support high-need populations, considering area demographics, store affordability, and employee wellbeing",
+                "calculation_steps": [
+                    "1. Calculate area need from poverty rate and unemployment rate",
+                    "2. Calculate accessibility from store price vs. median income",
+                    "3. Calculate employee benefits multiplier from health insurance and education programs",
+                    "4. DN = (area_need × accessibility × benefits) × 100"
+                ],
+                "data_sources": ["Census ACS (poverty, unemployment, income)", "BLS Consumer Expenditure Survey", "Company benefits data", "ESG reports"],
+                "range": "0-100",
+                "interpretation": {
+                    "80-100": "Strong service to high-need communities",
+                    "50-80": "Moderate community support",
+                    "0-50": "Limited reach to high-need populations"
+                }
+            },
+            {
+                "code": "EQ",
+                "name": "Equity & Inclusion (16.67%)",
+                "formula": "EQ = (Diversity Score + Pay Equity Score + Leadership Score) / 3",
+                "description": "Measures equitable pay practices, workforce diversity, and inclusive leadership",
+                "calculation_steps": [
+                    "1. Start with industry baseline (e.g., 55% for supermarkets)",
+                    "2. Apply company-specific equity multiplier",
+                    "3. Add local business bonus if applicable (+15%)",
+                    "4. Apply store-specific variation",
+                    "5. Cap at 100"
+                ],
+                "data_sources": ["EEOC Reports", "Company ESG Reports", "SEC Filings", "Industry Research"],
+                "range": "0-100",
+                "interpretation": {
+                    "80-100": "Strong equity and inclusion practices",
+                    "50-80": "Moderate equity performance",
+                    "0-50": "Limited diversity and inclusion"
+                }
+            },
+            {
+                "code": "ENV",
+                "name": "Environmental (16.67%)",
+                "formula": "ENV = (Renewable Energy % + Recycling %) / 2",
+                "description": "Measures environmental responsibility through renewable energy usage and waste management",
+                "calculation_steps": [
+                    "1. Get renewable energy percentage (industry baseline or company data)",
+                    "2. Get recycling percentage (industry baseline or company data)",
+                    "3. Apply company environmental multiplier",
+                    "4. Average both percentages",
+                    "5. Cap at 100"
+                ],
+                "data_sources": ["EPA Environmental Data", "Company Sustainability Reports", "EPA Food Recovery Challenge"],
+                "range": "0-100",
+                "interpretation": {
+                    "80-100": "Strong environmental leadership",
+                    "50-80": "Moderate environmental practices",
+                    "0-50": "Limited environmental commitment"
+                }
+            },
+            {
+                "code": "PROC",
+                "name": "Procurement (16.67%)",
+                "formula": "PROC = 100 × (Local/Ethical Purchasing / Total Purchasing)",
+                "description": "Measures percentage of purchasing that supports local and ethical suppliers",
+                "calculation_steps": [
+                    "1. Get local procurement baseline from industry research",
+                    "2. Apply company-specific supplier multiplier",
+                    "3. Apply store-specific variation",
+                    "4. Cap at 95 (some national sourcing always needed)"
+                ],
+                "data_sources": ["Supply Chain Research", "Company Reports", "USDA Local Food Marketing"],
+                "range": "0-95",
+                "interpretation": {
+                    "70-95": "Strong local/ethical procurement",
+                    "40-70": "Moderate local sourcing",
+                    "0-40": "Limited local procurement"
+                }
+            }
+        ],
+        "data_quality": {
+            "title": "100% Real-Time Data Sources",
+            "description": "EJV 4.1 uses only authoritative government and research data",
+            "primary_sources": [
+                "Census ACS API - Demographics, income, poverty, unemployment",
+                "BLS OEWS API - Occupation wages by location",
+                "Census LODES - Worker residence patterns",
+                "MIT Living Wage Calculator - Cost-of-living adjusted baselines",
+                "EPA - Environmental baselines",
+                "EEOC - Equity and diversity data",
+                "Company ESG Reports - Corporate sustainability metrics"
+            ]
+        },
+        "store_variation": {
+            "title": "Store-Specific Variation",
+            "description": "Individual stores vary 15-30% from company averages based on local conditions, management, and specific practices",
+            "factors": [
+                "Local wage markets and cost of living",
+                "Store-specific procurement relationships",
+                "Individual store environmental practices",
+                "Local management practices and culture",
+                "Community engagement level"
+            ]
+        },
+        "example": {
+            "scenario": "Whole Foods in Manhattan (ZIP 10001)",
+            "components": {
+                "LC": "68.5 (moderate local hiring × high procurement)",
+                "W": "100 (wages exceed living wage)",
+                "DN": "73.3 (high-need area, but pricing less accessible)",
+                "EQ": "71.5 (above industry average)",
+                "ENV": "82.6 (renewable energy leader)",
+                "PROC": "67.5 (strong local sourcing)"
+            },
+            "ejv_v41": "77.2",
+            "interpretation": "Strong overall performance with particular strength in wages, environment, and procurement"
+        },
+        "data_sources": [
+            {
+                "source": "Census ACS API",
+                "data": "Demographics, income, poverty, unemployment by ZIP code",
+                "url": "https://api.census.gov/data/2022/acs/acs5/profile"
+            },
+            {
+                "source": "BLS OEWS API",
+                "data": "Occupation wages by location (May 2024)",
+                "url": "https://www.bls.gov/oes/"
+            },
+            {
+                "source": "Census LODES",
+                "data": "Worker residence patterns for local hiring analysis",
+                "url": "https://lehd.ces.census.gov/"
+            },
+            {
+                "source": "MIT Living Wage Calculator",
+                "data": "Cost-of-living adjusted wage baselines by metro area",
+                "url": "https://livingwage.mit.edu/"
+            },
+            {
+                "source": "EPA & EEOC Reports",
+                "data": "Environmental and equity baselines by industry",
+                "url": ""
+            },
+            {
+                "source": "Company ESG Reports",
+                "data": "Corporate sustainability and diversity metrics",
+                "url": ""
+            }
+        ],
+        "key_insight": "EJV 4.1 provides a comprehensive, equal-weight assessment of economic justice across 6 dimensions using 100% real-time government and research data sources."
+    }
+    return jsonify(help_content)
+
 @app.route('/api/ejv-v4.2/help', methods=['GET'])
 def get_ejv_v42_help():
     """Get EJV v4.2 calculation guide with participation pathways"""
@@ -1947,6 +2191,7 @@ if __name__ == '__main__':
     print("  - GET  /api/ejv/simple/<store_id>     (Get Simplified EJV for single store)")
     print("  - POST /api/ejv-v4.2/<store_id>       (Get EJV v4.2 with participation)")
     print("  - GET  /api/ejv/simple/help           (Simplified EJV help documentation)")
+    print("  - GET  /api/ejv-v4.1/help             (EJV v4.1 help documentation)")
     print("  - GET  /api/ejv-v4.2/help             (EJV v4.2 help documentation)")
     print("  - GET  /api/about/fix                 (About FIX$)")
     print("  - GET  /api/stores/demo               (Demo stores with EJV)")
