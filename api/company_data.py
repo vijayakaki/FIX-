@@ -309,7 +309,7 @@ def get_company_data(store_name):
         dict: Company data or None
     """
     if not store_name:
-        print("[DEBUG] get_company_data: No store_name provided")
+        print("❌ [DEBUG] get_company_data: No store_name provided")
         return None
     
     # Normalize store name for matching

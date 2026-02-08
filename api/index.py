@@ -1844,6 +1844,20 @@ def health():
     """Health check endpoint"""
     return jsonify({"status": "healthy", "message": "FIX$ EJV API is running"})
 
+@app.route('/api/test-company/<store_name>', methods=['GET'])
+def test_company_match(store_name):
+    """Test endpoint to check company data matching"""
+    from company_data import get_company_data, COMPANY_DATA
+    
+    company_data = get_company_data(store_name)
+    
+    return jsonify({
+        "input": store_name,
+        "matched": company_data is not None,
+        "data": company_data,
+        "available_companies": list(COMPANY_DATA.keys())[:20]
+    })
+
 @app.route('/api/ejv/simple/help', methods=['GET'])
 def get_ejv_simple_help():
     """Get Simplified 5-Component EJV calculation guide with data sources and explanation"""
